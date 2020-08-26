@@ -50,7 +50,7 @@ to be updated ...
 
 To test download resumption, uncomment #define DEBUG and build again, then,
 $ ./maestro 
-resumption still needs a lot optimization, but it works with firefox.
+resumption still needs a lot of optimization, but it works with firefox.
 ```
 
 ## Note
