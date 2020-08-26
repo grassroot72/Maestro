@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+<head>
+  <title>Example Homepage</title>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="script/jquery-3.5.1.min.js"></script>
+  <script>
+    $(document).ready(function(){
+      $("#flip").click(function(){
+        $("#panel").slideDown("slow");
+      });
+    });
+  </script>
+  <link rel="stylesheet" type="text/css" href="css/style.css">
+</head>
+
+<body>
+  <div id="flip">Click Me to Slide Down</div>
+  <div id="panel">
+    <h3><p>Hello world!</p></h3>
+    <img src="data:image/png;base64,
+             iVBORw0KGgoAAAANSUhEUgAAAAUA
+             AAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO
+             9TXL0Y4OHwAAAABJRU5ErkJggg==" alt="Red dot">
+    <img src="image/slackware.png" alt="slackware logo">
+    <img src="image/html5.jpe" alt="HTML5 logo">
+    <img src="image/css.jpe" alt="Cascading Style Sheets logo">
+    <img src="image/manjaro.svg" alt="Manjaro logo" height="75" width="75">
+    <p><a href="ASCII.32-127.txt">ASCII printable characters (32-127)</a></p>
+    <p>ASCII was the first character encoding standard (also called character set).
+       Because ANSI and ISO-8859-1 were so limited, HTML 4 also supported UTF-8.
+       UTF-8 (Unicode) covers almost all of the characters and symbols in the world.
+       The default character set for HTML5 is UTF-8.</p>
+  </div>
+</body>
+</html>
