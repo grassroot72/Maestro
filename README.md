@@ -45,7 +45,7 @@ Please replace localhost to your hostname if you would like to test on
 other computers.
  
 The following is the test result on my very low-end laptop,
-to be updated ...
+<to be updated ...>
 ...
 
 To test download resumption, uncomment #define DEBUG and build again, then,
