@@ -57,34 +57,34 @@ Document Path:          /bench.html
 Document Length:        142 bytes
 
 Concurrency Level:      100
-Time taken for tests:   12.456 seconds
+Time taken for tests:   10.981 seconds
 Complete requests:      5000
 Failed requests:        0
 Keep-Alive requests:    5000
 Total transferred:      1790000 bytes
 HTML transferred:       710000 bytes
-Requests per second:    401.41 [#/sec] (mean)
-Time per request:       249.120 [ms] (mean)
-Time per request:       2.491 [ms] (mean, across all concurrent requests)
-Transfer rate:          140.34 [Kbytes/sec] received
+Requests per second:    455.31 [#/sec] (mean)
+Time per request:       219.629 [ms] (mean)
+Time per request:       2.196 [ms] (mean, across all concurrent requests)
+Transfer rate:          159.18 [Kbytes/sec] received
 
 Connection Times (ms)
               min  mean[+/-sd] median   max
-Connect:        0    6 160.5      0    7327
-Processing:    30  232 157.0    172    1013
-Waiting:        8   83  43.7     67     399
-Total:         32  238 223.3    172    7428
+Connect:        0    5 125.4      0    7145
+Processing:    35  204 138.3    147     880
+Waiting:        8   69  23.4     66     544
+Total:         36  209 186.3    147    7263
 
 Percentage of the requests served within a certain time (ms)
-  50%    172
-  66%    216
-  75%    261
-  80%    303
-  90%    507
-  95%    596
-  98%    691
-  99%    753
- 100%   7428 (longest request)
+  50%    147
+  66%    169
+  75%    193
+  80%    230
+  90%    462
+  95%    527
+  98%    587
+  99%    650
+ 100%   7263 (longest request)
 
 If you test it on most recently manufactured computers, you will get much 
 better benchmark results.

@@ -42,6 +42,36 @@ _set_nonblocking(int fd)
     perror("fcntl()");
 }
 
+static void
+_expire_timers(list_t *timers)
+{
+  httpconn_t *conn;
+  int sockfd;
+
+  node_t *timer;
+  long cur_time;
+  long stamp;
+
+  timer = list_first(timers);
+  if (timer) {
+    cur_time = mstime();
+    do {
+      stamp = list_node_stamp(timer);
+
+      if (cur_time - stamp >= HTTP_KEEPALIVE_TIME) {
+        conn = (httpconn_t *)list_node_data(timer);
+        sockfd = httpconn_sockfd(conn);
+        printf("[CONN] socket closed [%d]\n", sockfd);
+        DEBSI("[CONN] server disconnected", sockfd);
+        close(sockfd);
+
+        list_del(timers, stamp);
+      }
+
+      timer = list_next(timers);
+    } while (timer);
+  }
+}
 
 static volatile int svc_running = 1;
 
@@ -79,9 +109,6 @@ main(int argc, char** argv)
   thpool_t *taskpool;
 
   list_t *timers;
-  node_t *timer;
-  long cur_time;
-  long stamp;
 
   /*
    * install signal handle for SIGPIPE
@@ -165,25 +192,8 @@ main(int argc, char** argv)
     if (nevents == -1) perror("epoll_wait()");
 
     /* expire the timers */
-    timer = list_first(timers);
-    if (timer) {
-      cur_time = mstime();
-      do {
-        stamp = list_node_stamp(timer);
+    _expire_timers(timers);
 
-        if (cur_time - stamp >= HTTP_KEEPALIVE_TIME) {
-          conn = (httpconn_t *)list_node_data(timer);
-          sockfd = httpconn_sockfd(conn);
-          printf("[CONN] socket closed [%d]\n", sockfd);
-          DEBSI("[CONN] server disconnected", sockfd);
-          close(sockfd);
-
-          list_del(timers, stamp);
-        }
-
-        timer = list_next(timers);
-      } while (timer);
-    }
 
     /* loop through events */
     for (i = 0; i < nevents; i++) {
