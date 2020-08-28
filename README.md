@@ -103,12 +103,12 @@ use it for download resumption test.
 ## Todo
 ```
 I want to develop an HTTP/1.1 compatible webserver as well as an application 
-server which will skip traditional CGI function and directly provide dynamic 
+server which skips traditional CGI function and directly provides dynamic 
 services (POST/PUT/DELETE...) through built-in functions.
 
 todo list:
-HTTP/1.1 POST/PUT/DELETE
-build-in cache to provide better GET performance
-industry level logging
-HTTPS
+-- HTTP/1.1 POST/PUT/DELETE
+-- build-in cache to provide better GET performance
+-- industry level logging
+-- HTTPS
 ```
