@@ -30,6 +30,15 @@
 #define PORT 9000
 
 
+
+static volatile int svc_running = 1;
+
+static void
+_svc_stopper(int dummy)
+{
+  svc_running = 0;
+}
+
 static void
 _set_nonblocking(int fd)
 {
@@ -73,22 +82,105 @@ _expire_timers(list_t *timers)
   }
 }
 
-static volatile int svc_running = 1;
-
 static void
-_svc_stopper(int dummy)
+_receive_conn(int srvfd, int epfd, list_t *timers)
 {
-  svc_running = 0;
+  int clifd;
+  struct sockaddr cliaddr;
+  socklen_t len_cliaddr = sizeof(struct sockaddr);
+  char *cli_ip;
+
+  httpconn_t *cliconn;
+  struct epoll_event event;
+
+  /* server socket; accept connections */
+  do {
+    clifd = accept(srvfd, &cliaddr, &len_cliaddr);
+
+    if (clifd == -1) {
+      if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) {
+        /* we processed all of the connections */
+        break;
+      }
+      perror("accept()");
+      close(clifd);
+      break;
+    }
+
+    cli_ip = inet_ntoa(((struct sockaddr_in *)&cliaddr)->sin_addr);
+    printf("[%s] connected on socket [%d]\n", cli_ip, clifd);
+
+    _set_nonblocking(clifd);
+    cliconn = httpconn_new(clifd, epfd, timers);
+    event.data.ptr = (void *)cliconn;
+    /*
+     * With the use of EPOLLONESHOT, it is guaranteed that
+     * a client file descriptor is only used by one thread
+     * at a time
+     */
+    event.events = EPOLLIN | EPOLLET | EPOLLONESHOT;
+    if (epoll_ctl(epfd, EPOLL_CTL_ADD, clifd, &event) == -1) {
+      perror("epoll_ctl()");
+      return;
+    }
+  } while (1);
 }
 
+static int
+_create_srv_socket()
+{
+  int srvfd;
+  int opt = 1;
+
+  srvfd = socket(AF_INET, SOCK_STREAM, 0);
+  if (srvfd == -1) {
+    perror("socket()");
+    return -1;
+  }
+
+  if (setsockopt(srvfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1) {
+    perror("setsockopt()");
+    return -1;
+  }
+
+  return srvfd;
+}
+
+static int
+_bind(int srvfd, short port)
+{
+  struct sockaddr_in srvaddr;
+
+  memset(&srvaddr, 0, sizeof(struct sockaddr_in));
+  srvaddr.sin_family = AF_INET;
+  srvaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+  srvaddr.sin_port = htons(port);
+
+  if (bind(srvfd, (struct sockaddr*)&srvaddr, sizeof(struct sockaddr_in)) < 0) {
+    perror("bind()");
+    return -1;
+  }
+
+  return 0;
+}
+
+static int
+_listen(int srvfd)
+{
+  _set_nonblocking(srvfd);
+  if (listen(srvfd, SOMAXCONN) < 0) {
+    perror("listen()");
+    return -1;
+  }
+
+  return 0;
+}
 
 int
 main(int argc, char** argv)
 {
   int srvfd;
-  int clifd;
   int sockfd;
-  int opt = 1;
   int rc, i;
 
   int epfd;
@@ -96,13 +188,7 @@ main(int argc, char** argv)
   struct epoll_event event;
   struct epoll_event *events;
 
-  struct sockaddr_in srvaddr;
-  struct sockaddr cliaddr;
-  socklen_t len_cliaddr = sizeof(struct sockaddr);
-  char *cli_ip;
-
   httpconn_t *srvconn;
-  httpconn_t *cliconn;
   httpconn_t *conn;
 
   int np;
@@ -127,7 +213,6 @@ main(int argc, char** argv)
   /* ctrl-c handler */
   signal(SIGINT, _svc_stopper);
 
-
   /* detect number of cpu cores and use it for thread pool */
   np = get_nprocs();
   taskpool = thpool_init(np * THREADS_PER_CORE);
@@ -136,42 +221,19 @@ main(int argc, char** argv)
 
 
   /* create the server socket */
-  srvfd = socket(AF_INET, SOCK_STREAM, 0);
-  if (srvfd == -1) {
-    perror("socket()");
-    return 1;
-  }
-
-  rc = setsockopt(srvfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
-  if (rc == -1) {
-    perror("setsockopt()");
-    return 1;
-  }
-
+  srvfd = _create_srv_socket();
   /* bind */
-  memset(&srvaddr, 0, sizeof(struct sockaddr_in));
-  srvaddr.sin_family = AF_INET;
-  srvaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-  srvaddr.sin_port = htons(PORT);
-  rc = bind(srvfd, (struct sockaddr*)&srvaddr, sizeof(struct sockaddr_in));
-  if (rc < 0) {
-    perror("bind()");
-    return 1;
-  }
-
+  _bind(srvfd, PORT);
   /* make it nonblocking, and then listen */
-  _set_nonblocking(srvfd);
-  if (listen(srvfd, SOMAXCONN) < 0) {
-    perror("listen()");
-    return 1;
-  }
+  _listen(srvfd);
   printf("listening on port [%d]\n", PORT);
+
 
   /* create the epoll socket */
   epfd = epoll_create1(0);
   if (epfd == -1) {
     perror("epoll_create1()");
-    return 1;
+    return -1;
   }
 
   /* mark the server socket for reading, and become edge-triggered */
@@ -209,38 +271,7 @@ main(int argc, char** argv)
       }
 
       else if (sockfd == srvfd) {
-        /* server socket; accept connections */
-        do {
-          clifd = accept(srvfd, &cliaddr, &len_cliaddr);
-
-          if (clifd == -1) {
-            if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) {
-              /* we processed all of the connections */
-              break;
-            }
-            perror("accept()");
-            close(clifd);
-            break;
-          }
-
-          cli_ip = inet_ntoa(((struct sockaddr_in *)&cliaddr)->sin_addr);
-          printf("[%s] connected on socket [%d]\n", cli_ip, clifd);
-
-          _set_nonblocking(clifd);
-          cliconn = httpconn_new(clifd, epfd, timers);
-          event.data.ptr = (void *)cliconn;
-          /*
-           * With the use of EPOLLONESHOT, it is guaranteed that
-           * a client file descriptor is only used by one thread
-           * at a time
-           */
-          event.events = EPOLLIN | EPOLLET | EPOLLONESHOT;
-          rc = epoll_ctl(epfd, EPOLL_CTL_ADD, clifd, &event);
-          if (rc == -1) {
-            perror("epoll_ctl()");
-            return 1;
-          }
-        } while (1);
+        _receive_conn(srvfd, epfd, timers);
       }
 
       else {
