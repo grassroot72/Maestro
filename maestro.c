@@ -51,7 +51,7 @@ _set_nonblocking(int fd)
 }
 
 static void
-_expire_timers(list_t *timers)
+_expire_timers(list_t *timers, long timeout)
 {
   httpconn_t *conn;
   int sockfd;
@@ -66,7 +66,7 @@ _expire_timers(list_t *timers)
     do {
       stamp = list_node_stamp(timer);
 
-      if (cur_time - stamp >= HTTP_KEEPALIVE_TIME) {
+      if (cur_time - stamp >= timeout) {
         conn = (httpconn_t *)list_node_data(timer);
         sockfd = httpconn_sockfd(conn);
         printf("[CONN] socket closed [%d]\n", sockfd);
@@ -252,7 +252,7 @@ main(int argc, char** argv)
     if (nevents == -1) perror("epoll_wait()");
 
     /* expire the timers */
-    _expire_timers(timers);
+    _expire_timers(timers, HTTP_KEEPALIVE_TIME);
 
 
     /* loop through events */
