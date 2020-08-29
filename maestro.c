@@ -180,7 +180,7 @@ main(int argc, char** argv)
 {
   int srvfd;
   int sockfd;
-  int rc, i;
+  int i;
 
   int epfd;
   int nevents;
@@ -240,8 +240,7 @@ main(int argc, char** argv)
   srvconn = httpconn_new(srvfd, epfd, NULL);
   event.data.ptr = (void *)srvconn;
   event.events = EPOLLIN | EPOLLET;
-  rc = epoll_ctl(epfd, EPOLL_CTL_ADD, srvfd, &event);
-  if (rc == -1) {
+  if (epoll_ctl(epfd, EPOLL_CTL_ADD, srvfd, &event) == -1) {
     perror("epoll_ctl()");
     return -1;
   }
