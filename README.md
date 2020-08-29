@@ -108,7 +108,8 @@ services (POST/PUT/DELETE...) through built-in functions.
 
 todo list:
 -- HTTP/1.1 POST/PUT/DELETE
--- build-in cache to provide better GET performance
+-- built-in cache to provide better GET performance
+-- improve download resumption
 -- industry level logging
 -- HTTPS
 ```
