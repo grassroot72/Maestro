@@ -60,8 +60,8 @@ httpconn_task(void *arg)
   char *method;
   char *path;
 
-
   httpmsg_t *req;
+
 
   bytes = io_read_socket(conn->sockfd, &rc);
 
