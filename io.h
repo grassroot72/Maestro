@@ -8,8 +8,6 @@
 #define _IO_H_
 
 
-#define BUF_SIZE 255
-
 char *io_read_socket(int sockfd, int *rc);
 char *io_fgetc(FILE *fpipe, int *len);
 char *io_fread(FILE *fpipe, int len);

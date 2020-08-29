@@ -7,9 +7,80 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <assert.h>
+#include <errno.h>
 #include "io.h"
+#include "debug.h"
 
+
+#define BUF_SIZE 255
+#define BUF_MAX_SIZE 8192
+
+
+char *
+io_read_socket(int sockfd, int *rc)
+{
+  int n;
+  char buf[BUF_SIZE];
+  char workbuf[BUF_MAX_SIZE];
+  char *last;
+  int last_sz;
+
+  char *bytes = NULL;
+
+  workbuf[0] = '\0';
+  last = workbuf;
+  last_sz = 0;
+
+  /* use loop to read as much as possible in a task */
+  do {
+    n = read(sockfd, buf, BUF_SIZE);
+
+    /* the client stop sending data: EOF reached */
+    if (n == 0) {
+      *rc = 0;
+      return NULL;
+    }
+    if (n == -1) {
+      /* socket blocked */
+      if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) {
+        DEBSI("[CONN] temp error reading socket", conn->sockfd);
+        continue;
+      }
+      else {
+        perror("read()");
+        *rc = -1;
+        return NULL;
+      }
+    }
+
+    memcpy(last, buf, n);
+    last += n;
+    last_sz += n;
+
+    if (n < BUF_SIZE) {
+      *last = '\0';
+      last_sz++;
+      bytes = malloc(last_sz);
+      memcpy(bytes, workbuf, last_sz);
+      *rc = 1;
+      return bytes;
+    }
+  } while (1);
+}
+
+char *
+io_fread(FILE *f, int len)
+{
+  char *buf;
+
+  buf = malloc(len);
+  fread(buf, 1, len, f);
+  fclose(f);
+
+  return buf;
+}
 
 char *
 io_fgetc(FILE *f, int *len)
@@ -35,18 +106,6 @@ io_fgetc(FILE *f, int *len)
 
   buf[index] = '\0';
   *len = index;
-  fclose(f);
-
-  return buf;
-}
-
-char *
-io_fread(FILE *f, int len)
-{
-  char *buf;
-
-  buf = malloc(len);
-  fread(buf, 1, len, f);
   fclose(f);
 
   return buf;

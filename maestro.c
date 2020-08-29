@@ -30,7 +30,6 @@
 #define PORT 9000
 
 
-
 static volatile int svc_running = 1;
 
 static void
@@ -147,7 +146,7 @@ _create_srv_socket()
 }
 
 static int
-_bind(int srvfd, short port)
+_bind(int srvfd, uint16_t port)
 {
   struct sockaddr_in srvaddr;
 
@@ -244,7 +243,7 @@ main(int argc, char** argv)
   rc = epoll_ctl(epfd, EPOLL_CTL_ADD, srvfd, &event);
   if (rc == -1) {
     perror("epoll_ctl()");
-    return 1;
+    return -1;
   }
 
   events = calloc(MAXEVENTS, sizeof(struct epoll_event));
