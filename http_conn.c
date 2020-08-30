@@ -7,13 +7,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 #include <errno.h>
 #include <sys/epoll.h>
-#include "io.h"
 #include "util.h"
+#include "io.h"
 #include "linkedlist.h"
-#include "thpool.h"
 #include "http_msg.h"
 #include "http_parser.h"
 #include "http_svc.h"
@@ -90,7 +88,7 @@ httpconn_task(void *arg)
         /* todo: _rep_get_dynamic() */
       }
       else {
-        http_rep_get(conn->sockfd, path, req, 0);
+        http_rep_get(conn->sockfd, path, req);
         cur_time = mstime();
         list_update(timers, conn, cur_time);
       }
@@ -103,7 +101,7 @@ httpconn_task(void *arg)
     */
 
     if (strcmp(method, "HEAD") == 0)
-      http_rep_get(conn->sockfd, path, req, 1);
+      http_rep_get(conn->sockfd, path, req);
 
     msg_destroy(req);
     free(bytes);

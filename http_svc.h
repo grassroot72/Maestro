@@ -8,7 +8,8 @@
 #define _HTTP_SVC_H_
 
 
-void http_rep_get(int clifd, char *path, httpmsg_t *req, int head_method);
+void http_rep_get(int clifd, char *path, httpmsg_t *req);
+void http_rep_head(int clifd, char *path, httpmsg_t *req);
 
 
 #endif

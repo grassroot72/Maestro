@@ -20,11 +20,10 @@
 #include <errno.h>
 #include "util.h"
 #include "io.h"
+#include "linkedlist.h"
 #include "base64.h"
 #include "deflate.h"
-#include "thpool.h"
 #include "http_msg.h"
-#include "http_parser.h"
 #include "http_svc.h"
 #include "debug.h"
 
@@ -247,13 +246,37 @@ _build_rep(char *ext, char *fullpath, char *body, int len_body, httpmsg_t *req)
   return rep;
 }
 
+char *
+_build_404(int *len_body)
+{
+  char *body;
+
+  perror("[SVC]");
+  body = strdup("<html><body>404 Page Not Found</body></html>");
+  *len_body = strlen(body);
+
+  return body;
+}
+
+char *
+_build_body(FILE *f, char *fullpath, int *len_body)
+{
+  char *body;
+  struct stat sb;
+
+  stat(fullpath, &sb);
+  *len_body = sb.st_size;
+  body = io_fread(f, *len_body);
+
+  return body;
+}
+
 void
-http_rep_get(int clifd, char *path, httpmsg_t *req, int head_method)
+http_rep_head(int clifd, char *path, httpmsg_t *req)
 {
   FILE *f;
   char *body;
   int len_body;
-  struct stat sb;
 
   char *ext;
   httpmsg_t *rep;
@@ -274,16 +297,56 @@ http_rep_get(int clifd, char *path, httpmsg_t *req, int head_method)
 
   f = fopen(fullpath, "r");
   if (!f) {
-    perror("[SVC]");
-    body = strdup("<html><body>404 Page Not Found</body></html>");
-    len_body = strlen(body);
+    body = _build_404(&len_body);
     rep = _build_rep("html", NULL, body, len_body, req);
     bytes = msg_create_rep(rep, &len_msg);
   }
   else {
-    stat(fullpath, &sb);
-    len_body = sb.st_size;
-    body = io_fread(f, len_body);
+    body = _build_body(f, fullpath, &len_body);
+    rep = _build_rep(ext, fullpath, body, len_body, req);
+    bytes = msg_create_rep(rep, &len_msg);
+  }
+
+  /* send msg */
+  DEBSI("[SVC] Sending reply msg...", clifd);
+  write(clifd, bytes, len_msg);
+
+  free(bytes);
+  msg_destroy(rep);
+}
+
+void
+http_rep_get(int clifd, char *path, httpmsg_t *req)
+{
+  FILE *f;
+  char *body;
+  int len_body;
+
+  char *ext;
+  httpmsg_t *rep;
+  int len_msg;
+  char *bytes;
+
+  char curdir[MAX_CWD];
+  char fullpath[MAX_PATH];
+
+  /* get the fullpath and extention of a file */
+  if (!getcwd(curdir, MAX_CWD)) {
+    perror("Couldn't read curdir");
+  }
+  strcpy(fullpath, curdir);
+  strcat(fullpath, path);
+  ext = find_ext(path);
+  DEBSS("[SVC] Opening file", fullpath);
+
+  f = fopen(fullpath, "r");
+  if (!f) {
+    body = _build_404(&len_body);
+    rep = _build_rep("html", NULL, body, len_body, req);
+    bytes = msg_create_rep(rep, &len_msg);
+  }
+  else {
+    body = _build_body(f, fullpath, &len_body);
     rep = _build_rep(ext, fullpath, body, len_body, req);
     bytes = msg_create_rep(rep, &len_msg);
   }
@@ -292,10 +355,8 @@ http_rep_get(int clifd, char *path, httpmsg_t *req, int head_method)
   DEBSI("[SVC] Sending reply msg...", clifd);
   write(clifd, bytes, len_msg);
   /* send body */
-  if (!head_method) {
-    DEBSI("[SVC] Sending body...", clifd);
-    write(clifd, msg_body_start(rep), msg_body_len(rep));
-  }
+  DEBSI("[SVC] Sending body...", clifd);
+  write(clifd, msg_body_start(rep), msg_body_len(rep));
 
   free(bytes);
   msg_destroy(rep);
