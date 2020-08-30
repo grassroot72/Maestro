@@ -3,7 +3,7 @@
 This project aims to create a tiny but functional application server by 
 leveraging multithread and epoll features of linux OS. 
  
-All the source code is written in C. 
+All the source code is written in C.
  
 The project is a WIP (Work In Progress) project. It is still in its infant 
 stage. More features will be added in the future.
@@ -27,14 +27,14 @@ stage. More features will be added in the future.
 git clone https://github.com/grassroot72/Maestro.git
 ```
 
-## Building
+## Build & Run
 ```
 $ make
 ...
 $ ./maestro
 ```
 
-## Testing
+## Test
 ```
 Running Apache Bench, I used the following command,
 $ ab -k -n 5000 -c 100 http://localhost:9000/bench.html 
@@ -93,6 +93,7 @@ better benchmark results.
 To test download resumption, uncomment #define DEBUG and build again, then,
 $ ./maestro 
 resumption still needs a lot of optimization, but it works with firefox.
+
 ```
 
 ## Note
