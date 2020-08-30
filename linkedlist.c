@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2019  Alan Skorkin
+ * https://github.com/skorks/c-linked-list
  *
  * I reformatted the code according to my coding style, made heavy tweeks
  * and add my code as well
