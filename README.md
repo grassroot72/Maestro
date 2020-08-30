@@ -15,6 +15,7 @@ stage. More features will be added in the future.
 -- Multithread pool
 -- Epoll (so, linux specific)
 -- HTTP/1.1 GET method (static file)
+-- HTTP/1.1 HEAD method (static file)
 -- HTTP/1.1 keep-alive (long connection, disconnected after timeouts)
 -- deflate compression
 -- download resumption
