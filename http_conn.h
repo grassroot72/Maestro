@@ -11,11 +11,8 @@
 typedef struct _httpconn httpconn_t;
 
 
-httpconn_t *httpconn_new(int sockfd, int epfd, void *timers);
-void httpconn_set_timer(httpconn_t *conn, void *timerpool);
-
+httpconn_t *httpconn_new(int sockfd, int epfd, void *cache, void *timers);
 int httpconn_sockfd(httpconn_t *conn);
-
 void httpconn_task(void *arg);
 
 

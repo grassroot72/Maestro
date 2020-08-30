@@ -23,16 +23,18 @@ struct _httpconn {
   int sockfd;
   int epfd;
 
+  list_t *cache;
   list_t *timers;
 };
 
 
 httpconn_t *
-httpconn_new(int sockfd, int epfd, void *timers)
+httpconn_new(int sockfd, int epfd, void *cache, void *timers)
 {
   httpconn_t *conn = malloc(sizeof(struct _httpconn));
   conn->sockfd = sockfd;
   conn->epfd = epfd;
+  conn->cache = (list_t *)cache;
   conn->timers = (list_t *)timers;
 
   return conn;

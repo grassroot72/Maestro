@@ -82,7 +82,7 @@ _expire_timers(list_t *timers, long timeout)
 }
 
 static void
-_receive_conn(int srvfd, int epfd, list_t *timers)
+_receive_conn(int srvfd, int epfd, list_t *cache, list_t *timers)
 {
   int clifd;
   struct sockaddr cliaddr;
@@ -110,7 +110,7 @@ _receive_conn(int srvfd, int epfd, list_t *timers)
     printf("[%s] connected on socket [%d]\n", cli_ip, clifd);
 
     _set_nonblocking(clifd);
-    cliconn = httpconn_new(clifd, epfd, timers);
+    cliconn = httpconn_new(clifd, epfd, cache, timers);
     event.data.ptr = (void *)cliconn;
     /*
      * With the use of EPOLLONESHOT, it is guaranteed that
@@ -193,6 +193,7 @@ main(int argc, char** argv)
   int np;
   thpool_t *taskpool;
 
+  list_t *cache;
   list_t *timers;
 
   /*
@@ -215,6 +216,8 @@ main(int argc, char** argv)
   /* detect number of cpu cores and use it for thread pool */
   np = get_nprocs();
   taskpool = thpool_init(np * THREADS_PER_CORE);
+  /* list of files cached in the memory */
+  cache = list_new();
   /* list of timers */
   timers = list_new();
 
@@ -237,7 +240,7 @@ main(int argc, char** argv)
 
   /* mark the server socket for reading, and become edge-triggered */
   memset(&event, 0, sizeof(struct epoll_event));
-  srvconn = httpconn_new(srvfd, epfd, NULL);
+  srvconn = httpconn_new(srvfd, epfd, NULL, NULL);
   event.data.ptr = (void *)srvconn;
   event.events = EPOLLIN | EPOLLET;
   if (epoll_ctl(epfd, EPOLL_CTL_ADD, srvfd, &event) == -1) {
@@ -263,13 +266,13 @@ main(int argc, char** argv)
       /* error case */
       if ((events[i].events & EPOLLERR) || (events[i].events & EPOLLHUP) ||
           (!(events[i].events & EPOLLIN))) {
-        perror("EPOLL ERR|HUP|OUT");
+        perror("EPOLL ERR|HUP");
         list_update(timers, conn, mstime());
         break;
       }
 
       else if (sockfd == srvfd) {
-        _receive_conn(srvfd, epfd, timers);
+        _receive_conn(srvfd, epfd, cache, timers);
       }
 
       else {
@@ -282,6 +285,7 @@ main(int argc, char** argv)
   thpool_wait(taskpool);
   thpool_destroy(taskpool);
 
+  list_destroy(cache);
   list_destroy(timers);
   free(srvconn);
   close(epfd);
