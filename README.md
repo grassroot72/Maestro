@@ -54,37 +54,37 @@ Server Hostname:        warrior
 Server Port:            9000
 
 Document Path:          /bench.html
-Document Length:        142 bytes
+Document Length:        1025 bytes
 
 Concurrency Level:      100
-Time taken for tests:   9.791 seconds
+Time taken for tests:   12.017 seconds
 Complete requests:      5000
 Failed requests:        0
 Keep-Alive requests:    5000
-Total transferred:      1790000 bytes
-HTML transferred:       710000 bytes
-Requests per second:    510.66 [#/sec] (mean)
-Time per request:       195.825 [ms] (mean)
-Time per request:       1.958 [ms] (mean, across all concurrent requests)
-Transfer rate:          178.53 [Kbytes/sec] received
+Total transferred:      6465000 bytes
+HTML transferred:       5125000 bytes
+Requests per second:    416.09 [#/sec] (mean)
+Time per request:       240.331 [ms] (mean)
+Time per request:       2.403 [ms] (mean, across all concurrent requests)
+Transfer rate:          506.30 [Kbytes/sec] received
 
 Connection Times (ms)
               min  mean[+/-sd] median   max
-Connect:        0    1  22.8      0    1066
-Processing:    32  189 137.6    131     726
-Waiting:        9   62  23.6     58     593
-Total:         34  190 140.4    131    1183
+Connect:        0    3  59.6      0    3229
+Processing:    34  228 154.9    155     863
+Waiting:       11   80  46.8     70     387
+Total:         40  231 166.0    155    3365
 
 Percentage of the requests served within a certain time (ms)
-  50%    131
-  66%    151
-  75%    168
-  80%    229
-  90%    458
-  95%    515
-  98%    569
-  99%    611
- 100%   1183 (longest request)
+  50%    155
+  66%    179
+  75%    202
+  80%    395
+  90%    510
+  95%    568
+  98%    631
+  99%    667
+ 100%   3365 (longest request)
 
 If you test it on most recently manufactured computers, you will get much 
 better benchmark results.
