@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2020 Micha Mettke
+ * https://github.com/vurtun/sdefl
  *
  * I reformatted the code according to my coding style.
  *
