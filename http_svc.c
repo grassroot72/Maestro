@@ -274,7 +274,6 @@ _get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
   char *ext;
   httpmsg_t *rep;
 
-
   char curdir[MAX_CWD];
   char fullpath[MAX_PATH];
 

@@ -50,7 +50,6 @@ void
 httpconn_task(void *arg)
 {
   httpconn_t *conn = (struct _httpconn *)arg;
-  list_t *timers = conn->timers;
   long cur_time;
   struct epoll_event event;
 
@@ -103,7 +102,7 @@ httpconn_task(void *arg)
       http_rep_head(conn->sockfd, conn->cache, path, req);
 
     cur_time = mstime();
-    list_update(timers, conn, cur_time);
+    list_update(conn->timers, conn, cur_time);
     msg_destroy(req);
     free(bytes);
 
