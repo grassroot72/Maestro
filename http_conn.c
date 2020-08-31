@@ -90,7 +90,7 @@ httpconn_task(void *arg)
         /* todo: _rep_get_dynamic() */
       }
       else
-        http_rep_get(conn->sockfd, path, req);
+        http_rep_get(conn->sockfd, conn->cache, path, req);
     }
 
     /* todo:
@@ -100,7 +100,7 @@ httpconn_task(void *arg)
     */
 
     if (strcmp(method, "HEAD") == 0)
-      http_rep_head(conn->sockfd, path, req);
+      http_rep_head(conn->sockfd, conn->cache, path, req);
 
     cur_time = mstime();
     list_update(timers, conn, cur_time);

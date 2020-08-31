@@ -198,8 +198,8 @@ main(int argc, char** argv)
 
   /*
    * install signal handle for SIGPIPE
-   * when a fd is closed by remote, writing to this fd will cause system send
-   * SIGPIPE to this process, which exit the program
+   * when a fd is closed by remote, writing to this fd will cause system
+   * send SIGPIPE to this process, which exit the program
    */
   struct sigaction sa;
   memset(&sa, '\0', sizeof(struct sigaction));
