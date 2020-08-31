@@ -131,7 +131,7 @@ _add_mime_type(httpmsg_t *rep, char *ext)
 }
 
 static httpmsg_t *
-_build_rep(char *ext, char *fullpath, char *body, int len_body, httpmsg_t *req)
+_get_rep(char *ext, char *fullpath, char *body, int len_body, httpmsg_t *req)
 {
   long rep_time;
   char rep_date[30];
@@ -240,7 +240,7 @@ _build_rep(char *ext, char *fullpath, char *body, int len_body, httpmsg_t *req)
 }
 
 char *
-_build_404(int *len_body)
+_404_body(int *len_body)
 {
   char *body;
 
@@ -252,7 +252,7 @@ _build_404(int *len_body)
 }
 
 char *
-_build_body(FILE *f, char *fullpath, int *len_body)
+_get_body(FILE *f, char *fullpath, int *len_body)
 {
   char *body;
   struct stat sb;
@@ -264,8 +264,8 @@ _build_body(FILE *f, char *fullpath, int *len_body)
   return body;
 }
 
-void
-http_rep_head(int clifd, char *path, httpmsg_t *req)
+httpmsg_t *
+_get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
 {
   FILE *f;
   char *body;
@@ -273,8 +273,7 @@ http_rep_head(int clifd, char *path, httpmsg_t *req)
 
   char *ext;
   httpmsg_t *rep;
-  int len_msg;
-  char *bytes;
+
 
   char curdir[MAX_CWD];
   char fullpath[MAX_PATH];
@@ -285,20 +284,32 @@ http_rep_head(int clifd, char *path, httpmsg_t *req)
   }
   strcpy(fullpath, curdir);
   strcat(fullpath, path);
-  ext = find_ext(path);
   DEBSS("[SVC] Opening file", fullpath);
 
   f = fopen(fullpath, "r");
   if (!f) {
-    body = _build_404(&len_body);
-    rep = _build_rep("html", NULL, body, len_body, req);
-    bytes = msg_create_rep(rep, &len_msg);
+    body = _404_body(&len_body);
+    rep = _get_rep("html", NULL, body, len_body, req);
+
   }
   else {
-    body = _build_body(f, fullpath, &len_body);
-    rep = _build_rep(ext, fullpath, body, len_body, req);
-    bytes = msg_create_rep(rep, &len_msg);
+    ext = find_ext(path);
+    body = _get_body(f, fullpath, &len_body);
+    rep = _get_rep(ext, fullpath, body, len_body, req);
   }
+
+  return rep;
+}
+
+void
+http_rep_head(int clifd, void *cache, char *path, httpmsg_t *req)
+{
+  httpmsg_t *rep;
+  int len_msg;
+  char *bytes;
+
+  rep = _get_rep_msg((list_t *)cache, path, req);
+  bytes = msg_create_rep(rep, &len_msg);
 
   /* send msg */
   DEBSI("[SVC] Sending reply msg...", clifd);
@@ -309,40 +320,14 @@ http_rep_head(int clifd, char *path, httpmsg_t *req)
 }
 
 void
-http_rep_get(int clifd, char *path, httpmsg_t *req)
+http_rep_get(int clifd, void *cache, char *path, httpmsg_t *req)
 {
-  FILE *f;
-  char *body;
-  int len_body;
-
-  char *ext;
   httpmsg_t *rep;
   int len_msg;
   char *bytes;
 
-  char curdir[MAX_CWD];
-  char fullpath[MAX_PATH];
-
-  /* get the fullpath and extention of a file */
-  if (!getcwd(curdir, MAX_CWD)) {
-    perror("Couldn't read curdir");
-  }
-  strcpy(fullpath, curdir);
-  strcat(fullpath, path);
-  ext = find_ext(path);
-  DEBSS("[SVC] Opening file", fullpath);
-
-  f = fopen(fullpath, "r");
-  if (!f) {
-    body = _build_404(&len_body);
-    rep = _build_rep("html", NULL, body, len_body, req);
-    bytes = msg_create_rep(rep, &len_msg);
-  }
-  else {
-    body = _build_body(f, fullpath, &len_body);
-    rep = _build_rep(ext, fullpath, body, len_body, req);
-    bytes = msg_create_rep(rep, &len_msg);
-  }
+  rep = _get_rep_msg((list_t *)cache, path, req);
+  bytes = msg_create_rep(rep, &len_msg);
 
   /* send msg */
   DEBSI("[SVC] Sending reply msg...", clifd);
