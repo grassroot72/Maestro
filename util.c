@@ -212,8 +212,8 @@ gmt_date(char *date_gmt, long *tmgmt)
   struct tm tm_gmt;
   tm_gmt = *gmtime(tmgmt);
   /*
-   * The total length of data with format ("%a, %d %b %Y %H:%M:%S %Z") should
-   * be (29 + 1)
+   * The total length of data with format ("%a, %d %b %Y %H:%M:%S %Z")
+   * should be (29 + 1)
    *
    * ex. Sat, 04 Jul 2020 10:29:53 GMT\0
    *                                   ^
