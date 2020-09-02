@@ -16,6 +16,8 @@
 #include "http_parser.h"
 #include "http_svc.h"
 #include "http_conn.h"
+
+#define DEBUG
 #include "debug.h"
 
 
@@ -114,3 +116,5 @@ httpconn_task(void *arg)
     return;
   }
 }
+
+#undef DEBUG

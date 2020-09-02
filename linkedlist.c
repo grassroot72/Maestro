@@ -13,6 +13,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "linkedlist.h"
+
+//#define DEBUG
 #include "debug.h"
 
 
@@ -216,3 +218,5 @@ list_node_data(node_t *node)
 {
   return node->data;
 }
+
+#undef DEBUG

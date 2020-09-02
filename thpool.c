@@ -16,6 +16,8 @@
 #include <unistd.h>
 #include <assert.h>
 #include "thpool.h"
+
+//#define DEBUG
 #include "debug.h"
 
 
@@ -210,3 +212,5 @@ thpool_destroy(struct _thpool *pool)
 
   free(pool);
 }
+
+#undef DEBUG

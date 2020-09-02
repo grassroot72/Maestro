@@ -20,6 +20,8 @@
 #include "linkedlist.h"
 #include "thpool.h"
 #include "http_conn.h"
+
+#define DEBUG
 #include "debug.h"
 
 
@@ -69,8 +71,7 @@ _expire_timers(list_t *timers, long timeout)
       if (cur_time - stamp >= timeout) {
         conn = (httpconn_t *)list_node_data(timer);
         sockfd = httpconn_sockfd(conn);
-        printf("[CONN] socket closed [%d]\n", sockfd);
-        DEBSI("[CONN] server disconnected", sockfd);
+        DEBSI("[CONN] socket closed, server disconnected", sockfd);
         close(sockfd);
 
         list_del(timers, stamp);
@@ -107,7 +108,9 @@ _receive_conn(int srvfd, int epfd, list_t *cache, list_t *timers)
     }
 
     cli_ip = inet_ntoa(((struct sockaddr_in *)&cliaddr)->sin_addr);
-    printf("[%s] connected on socket [%d]\n", cli_ip, clifd);
+    DEBSS("[CONN] client connected", cli_ip);
+    DEBSI("[CONN] on socket", clifd);
+    //printf("[%s] connected on socket [%d]\n", cli_ip, clifd);
 
     _set_nonblocking(clifd);
     cliconn = httpconn_new(clifd, epfd, cache, timers);

@@ -11,6 +11,8 @@
 #include <assert.h>
 #include <errno.h>
 #include "io.h"
+
+//#define DEBUG
 #include "debug.h"
 
 
@@ -45,7 +47,7 @@ io_read_socket(int sockfd, int *rc)
     if (n == -1) {
       /* socket blocked */
       if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) {
-        DEBSI("[CONN] temp error reading socket", conn->sockfd);
+        DEBSI("[CONN] temp error reading socket", sockfd);
         continue;
       }
       else {
@@ -110,3 +112,5 @@ io_fgetc(FILE *f, int *len)
 
   return buf;
 }
+
+#undef DEBUG

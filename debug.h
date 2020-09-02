@@ -8,9 +8,6 @@
 #define _DEBUG_H_
 
 
-//#define DEBUG
-
-
 #ifdef DEBUG
   #define DEBS(x) printf("%s\n", x)
   #define DEBSS(x, y) printf("%s: [%s]\n", x, y)

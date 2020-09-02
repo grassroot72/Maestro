@@ -18,6 +18,8 @@
 #include "deflate.h"
 #include "http_msg.h"
 #include "http_svc.h"
+
+//#define DEBUG
 #include "debug.h"
 
 
@@ -277,6 +279,9 @@ _get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
   char curdir[MAX_CWD];
   char fullpath[MAX_PATH];
 
+  node_t *memfile = list_first(cache);
+
+
   /* get the fullpath and extention of a file */
   if (!getcwd(curdir, MAX_CWD)) {
     perror("Couldn't read curdir");
@@ -338,3 +343,5 @@ http_rep_get(int clifd, void *cache, char *path, httpmsg_t *req)
   free(bytes);
   msg_destroy(rep);
 }
+
+#undef DEBUG
