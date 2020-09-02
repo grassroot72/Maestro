@@ -12,7 +12,6 @@
 #include <errno.h>
 #include "io.h"
 
-//#define DEBUG
 #include "debug.h"
 
 
@@ -112,5 +111,3 @@ io_fgetc(FILE *f, int *len)
 
   return buf;
 }
-
-#undef DEBUG

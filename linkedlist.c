@@ -218,5 +218,3 @@ list_node_data(node_t *node)
 {
   return node->data;
 }
-
-#undef DEBUG

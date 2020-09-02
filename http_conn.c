@@ -116,5 +116,3 @@ httpconn_task(void *arg)
     return;
   }
 }
-
-#undef DEBUG

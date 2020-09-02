@@ -10,7 +10,6 @@
 #include "util.h"
 #include "http_msg.h"
 
-//#define DEBUG
 #include "debug.h"
 
 

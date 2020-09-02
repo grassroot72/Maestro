@@ -343,5 +343,3 @@ http_rep_get(int clifd, void *cache, char *path, httpmsg_t *req)
   free(bytes);
   msg_destroy(rep);
 }
-
-#undef DEBUG

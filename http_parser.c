@@ -9,7 +9,6 @@
 #include <string.h>
 #include "http_msg.h"
 
-//#define DEBUG
 #include "debug.h"
 
 
@@ -163,5 +162,3 @@ http_parse_headers(char *buf)
   msg_lines_destroy(line, count);
   return hdrs;
 }
-
-#undef DEBUG
