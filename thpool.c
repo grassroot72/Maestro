@@ -67,7 +67,7 @@ thpool_get_max_threads(struct _thpool *pool)
 }
 
 static void *
-worker_thread_func(void *pool_arg)
+_worker_func(void *pool_arg)
 {
   int rc;
   struct _taskdata picked_task;
@@ -180,15 +180,15 @@ thpool_init(int max_threads)
   pool->max_threads = max_threads;
   pool->worker_threads = malloc(sizeof(pthread_t) * max_threads);
 
-  rc = pthread_mutex_init(&pool->mutex, 0);
+  rc = pthread_mutex_init(&pool->mutex, NULL);
   assert(rc == 0);
-  rc = pthread_cond_init(&pool->work_available, 0);
+  rc = pthread_cond_init(&pool->work_available, NULL);
   assert(rc == 0);
-  rc = pthread_cond_init(&pool->done, 0);
+  rc = pthread_cond_init(&pool->done, NULL);
   assert(rc == 0);
 
   for (i = 0; i < max_threads; i++) {
-    rc = pthread_create(&pool->worker_threads[i], 0, worker_thread_func, pool);
+    rc = pthread_create(&pool->worker_threads[i], NULL, _worker_func, pool);
     assert(rc == 0);
   }
 
