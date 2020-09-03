@@ -23,6 +23,16 @@
 #include "debug.h"
 
 
+typedef struct _cached_body cached_body_t;
+
+struct _cached_body {
+  char *path;
+  char *etag;
+  char *body;
+  int len;
+};
+
+
 #define SVC_VERSION "Maestro/1.0"
 
 #define MAX_PATH 255
@@ -133,11 +143,10 @@ _add_mime_type(httpmsg_t *rep, char *ext)
 }
 
 static httpmsg_t *
-_get_rep(char *ext, char *fullpath, char *body, int len_body, httpmsg_t *req)
+_get_rep(char *ext, char *etag, char *body, int len_body, httpmsg_t *req)
 {
   long rep_time;
   char rep_date[30];
-  char etag[30];
   /* the If-Range header can be used either with a Last-Modified validator,
    * or with an ETag, but not with both
    *
@@ -164,7 +173,7 @@ _get_rep(char *ext, char *fullpath, char *body, int len_body, httpmsg_t *req)
   msg_set_body_start(rep, body);
 
   /* 404 code */
-  if (!fullpath) {
+  if (!etag) {
     msg_set_rep_line(rep, 1, 1, 404, "Not Found");
     msg_add_body(rep, body, len_body);
     msg_add_header(rep, "Content-Length", itos(len_body, len_str, &len));
@@ -193,7 +202,6 @@ _get_rep(char *ext, char *fullpath, char *body, int len_body, httpmsg_t *req)
     msg_add_header(rep, "Date", rep_date);
     /* ETag is a strong validator */
     /* last_modified_time = mk_etag(etag, fullpath); */
-    mk_etag(etag, fullpath);
     msg_add_header(rep, "ETag", etag);
 
     /* Last-Modified is a weak validator,
@@ -225,6 +233,9 @@ _get_rep(char *ext, char *fullpath, char *body, int len_body, httpmsg_t *req)
                               len_body, 8);
       free(c);
 
+      DEBSI("len_body", len_body);
+      DEBSI("len_zipped", len_zipped);
+
       /* set the compressed body start */
       msg_set_body_start(rep, body_zipped);
       msg_add_zipped_body(rep, body_zipped, len_zipped);
@@ -233,6 +244,7 @@ _get_rep(char *ext, char *fullpath, char *body, int len_body, httpmsg_t *req)
     }
     else {
       msg_add_body(rep, body, len_body);
+      DEBSI("len_body", len_body);
       /* use uncompressed body length */
       msg_add_header(rep, "Content-Length", itos(len_body, len_str, &len));
     }
@@ -254,16 +266,37 @@ _404_body(int *len_body)
 }
 
 char *
-_get_body(FILE *f, char *fullpath, int *len_body)
+_get_body(FILE *f, char *etag, char *fullpath, int *len_body)
 {
   char *body;
   struct stat sb;
 
   stat(fullpath, &sb);
+  sprintf(etag, "\"%ld-%ld-%ld\"", sb.st_ino, sb.st_size, sb.st_mtime);
   *len_body = sb.st_size;
   body = io_fread(f, *len_body);
 
   return body;
+}
+
+cached_body_t *
+_get_cached_body(list_t *cache, char *path)
+{
+  node_t *node;
+  cached_body_t *data;
+
+  node = list_first(cache);
+  if (node) {
+    do {
+      data = (cached_body_t *)list_node_data(node);
+      if (strcmp(path, data->path) == 0) {
+        return data;
+      }
+      node = list_next(cache);
+    } while (node);
+  }
+
+  return NULL;
 }
 
 httpmsg_t *
@@ -278,8 +311,9 @@ _get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
 
   char curdir[MAX_CWD];
   char fullpath[MAX_PATH];
+  char etag[30];
 
-  node_t *memfile = list_first(cache);
+  cached_body_t *data;
 
 
   /* get the fullpath and extention of a file */
@@ -288,18 +322,38 @@ _get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
   }
   strcpy(fullpath, curdir);
   strcat(fullpath, path);
+  ext = find_ext(path);
   DEBSS("[SVC] Opening file", fullpath);
 
+
+  /* check if the body is in the cache */
+  data = _get_cached_body(cache, path);
+  if (data) {
+    rep = _get_rep(ext, data->etag, data->body, data->len, req);
+    DEBS("In the cache");
+    return rep;
+  }
+
+  /* not in the cache ... */
   f = fopen(fullpath, "r");
   if (!f) {
     body = _404_body(&len_body);
     rep = _get_rep("html", NULL, body, len_body, req);
-
+    return rep;
   }
   else {
-    ext = find_ext(path);
-    body = _get_body(f, fullpath, &len_body);
-    rep = _get_rep(ext, fullpath, body, len_body, req);
+    body = _get_body(f, etag, fullpath, &len_body);
+
+    data = (cached_body_t *)malloc(sizeof(cached_body_t));
+    data->path = strdup(path);
+    data->etag = strdup(etag);
+    data->body = body;
+    data->len = len_body;
+
+    list_update(cache, data, mstime());
+
+    rep = _get_rep(ext, data->etag, data->body, data->len, req);
+    DEBS("Cached in ...");
   }
 
   return rep;
@@ -320,7 +374,7 @@ http_rep_head(int clifd, void *cache, char *path, httpmsg_t *req)
   write(clifd, bytes, len_msg);
 
   free(bytes);
-  msg_destroy(rep);
+  msg_destroy(rep, 0);
 }
 
 void
@@ -341,5 +395,5 @@ http_rep_get(int clifd, void *cache, char *path, httpmsg_t *req)
   write(clifd, msg_body_start(rep), msg_body_len(rep));
 
   free(bytes);
-  msg_destroy(rep);
+  msg_destroy(rep, 0);
 }

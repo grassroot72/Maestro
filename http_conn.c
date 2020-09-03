@@ -17,7 +17,7 @@
 #include "http_svc.h"
 #include "http_conn.h"
 
-#define DEBUG
+//#define DEBUG
 #include "debug.h"
 
 
@@ -105,7 +105,7 @@ httpconn_task(void *arg)
 
     cur_time = mstime();
     list_update(conn->timers, conn, cur_time);
-    msg_destroy(req);
+    msg_destroy(req, 1);
     free(bytes);
 
     /* put the event back */

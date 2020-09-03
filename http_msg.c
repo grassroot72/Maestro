@@ -105,7 +105,7 @@ msg_add_zipped_body(httpmsg_t *msg, char *body_zipped, int len)
 }
 
 void
-msg_destroy(httpmsg_t *msg)
+msg_destroy(httpmsg_t *msg, int delbody)
 {
   if (!msg) return;
 
@@ -121,7 +121,10 @@ msg_destroy(httpmsg_t *msg)
     i++;
   } while (i < msg->num_headers);
 
-  if (msg->body) free(msg->body);
+  if (delbody) {
+    if (msg->body) free(msg->body);
+  }
+
   if (msg->body_zipped) free(msg->body_zipped);
 }
 
