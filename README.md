@@ -49,7 +49,7 @@ http://localhost:9000/bench.html
 If to test download resumption, key in the following url,
 http://localhost:9000/download/Business-English-for-Success.pdf
 
-The download resumption has been only partial implemented, I am going to
+The download resumption has been only partially implemented, I am going to
 improve it later...
 
 ```
