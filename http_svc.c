@@ -19,11 +19,9 @@
 #include "http_msg.h"
 #include "http_svc.h"
 
-//#define DEBUG
+#define DEBUG
 #include "debug.h"
 
-
-typedef struct _cached_body cached_body_t;
 
 struct _cached_body {
   char *path;
@@ -299,6 +297,16 @@ _get_cached_body(list_t *cache, char *path)
   return NULL;
 }
 
+void
+http_del_cached_body(cached_body_t *data)
+{
+  if (data) {
+    free(data->path);
+    free(data->etag);
+    free(data->body);
+  }
+}
+
 httpmsg_t *
 _get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
 {
@@ -360,7 +368,7 @@ _get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
 }
 
 void
-http_rep_head(int clifd, void *cache, char *path, httpmsg_t *req)
+http_rep_head(int clifd, void *cache, char *path, void *req)
 {
   httpmsg_t *rep;
   int len_msg;
@@ -378,7 +386,7 @@ http_rep_head(int clifd, void *cache, char *path, httpmsg_t *req)
 }
 
 void
-http_rep_get(int clifd, void *cache, char *path, httpmsg_t *req)
+http_rep_get(int clifd, void *cache, char *path, void *req)
 {
   httpmsg_t *rep;
   int len_msg;

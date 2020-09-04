@@ -19,6 +19,7 @@
 #include "util.h"
 #include "linkedlist.h"
 #include "thpool.h"
+#include "http_svc.h"
 #include "http_conn.h"
 
 #define DEBUG
@@ -28,8 +29,10 @@
 #define THREADS_PER_CORE 64
 #define MAXEVENTS 2048
 
-#define HTTP_KEEPALIVE_TIME 10000
+#define HTTP_KEEPALIVE_TIME 30000
 #define PORT 9000
+
+#define MAX_CACHE_TIME 60000
 
 
 static volatile int svc_running = 1;
@@ -79,6 +82,34 @@ _expire_timers(list_t *timers, long timeout)
 
       timer = list_next(timers);
     } while (timer);
+  }
+}
+
+static void
+_expire_cache(list_t *cache, long timeout)
+{
+  cached_body_t *data;
+
+  node_t *node;
+  long cur_time;
+  long stamp;
+
+  node = list_first(cache);
+  if (node) {
+    cur_time = mstime();
+    do {
+      stamp = list_node_stamp(node);
+
+      if (cur_time - stamp >= timeout) {
+        data = (cached_body_t *)list_node_data(node);
+        http_del_cached_body(data);
+        DEBS("[SVC] cache expired");
+
+        list_del(cache, stamp);
+      }
+
+      node = list_next(cache);
+    } while (node);
   }
 }
 
@@ -259,6 +290,9 @@ main(int argc, char** argv)
 
     /* expire the timers */
     _expire_timers(timers, HTTP_KEEPALIVE_TIME);
+
+    /* expire the cache */
+    _expire_cache(cache, MAX_CACHE_TIME);
 
 
     /* loop through events */

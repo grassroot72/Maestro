@@ -8,8 +8,13 @@
 #define _HTTP_SVC_H_
 
 
-void http_rep_get(int clifd, void *cache, char *path, httpmsg_t *req);
-void http_rep_head(int clifd, void *cache, char *path, httpmsg_t *req);
+typedef struct _cached_body cached_body_t;
+
+
+void http_del_cached_body(cached_body_t *data);
+
+void http_rep_get(int clifd, void *cache, char *path, void *req);
+void http_rep_head(int clifd, void *cache, char *path, void *req);
 
 
 #endif

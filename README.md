@@ -17,6 +17,7 @@ stage. More features will be added in the future.
 -- HTTP/1.1 GET method (static file)
 -- HTTP/1.1 HEAD method (static file)
 -- HTTP/1.1 keep-alive (long connection, disconnected after timeouts)
+-- built-in cache to provide better GET performance
 -- deflate compression
 -- download resumption
 
@@ -64,10 +65,10 @@ Failed requests:        0
 Keep-Alive requests:    5000
 Total transferred:      6465000 bytes
 HTML transferred:       5125000 bytes
-Requests per second:    416.09 [#/sec] (mean)
-Time per request:       240.331 [ms] (mean)
-Time per request:       2.403 [ms] (mean, across all concurrent requests)
-Transfer rate:          506.30 [Kbytes/sec] received
+Requests per second:    421.76 [#/sec] (mean)
+Time per request:       237.101 [ms] (mean)
+Time per request:       2.371 [ms] (mean, across all concurrent requests)
+Transfer rate:          532.56 [Kbytes/sec] received
 
 Connection Times (ms)
               min  mean[+/-sd] median   max
@@ -110,7 +111,6 @@ services (POST/PUT/DELETE...) through built-in functions.
 
 todo list:
 -- HTTP/1.1 POST/PUT/DELETE
--- built-in cache to provide better GET performance
 -- improve download resumption
 -- industry level logging
 -- HTTPS
