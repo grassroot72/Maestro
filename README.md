@@ -1,11 +1,11 @@
 # Multithread And Epoll Server To Revolve Online (Maestro)
 ```
-This project aims to create a tiny but functional application server by 
-leveraging multithread and epoll features of linux OS. 
- 
+This project aims to create a tiny but functional application server by
+leveraging multithread and epoll features of linux OS.
+
 All the source code is written in C.
- 
-The project is a WIP (Work In Progress) project. It is still in its infant 
+
+The project is a WIP (Work In Progress) project. It is still in its infant
 stage. More features will be added in the future.
 
 ```
@@ -37,15 +37,34 @@ $ ./maestro
 
 ## Test
 ```
+After you run the webserver, you should see the following
+
+listening on port [9000]
+
+then, you can open firefox or other browsers and key in the url
+http://localhost:9000
+or
+http://localhost:9000/bench.html
+
+If to test download resumption, key in the following url,
+http://localhost:9000/download/Business-English-for-Success.pdf
+
+The download resumption has been only partial implemented, I am going to
+improve it later...
+
+```
+
+## Benchmark
+```
 Running Apache Bench, I used the following command,
-$ ab -k -n 5000 -c 100 http://localhost:9000/bench.html 
- 
+$ ab -k -n 5000 -c 100 http://localhost:9000/bench.html
+
 You may also want to put the compression option on,
-$ ab -k -n 5000 -c 100 -H "Accept-Encoding: deflate" http://localhost:9000/bench.html 
- 
-Please replace localhost to your hostname if you would like to test on 
+$ ab -k -n 5000 -c 100 -H "Accept-Encoding: deflate" http://localhost:9000/bench.html
+
+Please replace localhost to your hostname if you would like to test on
 other computers.
- 
+
 The following is the test result on my very low-end laptop,
 ** CPU: Intel Celeron N2930 (4 cores) at ~2.16 GHz (2M Cache) **
 ** MEM: 4G **
@@ -88,25 +107,20 @@ Percentage of the requests served within a certain time (ms)
   99%    667
  100%   3365 (longest request)
 
-If you test it on most recently manufactured computers, you will get much 
+If you test it on most recently manufactured computers, you will get much
 better benchmark results.
-
-To test download resumption, uncomment #define DEBUG and build again, then,
-$ ./maestro 
-resumption still needs a lot of optimization, but it works with firefox.
-
 ```
 
 ## Note
 ```
-I am not the author of the pdf file under the download folder, I only 
+I am not the author of the pdf file under the download folder, I only
 use it for download resumption test.
 ```
 
 ## Todo
 ```
-I want to develop an HTTP/1.1 compatible webserver as well as an application 
-server which skips traditional CGI function and directly provides dynamic 
+I want to develop an HTTP/1.1 compatible webserver as well as an application
+server which skips traditional CGI function and directly provides dynamic
 services (POST/PUT/DELETE...) through built-in functions.
 
 todo list:
