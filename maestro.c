@@ -103,7 +103,7 @@ _expire_cache(list_t *cache, long timeout)
       if (cur_time - stamp >= timeout) {
         data = (cached_body_t *)list_node_data(node);
         http_del_cached_body(data);
-        DEBS("[SVC] cache expired");
+        DEBS("[CACHE] cached data expired");
 
         list_del(cache, stamp);
       }
