@@ -61,14 +61,15 @@ $ ab -k -n 5000 -c 100 http://localhost:9000/bench.html
 You may also want to put the compression option on,
 $ ab -k -n 5000 -c 100 -H "Accept-Encoding: deflate" http://localhost:9000/bench.html
 
-Please replace localhost to your hostname if you would like to test on
+Please replace localhost with your hostname if you would like to test on
 other computers.
+```
 
 The following is the test result on my very low-end laptop,
-** CPU: Intel Celeron N2930 (4 cores) at ~2.16 GHz (2M Cache) **
-** MEM: 4G **
-** NET: laptop built-in wireless **
-
+**CPU: Intel Celeron N2930 (4 cores) at ~2.16 GHz (2M Cache)**
+**MEM: 4G**
+**NET: laptop built-in wireless**
+```
 Server Software:        Maestro/1.0
 Server Hostname:        warrior
 Server Port:            9000
