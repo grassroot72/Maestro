@@ -137,7 +137,7 @@ _process_range(httpmsg_t *rep, char *range_str, int len_body, int *len_range)
   }
 
   msg_add_header(rep, "Content-Range", range);
-  DEBSS("[SVC] Content-Range", range);
+  DEBSS("[REP] Content-Range", range);
   return range_si;
 }
 
@@ -163,6 +163,7 @@ _get_rep(char *ext, char *etag, char *body, int len_body, httpmsg_t *req)
   int len_zipped;
   int len_zipbuf;
 
+  char *if_range_str;
   char *range_str;
   int range_s;
   int len_range;
@@ -182,15 +183,23 @@ _get_rep(char *ext, char *etag, char *body, int len_body, httpmsg_t *req)
     msg_add_header(rep, "Accept-Ranges", "bytes");
     msg_add_header(rep, "Connection", "keep-alive");
 
-    range_str = msg_header_value(req, "Range");
-    if (range_str) {
+    if_range_str = msg_header_value(req, "If-Range");
+    DEBSS("[REQ] If-Range", if_range_str);
+    DEBSS("[REP] etag", etag);
+    if (if_range_str && strcmp(if_range_str, etag) == 0) {
       msg_set_rep_line(rep, 1, 1, 206, "Partial Content");
-      range_s = _process_range(rep, range_str, len_body, &len_range);
-      DEBSI("[SVC] range start", range_s);
-      DEBSI("[SVC] range length", len_range);
-      /* body syncs with the range start */
-      msg_set_body_start(rep, body + range_s);
-      len_body = len_range;
+
+      range_str = msg_header_value(req, "Range");
+      DEBSS("[REQ] Range", range_str);
+      if (range_str) {
+        //msg_set_rep_line(rep, 1, 1, 206, "Partial Content");
+        range_s = _process_range(rep, range_str, len_body, &len_range);
+        DEBSI("[REP] range start", range_s);
+        DEBSI("[REP] range length", len_range);
+        /* body syncs with the range start */
+        msg_set_body_start(rep, body + range_s);
+        len_body = len_range;
+      }
     }
     else
       msg_set_rep_line(rep, 1, 1, 200, "OK");
@@ -232,8 +241,8 @@ _get_rep(char *ext, char *etag, char *body, int len_body, httpmsg_t *req)
                               len_body, 8);
       free(c);
 
-      DEBSI("[SVC] len_body", len_body);
-      DEBSI("[SVC] len_zipped", len_zipped);
+      DEBSI("[REP] len_body", len_body);
+      DEBSI("[REP] len_zipped", len_zipped);
 
       /* set the compressed body start */
       msg_set_body_start(rep, body_zipped);
@@ -243,7 +252,7 @@ _get_rep(char *ext, char *etag, char *body, int len_body, httpmsg_t *req)
     }
     else {
       msg_add_body(rep, body, len_body);
-      DEBSI("[SVC] len_body", len_body);
+      DEBSI("[REP] len_body", len_body);
       /* use uncompressed body length */
       msg_add_header(rep, "Content-Length", itos(len_body, len_str, &len));
     }
@@ -257,7 +266,7 @@ _404_body(int *len_body)
 {
   char *body;
 
-  perror("[SVC]");
+  perror("[REP]");
   body = strdup("<html><body>404 Page Not Found</body></html>");
   *len_body = strlen(body);
 
@@ -339,7 +348,7 @@ _get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
   data = _get_cached_body(cache, path);
   if (data) {
     rep = _get_rep(ext, data->etag, data->body, data->len, req);
-    DEBS("[SVC] In the cache");
+    DEBS("[CACHE] In the cache");
     return rep;
   }
 
@@ -362,7 +371,7 @@ _get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
     list_update(cache, data, mstime());
 
     rep = _get_rep(ext, data->etag, data->body, data->len, req);
-    DEBS("[SVC] Cached in ...");
+    DEBS("[CACHE] Cached in ...");
   }
 
   return rep;
@@ -379,7 +388,7 @@ http_rep_head(int clifd, void *cache, char *path, void *req)
   bytes = msg_create_rep(rep, &len_msg);
 
   /* send msg */
-  DEBSI("[SVC] Sending reply msg...", clifd);
+  DEBSI("[REP] Sending reply msg...", clifd);
   write(clifd, bytes, len_msg);
 
   free(bytes);
@@ -397,10 +406,10 @@ http_rep_get(int clifd, void *cache, char *path, void *req)
   bytes = msg_create_rep(rep, &len_msg);
 
   /* send msg */
-  DEBSI("[SVC] Sending reply msg...", clifd);
+  DEBSI("[REP] Sending reply msg...", clifd);
   write(clifd, bytes, len_msg);
   /* send body */
-  DEBSI("[SVC] Sending body...", clifd);
+  DEBSI("[REP] Sending body...", clifd);
   write(clifd, msg_body_start(rep), msg_body_len(rep));
 
   free(bytes);
