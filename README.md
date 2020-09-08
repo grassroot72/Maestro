@@ -40,7 +40,7 @@ $ ./maestro
 
 After you run the webserver, you should see the following
 
-listening on port [9000]
+**listening on port [9000]**
 
 then, you can open firefox or other browsers and key in the url
 http://localhost:9000
@@ -66,9 +66,9 @@ other computers.
 ```
 
 The following is the test result on my very low-end laptop,
-**CPU: Intel Celeron N2930 (4 cores) at ~2.16 GHz (2M Cache)**
-**MEM: 4G**
-**NET: laptop built-in wireless**
+  - **CPU: Intel Celeron N2930 (4 cores) at ~2.16 GHz (2M Cache)**
+  - **MEM: 4G**
+  - **NET: laptop built-in wireless**
 ```
 Server Software:        Maestro/1.0
 Server Hostname:        warrior
