@@ -1,5 +1,5 @@
 # Multithread And Epoll Server To Revolve Online (Maestro)
-```
+
 This project aims to create a tiny but functional application server by
 leveraging multithread and epoll features of linux OS.
 
@@ -8,10 +8,9 @@ All the source code is written in C.
 The project is a WIP (Work In Progress) project. It is still in its infant
 stage. More features will be added in the future.
 
-```
 
 ## Features
-```
+
 -- Multithread pool
 -- Epoll (so, linux specific)
 -- HTTP/1.1 GET method (static file)
@@ -21,7 +20,7 @@ stage. More features will be added in the future.
 -- deflate compression
 -- download resumption
 
-```
+
 
 ## Cloning
 ```
@@ -36,7 +35,7 @@ $ ./maestro
 ```
 
 ## Test
-```
+
 After you run the webserver, you should see the following
 
 listening on port [9000]
@@ -46,13 +45,11 @@ http://localhost:9000
 or
 http://localhost:9000/bench.html
 
-If to test download resumption, key in the following url,
+To test download resumption, key in the following url in your browser(firefox),
 http://localhost:9000/download/Business-English-for-Success.pdf
+refresh the browser if download stalls. Keep refresh several times until the
+download finally finishes.
 
-The download resumption has been only partially implemented, I am going to
-improve it later...
-
-```
 
 ## Benchmark
 ```
@@ -112,13 +109,13 @@ better benchmark results.
 ```
 
 ## Note
-```
+
 I am not the author of the pdf file under the download folder, I only
 use it for download resumption test.
-```
+
 
 ## Todo
-```
+
 I want to develop an HTTP/1.1 compatible webserver as well as an application
 server which skips traditional CGI function and directly provides dynamic
 services (POST/PUT/DELETE...) through built-in functions.
@@ -127,4 +124,3 @@ todo list:
 -- HTTP/1.1 POST/PUT/DELETE
 -- industry level logging
 -- HTTPS
-```
