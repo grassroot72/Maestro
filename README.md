@@ -11,14 +11,14 @@ stage. More features will be added in the future.
 
 ## Features
 
--- Multithread pool
--- Epoll (so, linux specific)
--- HTTP/1.1 GET method (static file)
--- HTTP/1.1 HEAD method (static file)
--- HTTP/1.1 keep-alive (long connection, disconnected after timeouts)
--- built-in cache to provide better GET performance
--- deflate compression
--- download resumption
+  - Multithread pool
+  - Epoll (so, linux specific)
+  - HTTP/1.1 GET method (static file)
+  - HTTP/1.1 HEAD method (static file)
+  - HTTP/1.1 keep-alive (long connection, disconnected after timeouts)
+  - built-in cache to provide better GET performance
+  - deflate compression
+  - download resumption
 
 
 
@@ -33,6 +33,8 @@ $ make
 ...
 $ ./maestro
 ```
+
+
 
 ## Test
 
@@ -108,6 +110,7 @@ If you test it on most recently manufactured computers, you will get much
 better benchmark results.
 ```
 
+
 ## Note
 
 I am not the author of the pdf file under the download folder, I only
@@ -121,6 +124,6 @@ server which skips traditional CGI function and directly provides dynamic
 services (POST/PUT/DELETE...) through built-in functions.
 
 todo list:
--- HTTP/1.1 POST/PUT/DELETE
--- industry level logging
--- HTTPS
+  - HTTP/1.1 POST/PUT/DELETE
+  - industry level logging
+  - HTTPS
