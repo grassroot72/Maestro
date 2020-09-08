@@ -125,7 +125,6 @@ services (POST/PUT/DELETE...) through built-in functions.
 
 todo list:
 -- HTTP/1.1 POST/PUT/DELETE
--- improve download resumption
 -- industry level logging
 -- HTTPS
 ```
