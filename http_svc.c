@@ -41,33 +41,6 @@ struct _cached_body {
 
 
 static int
-_process_range(httpmsg_t *rep, char *range_str, int len_body, int *len_range)
-{
-  char *range_s;
-  char *range_e;
-  int range_si;
-  int range_ei;
-  char range[128];
-
-  range_s = split_kv(range_str, '=');
-  range_e = split_kv(range_s, '-');
-
-  range_si = atoi(range_s);
-  if (*range_e) {
-    range_ei = atoi(range_e);
-    *len_range = range_ei - range_si + 1;
-    sprintf(range, "bytes %d-%d/%d", range_si, range_ei, len_body);
-  }
-  else {
-    *len_range = len_body - range_si;
-    sprintf(range, "bytes %d-%d/%d", range_si, len_body, len_body);
-  }
-
-  msg_add_header(rep, "Content-Range", range);
-  return range_si;
-}
-
-static int
 _add_mime_type(httpmsg_t *rep, char *ext)
 {
   /* MIME types - images */
@@ -140,6 +113,34 @@ _add_mime_type(httpmsg_t *rep, char *ext)
   return MIME_BIN;
 }
 
+static int
+_process_range(httpmsg_t *rep, char *range_str, int len_body, int *len_range)
+{
+  char *range_s;
+  char *range_e;
+  int range_si;
+  int range_ei;
+  char range[128];
+
+  range_s = split_kv(range_str, '=');
+  range_e = split_kv(range_s, '-');
+
+  range_si = atoi(range_s);
+  if (*range_e) {
+    range_ei = atoi(range_e);
+    *len_range = range_ei - range_si + 1;
+    sprintf(range, "bytes %d-%d/%d", range_si, range_ei, len_body);
+  }
+  else {
+    *len_range = len_body - range_si;
+    sprintf(range, "bytes %d-%d/%d", range_si, len_body, len_body);
+  }
+
+  msg_add_header(rep, "Content-Range", range);
+  DEBSS("[SVC] Content-Range", range);
+  return range_si;
+}
+
 static httpmsg_t *
 _get_rep(char *ext, char *etag, char *body, int len_body, httpmsg_t *req)
 {
@@ -185,8 +186,8 @@ _get_rep(char *ext, char *etag, char *body, int len_body, httpmsg_t *req)
     if (range_str) {
       msg_set_rep_line(rep, 1, 1, 206, "Partial Content");
       range_s = _process_range(rep, range_str, len_body, &len_range);
-      DEBSI("range start", range_s);
-      DEBSI("range length", len_range);
+      DEBSI("[SVC] range start", range_s);
+      DEBSI("[SVC] range length", len_range);
       /* body syncs with the range start */
       msg_set_body_start(rep, body + range_s);
       len_body = len_range;
@@ -231,8 +232,8 @@ _get_rep(char *ext, char *etag, char *body, int len_body, httpmsg_t *req)
                               len_body, 8);
       free(c);
 
-      DEBSI("len_body", len_body);
-      DEBSI("len_zipped", len_zipped);
+      DEBSI("[SVC] len_body", len_body);
+      DEBSI("[SVC] len_zipped", len_zipped);
 
       /* set the compressed body start */
       msg_set_body_start(rep, body_zipped);
@@ -242,7 +243,7 @@ _get_rep(char *ext, char *etag, char *body, int len_body, httpmsg_t *req)
     }
     else {
       msg_add_body(rep, body, len_body);
-      DEBSI("len_body", len_body);
+      DEBSI("[SVC] len_body", len_body);
       /* use uncompressed body length */
       msg_add_header(rep, "Content-Length", itos(len_body, len_str, &len));
     }
@@ -338,7 +339,7 @@ _get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
   data = _get_cached_body(cache, path);
   if (data) {
     rep = _get_rep(ext, data->etag, data->body, data->len, req);
-    DEBS("In the cache");
+    DEBS("[SVC] In the cache");
     return rep;
   }
 
@@ -361,7 +362,7 @@ _get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
     list_update(cache, data, mstime());
 
     rep = _get_rep(ext, data->etag, data->body, data->len, req);
-    DEBS("Cached in ...");
+    DEBS("[SVC] Cached in ...");
   }
 
   return rep;

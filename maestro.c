@@ -129,7 +129,8 @@ _receive_conn(int srvfd, int epfd, list_t *cache, list_t *timers)
     clifd = accept(srvfd, &cliaddr, &len_cliaddr);
 
     if (clifd == -1) {
-      if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) {
+      if (errno == EINTR) continue;
+      if (errno == EAGAIN || errno == EWOULDBLOCK) {
         /* we processed all of the connections */
         break;
       }
