@@ -29,10 +29,10 @@
 #define THREADS_PER_CORE 64
 #define MAXEVENTS 2048
 
-#define HTTP_KEEPALIVE_TIME 30000
+#define HTTP_KEEPALIVE_TIME 5000
 #define PORT 9000
 
-#define MAX_CACHE_TIME 60000
+#define MAX_CACHE_TIME 600000
 
 
 static volatile int svc_running = 1;

@@ -81,6 +81,12 @@ _add_mime_type(httpmsg_t *rep, char *ext)
     return MIME_BIN;
   }
 
+  /* MIME type - gz */
+  if (strcmp(ext, "gz") == 0) {
+    msg_add_header(rep, "Content-Type", "application/gzip");
+    return MIME_BIN;
+  }
+
   /* MIME type - css */
   if (strcmp(ext, "css") == 0) {
     msg_add_header(rep, "Content-Type", "text/css");
@@ -126,11 +132,13 @@ _process_range(httpmsg_t *rep, char *range_str, int len_body, int *len_range)
   range_e = split_kv(range_s, '-');
 
   range_si = atoi(range_s);
+  /* req: bytes=xxxx-xxxx */
   if (*range_e) {
     range_ei = atoi(range_e);
     *len_range = range_ei - range_si + 1;
     sprintf(range, "bytes %d-%d/%d", range_si, range_ei, len_body);
   }
+  /* req: bytes=xxxx- */
   else {
     *len_range = len_body - range_si;
     sprintf(range, "bytes %d-%d/%d", range_si, len_body, len_body);
@@ -163,7 +171,6 @@ _get_rep(char *ext, char *etag, char *body, int len_body, httpmsg_t *req)
   int len_zipped;
   int len_zipbuf;
 
-  char *if_range_str;
   char *range_str;
   int range_s;
   int len_range;
@@ -180,29 +187,8 @@ _get_rep(char *ext, char *etag, char *body, int len_body, httpmsg_t *req)
   }
   else {
     msg_add_header(rep, "Server", SVC_VERSION);
-    msg_add_header(rep, "Accept-Ranges", "bytes");
     msg_add_header(rep, "Connection", "keep-alive");
-
-    if_range_str = msg_header_value(req, "If-Range");
-    DEBSS("[REQ] If-Range", if_range_str);
-    DEBSS("[REP] etag", etag);
-    if (if_range_str && strcmp(if_range_str, etag) == 0) {
-      msg_set_rep_line(rep, 1, 1, 206, "Partial Content");
-
-      range_str = msg_header_value(req, "Range");
-      DEBSS("[REQ] Range", range_str);
-      if (range_str) {
-        //msg_set_rep_line(rep, 1, 1, 206, "Partial Content");
-        range_s = _process_range(rep, range_str, len_body, &len_range);
-        DEBSI("[REP] range start", range_s);
-        DEBSI("[REP] range length", len_range);
-        /* body syncs with the range start */
-        msg_set_body_start(rep, body + range_s);
-        len_body = len_range;
-      }
-    }
-    else
-      msg_set_rep_line(rep, 1, 1, 200, "OK");
+    msg_add_header(rep, "Accept-Ranges", "bytes");
 
     /* reply start date */
     rep_time = time(NULL);
@@ -220,6 +206,20 @@ _get_rep(char *ext, char *etag, char *body, int len_body, httpmsg_t *req)
      * gmt_date(last_modified, &last_modified_time);
      * msg_add_header(rep, "Last-Modified", last_modified);
      */
+
+    range_str = msg_header_value(req, "Range");
+    DEBSS("[REQ] Range", range_str);
+    if (range_str) {
+      msg_set_rep_line(rep, 1, 1, 206, "Partial Content");
+      range_s = _process_range(rep, range_str, len_body, &len_range);
+      DEBSI("[REP] range start", range_s);
+      DEBSI("[REP] range length", len_range);
+      /* body syncs with the range start */
+      msg_set_body_start(rep, body + range_s);
+      len_body = len_range;
+    }
+    else
+      msg_set_rep_line(rep, 1, 1, 200, "OK");
 
     mime_type = _add_mime_type(rep, ext);
     if (mime_type == MIME_TXT) {
