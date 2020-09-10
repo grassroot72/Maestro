@@ -141,7 +141,8 @@ _process_range(httpmsg_t *rep, char *range_str, int len_body, int *len_range)
   /* req: bytes=xxxx- */
   else {
     *len_range = len_body - range_si;
-    sprintf(range, "bytes %d-%d/%d", range_si, len_body, len_body);
+    //sprintf(range, "bytes %d-%d/%d", range_si, len_body - 1, len_body);
+    sprintf(range, "bytes %d-/%d", range_si, len_body);
   }
 
   msg_add_header(rep, "Content-Range", range);
@@ -209,7 +210,10 @@ _get_rep(char *ext, char *etag, char *body, int len_body, httpmsg_t *req)
 
     range_str = msg_header_value(req, "Range");
     DEBSS("[REQ] Range", range_str);
-    if (range_str) {
+
+    if (!range_str || !(*range_str))
+      msg_set_rep_line(rep, 1, 1, 200, "OK");
+    else {
       msg_set_rep_line(rep, 1, 1, 206, "Partial Content");
       range_s = _process_range(rep, range_str, len_body, &len_range);
       DEBSI("[REP] range start", range_s);
@@ -218,8 +222,7 @@ _get_rep(char *ext, char *etag, char *body, int len_body, httpmsg_t *req)
       msg_set_body_start(rep, body + range_s);
       len_body = len_range;
     }
-    else
-      msg_set_rep_line(rep, 1, 1, 200, "OK");
+
 
     mime_type = _add_mime_type(rep, ext);
     if (mime_type == MIME_TXT) {
