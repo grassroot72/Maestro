@@ -26,6 +26,7 @@
 struct _cached_body {
   char *path;
   char *etag;
+  char *last_modified;
   char *body;
   int len;
 };
@@ -151,16 +152,23 @@ _process_range(httpmsg_t *rep, char *range_str, int len_body, int *len_range)
 }
 
 static httpmsg_t *
-_get_rep(char *ext, char *etag, char *body, int len_body, httpmsg_t *req)
+_get_rep(char *ext, cached_body_t *data, httpmsg_t *req)
 {
   long rep_time;
   char rep_date[30];
+
   /* the If-Range header can be used either with a Last-Modified validator,
    * or with an ETag, but not with both
    *
    * long last_modified_time;
    * char last_modified[30];
    */
+
+  char *last_modified;
+  char *etag;
+
+  char *body;
+  int len_body;
 
   size_t len;
   char len_str[I2S_SIZE];
@@ -176,6 +184,10 @@ _get_rep(char *ext, char *etag, char *body, int len_body, httpmsg_t *req)
   int range_s;
   int len_range;
 
+  etag = data->etag;
+  last_modified = data->last_modified;
+  body = data->body;
+  len_body = data->len;
 
   httpmsg_t* rep = msg_new();
   msg_set_body_start(rep, body);
@@ -196,8 +208,8 @@ _get_rep(char *ext, char *etag, char *body, int len_body, httpmsg_t *req)
     gmt_date(rep_date, &rep_time);
     msg_add_header(rep, "Date", rep_date);
     /* ETag is a strong validator */
-    /* last_modified_time = mk_etag(etag, fullpath); */
     msg_add_header(rep, "ETag", etag);
+    msg_add_header(rep, "Last-Modified", last_modified);
 
     /* Last-Modified is a weak validator,
      * the If-Range header can be used either with a Last-Modified validator,
@@ -211,7 +223,7 @@ _get_rep(char *ext, char *etag, char *body, int len_body, httpmsg_t *req)
     range_str = msg_header_value(req, "Range");
     DEBSS("[REQ] Range", range_str);
 
-    if (!range_str || !(*range_str))
+    if (!range_str)
       msg_set_rep_line(rep, 1, 1, 200, "OK");
     else {
       msg_set_rep_line(rep, 1, 1, 206, "Partial Content");
@@ -264,33 +276,7 @@ _get_rep(char *ext, char *etag, char *body, int len_body, httpmsg_t *req)
   return rep;
 }
 
-char *
-_404_body(int *len_body)
-{
-  char *body;
-
-  perror("[REP]");
-  body = strdup("<html><body>404 Page Not Found</body></html>");
-  *len_body = strlen(body);
-
-  return body;
-}
-
-char *
-_get_body(FILE *f, char *etag, char *fullpath, int *len_body)
-{
-  char *body;
-  struct stat sb;
-
-  stat(fullpath, &sb);
-  sprintf(etag, "\"%ld-%ld-%ld\"", sb.st_ino, sb.st_size, sb.st_mtime);
-  *len_body = sb.st_size;
-  body = io_fread(f, *len_body);
-
-  return body;
-}
-
-cached_body_t *
+static cached_body_t *
 _get_cached_body(list_t *cache, char *path)
 {
   node_t *node;
@@ -310,12 +296,24 @@ _get_cached_body(list_t *cache, char *path)
   return NULL;
 }
 
+static void
+_set_cached_body(cached_body_t *data, char* path, char *etag, char *modified,
+                 char *body, int len)
+{
+  data->path = path;
+  data->etag = etag;
+  data->last_modified = modified;
+  data->body = body;
+  data->len = len;
+}
+
 void
 http_del_cached_body(cached_body_t *data)
 {
   if (data) {
-    free(data->path);
-    free(data->etag);
+    if (data->path) free(data->path);
+    if (data->etag) free(data->etag);
+    if (data->last_modified) free(data->last_modified);
     free(data->body);
   }
 }
@@ -325,16 +323,17 @@ _get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
 {
   FILE *f;
   char *body;
-  int len_body;
 
   char *ext;
-  httpmsg_t *rep;
-
   char curdir[MAX_CWD];
   char fullpath[MAX_PATH];
+
+  struct stat sb;
+  char last_modified[30];
   char etag[30];
 
   cached_body_t *data;
+  httpmsg_t *rep;
 
 
   /* get the fullpath and extention of a file */
@@ -350,30 +349,33 @@ _get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
   /* check if the body is in the cache */
   data = _get_cached_body(cache, path);
   if (data) {
-    rep = _get_rep(ext, data->etag, data->body, data->len, req);
+    rep = _get_rep(ext, data, req);
     DEBS("[CACHE] In the cache");
     return rep;
   }
 
-  /* not in the cache ... */
+  data = (cached_body_t *)malloc(sizeof(cached_body_t));
   f = fopen(fullpath, "r");
+
+  /* not in the cache ... */
   if (!f) {
-    body = _404_body(&len_body);
-    rep = _get_rep("html", NULL, body, len_body, req);
-    return rep;
+    perror("[SVC]");
+    body = strdup("<html><body>404 Page Not Found</body></html>");
+    _set_cached_body(data, NULL, NULL, NULL, body, strlen(body));
+    rep = _get_rep("html", data, req);
   }
   else {
-    body = _get_body(f, etag, fullpath, &len_body);
+    stat(fullpath, &sb);
+    sprintf(etag, "\"%ld-%ld-%ld\"", sb.st_ino, sb.st_size, sb.st_mtime);
+    gmt_date(last_modified, &sb.st_mtime);
+    body = io_fread(f, sb.st_size);
 
-    data = (cached_body_t *)malloc(sizeof(cached_body_t));
-    data->path = strdup(path);
-    data->etag = strdup(etag);
-    data->body = body;
-    data->len = len_body;
+    _set_cached_body(data, strdup(path), strdup(etag), strdup(last_modified),
+                     body, sb.st_size);
 
     list_update(cache, data, mstime());
 
-    rep = _get_rep(ext, data->etag, data->body, data->len, req);
+    rep = _get_rep(ext, data, req);
     DEBS("[CACHE] Cached in ...");
   }
 
