@@ -71,8 +71,8 @@ _expire_timers(list_t *timers, long timeout)
     do {
       stamp = list_node_stamp(timer);
 
-      if (cur_time - stamp >= timeout) {
-        conn = (httpconn_t *)list_node_data(timer);
+      conn = (httpconn_t *)list_node_data(timer);
+      if ((cur_time - stamp >= timeout) && httpconn_close(conn)) {
         sockfd = httpconn_sockfd(conn);
         DEBSI("[CONN] socket closed, server disconnected", sockfd);
         close(sockfd);
@@ -142,10 +142,9 @@ _receive_conn(int srvfd, int epfd, list_t *cache, list_t *timers)
     cli_ip = inet_ntoa(((struct sockaddr_in *)&cliaddr)->sin_addr);
     DEBSS("[CONN] client connected", cli_ip);
     DEBSI("[CONN] on socket", clifd);
-    //printf("[%s] connected on socket [%d]\n", cli_ip, clifd);
 
     _set_nonblocking(clifd);
-    cliconn = httpconn_new(clifd, epfd, cache, timers);
+    cliconn = httpconn_new(clifd, epfd, 0, cache, timers);
     event.data.ptr = (void *)cliconn;
     /*
      * With the use of EPOLLONESHOT, it is guaranteed that
@@ -275,7 +274,7 @@ main(int argc, char** argv)
 
   /* mark the server socket for reading, and become edge-triggered */
   memset(&event, 0, sizeof(struct epoll_event));
-  srvconn = httpconn_new(srvfd, epfd, NULL, NULL);
+  srvconn = httpconn_new(srvfd, epfd, 0, NULL, NULL);
   event.data.ptr = (void *)srvconn;
   event.events = EPOLLIN | EPOLLET;
   if (epoll_ctl(epfd, EPOLL_CTL_ADD, srvfd, &event) == -1) {
