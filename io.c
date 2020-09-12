@@ -38,7 +38,7 @@ io_read_socket(int sockfd, int *rc)
   do {
     n = read(sockfd, buf, BUF_SIZE);
 
-    /* the client stop sending data: EOF reached */
+    /* the client close the socket: EOF reached */
     if (n == 0) {
       *rc = 0;
       return NULL;
@@ -70,6 +70,33 @@ io_read_socket(int sockfd, int *rc)
     }
   } while (1);
 }
+
+void
+io_write_socket(int sockfd, char *bytes, int len)
+{
+  int n;
+  char *last;
+  int done_sz;
+  int left_sz;
+
+  last = bytes;
+  done_sz = 0;
+
+  /* use loop to write as much as possible in a task */
+  do {
+    n = write(sockfd, last, BUF_SIZE);
+
+    last += n;
+    done_sz += n;
+    left_sz = len - done_sz;
+
+    if (left_sz < BUF_SIZE) {
+      write(sockfd, last, left_sz);
+      return;
+    }
+  } while (1);
+}
+
 
 char *
 io_fread(FILE *f, int len)

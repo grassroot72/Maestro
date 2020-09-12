@@ -9,6 +9,7 @@
 
 
 char *io_read_socket(int sockfd, int *rc);
+void io_write_socket(int sockfd, char *bytes, int len);
 char *io_fgetc(FILE *fpipe, int *len);
 char *io_fread(FILE *fpipe, int len);
 
