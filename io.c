@@ -77,7 +77,6 @@ io_write_socket(int sockfd, char *bytes, int len)
   int n;
   char *last;
   int done_sz;
-  int left_sz;
 
   last = bytes;
   done_sz = 0;
@@ -88,12 +87,8 @@ io_write_socket(int sockfd, char *bytes, int len)
 
     last += n;
     done_sz += n;
-    left_sz = len - done_sz;
 
-    if (left_sz < BUF_SIZE) {
-      write(sockfd, last, left_sz);
-      return;
-    }
+    if (done_sz == len) break;
   } while (1);
 }
 
