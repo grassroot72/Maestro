@@ -25,20 +25,17 @@ struct _httpconn {
   int sockfd;
   int epfd;
 
-  int close;  /* close mark */
-
   list_t *cache;
   list_t *timers;
 };
 
 
 httpconn_t *
-httpconn_new(int sockfd, int epfd, int close, void *cache, void *timers)
+httpconn_new(int sockfd, int epfd, void *cache, void *timers)
 {
   httpconn_t *conn = malloc(sizeof(struct _httpconn));
   conn->sockfd = sockfd;
   conn->epfd = epfd;
-  conn->close = 0;
   conn->cache = (list_t *)cache;
   conn->timers = (list_t *)timers;
 
@@ -49,12 +46,6 @@ int
 httpconn_sockfd(httpconn_t *conn)
 {
   return conn->sockfd;
-}
-
-int
-httpconn_close(httpconn_t *conn)
-{
-  return conn->close;
 }
 
 void
@@ -87,10 +78,6 @@ httpconn_task(void *arg)
   }
 
   if (rc == 1) {
-    /* start timer recoding */
-    cur_time = mstime();
-    list_update(conn->timers, conn, cur_time);
-
     req = http_parse_req(bytes);
     if (!req) return;
 
@@ -100,7 +87,6 @@ httpconn_task(void *arg)
     /* static GET */
     if (strcmp(method, "GET") == 0) {
       http_rep_get(conn->sockfd, conn->cache, path, req);
-      conn->close = 1;
     }
 
     /* todo:
@@ -111,9 +97,11 @@ httpconn_task(void *arg)
 
     if (strcmp(method, "HEAD") == 0) {
       http_rep_head(conn->sockfd, conn->cache, path, req);
-      conn->close = 1;
     }
 
+    /* start timer recoding */
+    cur_time = mstime();
+    list_update(conn->timers, conn, cur_time);
     msg_destroy(req, 1);
     free(bytes);
 

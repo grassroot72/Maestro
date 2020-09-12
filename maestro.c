@@ -29,7 +29,7 @@
 #define THREADS_PER_CORE 64
 #define MAXEVENTS 2048
 
-#define HTTP_KEEPALIVE_TIME 60000  /* 60 seconds */
+#define HTTP_KEEPALIVE_TIME 5000  /* 5 seconds */
 #define PORT 9000
 
 #define MAX_CACHE_TIME 86400000    /* 24 x 60 x 60 = 1 day */
@@ -71,8 +71,8 @@ _expire_timers(list_t *timers, long timeout)
     do {
       stamp = list_node_stamp(timer);
 
-      conn = (httpconn_t *)list_node_data(timer);
-      if ((cur_time - stamp >= timeout) && httpconn_close(conn)) {
+      if (cur_time - stamp >= timeout) {
+        conn = (httpconn_t *)list_node_data(timer);
         sockfd = httpconn_sockfd(conn);
         DEBSI("[CONN] socket closed, server disconnected", sockfd);
         close(sockfd);
@@ -144,7 +144,7 @@ _receive_conn(int srvfd, int epfd, list_t *cache, list_t *timers)
     DEBSI("[CONN] on socket", clifd);
 
     _set_nonblocking(clifd);
-    cliconn = httpconn_new(clifd, epfd, 0, cache, timers);
+    cliconn = httpconn_new(clifd, epfd, cache, timers);
     event.data.ptr = (void *)cliconn;
     /*
      * With the use of EPOLLONESHOT, it is guaranteed that
@@ -274,7 +274,7 @@ main(int argc, char** argv)
 
   /* mark the server socket for reading, and become edge-triggered */
   memset(&event, 0, sizeof(struct epoll_event));
-  srvconn = httpconn_new(srvfd, epfd, 0, NULL, NULL);
+  srvconn = httpconn_new(srvfd, epfd, NULL, NULL);
   event.data.ptr = (void *)srvconn;
   event.events = EPOLLIN | EPOLLET;
   if (epoll_ctl(epfd, EPOLL_CTL_ADD, srvfd, &event) == -1) {

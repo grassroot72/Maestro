@@ -376,7 +376,7 @@ _get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
     list_update(cache, data, mstime());
 
     rep = _get_rep(ext, data, req);
-    DEBS("[CACHE] Cached in ...");
+    DEBS("[CACHE] Cached in...");
   }
 
   return rep;
@@ -393,7 +393,7 @@ http_rep_head(int clifd, void *cache, char *path, void *req)
   bytes = msg_create_rep(rep, &len_msg);
 
   /* send msg */
-  DEBSI("[REP] Sending reply msg...", clifd);
+  DEBSI("[REP] Sending reply headers...", clifd);
   write(clifd, bytes, len_msg);
 
   free(bytes);
@@ -411,11 +411,11 @@ http_rep_get(int clifd, void *cache, char *path, void *req)
   bytes = msg_create_rep(rep, &len_msg);
 
   /* send msg */
-  DEBSI("[REP] Sending reply msg...", clifd);
+  DEBSI("[REP] Sending reply headers...", clifd);
   write(clifd, bytes, len_msg);
   /* send body */
   DEBSI("[REP] Sending body...", clifd);
-  write(clifd, msg_body_start(rep), msg_body_len(rep));
+  io_write_socket(clifd, msg_body_start(rep), msg_body_len(rep));
 
   free(bytes);
   msg_destroy(rep, 0);
