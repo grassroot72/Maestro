@@ -88,7 +88,7 @@ io_write_socket(int sockfd, char *bytes, int len)
     last += n;
     done_sz += n;
 
-    if (done_sz == len) break;
+    if (done_sz >= len) return;
   } while (1);
 }
 
