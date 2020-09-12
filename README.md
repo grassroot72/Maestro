@@ -55,7 +55,7 @@ download finally finishes.
 
 ## Benchmark
 ```
-Running Apache Bench, I used the following command,
+For Apache Bench, I used the following command,
 $ ab -k -n 5000 -c 100 http://localhost:9000/bench.html
 
 You may also want to put the compression option on,
