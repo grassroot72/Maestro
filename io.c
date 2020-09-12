@@ -77,18 +77,20 @@ io_write_socket(int sockfd, char *bytes, int len)
   int n;
   char *last;
   int done_sz;
+  int left_sz;
 
   last = bytes;
   done_sz = 0;
 
   /* use loop to write as much as possible in a task */
   do {
-    n = write(sockfd, last, BUF_SIZE);
+    left_sz = len - done_sz;
+    if (!left_sz) return;
+
+    n = write(sockfd, last, left_sz);
 
     last += n;
     done_sz += n;
-
-    if (done_sz >= len) return;
   } while (1);
 }
 
