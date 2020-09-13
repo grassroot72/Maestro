@@ -19,7 +19,7 @@
 #include "http_msg.h"
 #include "http_svc.h"
 
-//#define DEBUG
+#define DEBUG
 #include "debug.h"
 
 
@@ -28,13 +28,13 @@ struct _cached_body {
   char *etag;
   char *last_modified;
   unsigned char *body;
-  int len;
+  size_t len;
 };
 
 
 #define SVC_VERSION "Maestro/1.0"
 
-#define MAX_PATH 255
+#define MAX_PATH 256
 #define MAX_CWD 64
 
 #define MIME_BIN 0   /* binary data */
@@ -117,17 +117,18 @@ _add_mime_type(httpmsg_t *rep, char *ext)
     return MIME_TXT;
   }
 
+  msg_add_header(rep, "Content-Type", "application/octet-stream");
   return MIME_BIN;
 }
 
-static int
-_process_range(httpmsg_t *rep, char *range_str, int len_body, int *len_range)
+static size_t
+_process_range(httpmsg_t *rep, char *range_str, size_t len_body, size_t *len_range)
 {
   char *range_s;
   char *range_e;
-  int range_si;
-  int range_ei;
-  char range[128];
+  size_t range_si;
+  size_t range_ei;
+  char range[64];
 
   range_s = split_kv(range_str, '=');
   range_e = split_kv(range_s, '-');
@@ -135,15 +136,15 @@ _process_range(httpmsg_t *rep, char *range_str, int len_body, int *len_range)
   range_si = atoi(range_s);
   /* req: bytes=xxxx-xxxx */
   if (*range_e) {
-    range_ei = atoi(range_e);
+    range_ei = atol(range_e);
     *len_range = range_ei - range_si + 1;
-    sprintf(range, "bytes %d-%d/%d", range_si, range_ei, len_body);
+    sprintf(range, "bytes %lu-%lu/%lu", range_si, range_ei, len_body);
   }
   /* req: bytes=xxxx- */
   else {
     *len_range = len_body - range_si;
     //sprintf(range, "bytes %d-%d/%d", range_si, len_body - 1, len_body);
-    sprintf(range, "bytes %d-/%d", range_si, len_body);
+    sprintf(range, "bytes %lu-/%lu", range_si, len_body);
   }
 
   msg_add_header(rep, "Content-Range", range);
@@ -154,21 +155,14 @@ _process_range(httpmsg_t *rep, char *range_str, int len_body, int *len_range)
 static httpmsg_t *
 _get_rep(char *ext, cached_body_t *data, httpmsg_t *req)
 {
-  long rep_time;
+  time_t rep_time;
   char rep_date[30];
-
-  /* the If-Range header can be used either with a Last-Modified validator,
-   * or with an ETag, but not with both
-   *
-   * long last_modified_time;
-   * char last_modified[30];
-   */
 
   char *last_modified;
   char *etag;
 
   unsigned char *body;
-  int len_body;
+  size_t len_body;
 
   size_t len;
   char len_str[I2S_SIZE];
@@ -177,12 +171,13 @@ _get_rep(char *ext, cached_body_t *data, httpmsg_t *req)
   deflate_t *c;   /* compressor */
   char *zip_encoding;
   unsigned char *body_zipped;
-  int len_zipped;
-  int len_zipbuf;
+  size_t len_zipped;
+  size_t len_zipbuf;
 
   char *range_str;
-  int range_s;
-  int len_range;
+  size_t range_s;
+  size_t len_range;
+
 
   etag = data->etag;
   last_modified = data->last_modified;
@@ -219,8 +214,8 @@ _get_rep(char *ext, cached_body_t *data, httpmsg_t *req)
     else {
       msg_set_rep_line(rep, 1, 1, 206, "Partial Content");
       range_s = _process_range(rep, range_str, len_body, &len_range);
-      DEBSI("[REP] range start", range_s);
-      DEBSI("[REP] range length", len_range);
+      DEBSL("[REP] range start", range_s);
+      DEBSL("[REP] range length", len_range);
       /* body syncs with the range start */
       msg_set_body_start(rep, body + range_s);
       len_body = len_range;
@@ -241,26 +236,24 @@ _get_rep(char *ext, cached_body_t *data, httpmsg_t *req)
       c = deflate_new();
       len_zipbuf = deflate_bound(len_body);
       body_zipped = malloc(len_zipbuf);
-      len_zipped = deflate(c, body_zipped,
-                              /* compressed body start syncs with body start */
-                              msg_body_start(rep),
-                              len_body, 8);
+      /* compressed body start should sync with body start */
+      len_zipped = deflate(c, body_zipped, msg_body_start(rep), len_body, 8);
       free(c);
 
-      DEBSI("[REP] len_body", len_body);
-      DEBSI("[REP] len_zipped", len_zipped);
+      DEBSL("[REP] len_body", len_body);
+      DEBSL("[REP] len_zipped", len_zipped);
 
       /* set the compressed body start */
       msg_set_body_start(rep, body_zipped);
       msg_add_zipped_body(rep, body_zipped, len_zipped);
       /* use compressed body length */
-      msg_add_header(rep, "Content-Length", itos(len_zipped, len_str, &len));
+      msg_add_header(rep, "Content-Length", uitos(len_zipped, len_str, &len));
     }
     else {
       msg_add_body(rep, body, len_body);
-      DEBSI("[REP] len_body", len_body);
+      DEBSL("[REP] len_body", len_body);
       /* use uncompressed body length */
-      msg_add_header(rep, "Content-Length", itos(len_body, len_str, &len));
+      msg_add_header(rep, "Content-Length", uitos(len_body, len_str, &len));
     }
   }
 
@@ -289,7 +282,7 @@ _get_cached_body(list_t *cache, char *path)
 
 static void
 _set_cached_body(cached_body_t *data, char* path, char *etag, char *modified,
-                 unsigned char *body, int len)
+                 unsigned char *body, size_t len)
 {
   data->path = path;
   data->etag = etag;
@@ -345,19 +338,18 @@ _get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
     return rep;
   }
 
+  /* not in the cache ... */
   data = (cached_body_t *)malloc(sizeof(cached_body_t));
   f = fopen(fullpath, "r");
-
-  /* not in the cache ... */
   if (!f) {
     perror("[SVC]");
     body = (unsigned char *)strdup("<html><body>404 Page Not Found</body></html>");
-    _set_cached_body(data, NULL, NULL, NULL, body, strlen((char *)body));
+    _set_cached_body(data, NULL, NULL, NULL, body, 44);
     rep = _get_rep("html", data, req);
   }
   else {
     stat(fullpath, &sb);
-    sprintf(etag, "\"%ld-%ld-%ld\"", sb.st_ino, sb.st_size, sb.st_mtime);
+    sprintf(etag, "\"%lu-%lu-%lu\"", sb.st_ino, sb.st_size, sb.st_mtime);
     gmt_date(last_modified, &sb.st_mtime);
     body = io_fread(f, sb.st_size);
 
@@ -405,7 +397,7 @@ http_rep_get(int clifd, void *cache, char *path, void *req)
   DEBSI("[REP] Sending reply headers...", clifd);
   write(clifd, bytes, len_msg);
   /* send body */
-  DEBSI("[REP] Sending body...", clifd);
+  DEBSI("[REP] Sending reply body...", clifd);
   io_write_socket(clifd, msg_body_start(rep), msg_body_len(rep));
 
   free(bytes);

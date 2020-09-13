@@ -39,7 +39,7 @@ struct _httpmsg {
   unsigned char *body;    /* point to the body, raw or compressed */
   unsigned char *body_zipped;
   unsigned char *body_s;  /* point to the range start of the body */
-  int len_body;
+  size_t len_body;
 };
 
 
@@ -72,7 +72,7 @@ msg_zipped_body(httpmsg_t *msg)
   return msg->body_zipped;
 }
 
-int
+size_t
 msg_body_len(httpmsg_t *msg)
 {
   return msg->len_body;
@@ -91,14 +91,14 @@ msg_set_body_start(httpmsg_t *msg, unsigned char *s)
 }
 
 void
-msg_add_body(httpmsg_t *msg, unsigned char *body, int len)
+msg_add_body(httpmsg_t *msg, unsigned char *body, size_t len)
 {
   msg->body = body;
   msg->len_body = len;
 }
 
 void
-msg_add_zipped_body(httpmsg_t *msg, unsigned char *body_zipped, int len)
+msg_add_zipped_body(httpmsg_t *msg, unsigned char *body_zipped, size_t len)
 {
   msg->body_zipped = body_zipped;
   msg->len_body = len;

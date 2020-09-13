@@ -9,8 +9,8 @@
 
 
 unsigned char *io_read_socket(int sockfd, int *rc);
-void io_write_socket(int sockfd, unsigned char *bytes, int len);
-unsigned char *io_fread(FILE *fpipe, int len);
+void io_write_socket(int sockfd, unsigned char *bytes, size_t len);
+unsigned char *io_fread(FILE *fpipe, size_t len);
 char *io_fgetc(FILE *fpipe, int *len);
 
 

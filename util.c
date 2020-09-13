@@ -222,12 +222,12 @@ gmt_date(char *date_gmt, long *tmgmt)
   strftime(date_gmt, 30, "%a, %d %b %Y %H:%M:%S %Z", &tm_gmt);
 }
 
-long
+size_t
 mk_etag(char *etag, char *file)
 {
   struct stat sb;
   stat(file, &sb);
-  sprintf(etag, "\"%ld-%ld-%ld\"", sb.st_ino, sb.st_size, sb.st_mtime);
+  sprintf(etag, "\"%lu-%lu-%lu\"", sb.st_ino, sb.st_size, sb.st_mtime);
   return sb.st_mtime;
 }
 
@@ -239,11 +239,11 @@ find_ext(char *file)
   return dot + 1;
 }
 
-int
-msleep(long tms)
+size_t
+msleep(size_t tms)
 {
   struct timespec ts;
-  int ret;
+  size_t ret;
 
   if (tms < 0) {
     errno = EINVAL;
@@ -260,11 +260,11 @@ msleep(long tms)
   return ret;
 }
 
-long
+size_t
 mstime()
 {
   struct timeval tv;
-  long msec;
+  size_t msec;
 
   gettimeofday(&tv, 0);
   msec = tv.tv_sec * 1000 + tv.tv_usec / 1000;

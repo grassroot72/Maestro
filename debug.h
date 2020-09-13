@@ -12,7 +12,7 @@
   #define DEBS(x) printf("%s\n", x)
   #define DEBSS(x, y) printf("%s: [%s]\n", x, y)
   #define DEBSI(s, i) printf("%s: [%d]\n", s, i)
-  #define DEBSL(s, l) printf("%s: [%ld]\n", s, l)
+  #define DEBSL(s, l) printf("%s: [%lu]\n", s, l)
 #else
   #define DEBS(...)
   #define DEBSS(...)

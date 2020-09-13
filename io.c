@@ -73,12 +73,12 @@ io_read_socket(int sockfd, int *rc)
 }
 
 void
-io_write_socket(int sockfd, unsigned char *bytes, int len)
+io_write_socket(int sockfd, unsigned char *bytes, size_t len)
 {
   int n;
   unsigned char *last;
-  int done_sz;
-  int left_sz;
+  size_t done_sz;
+  size_t left_sz;
 
   last = bytes;
   done_sz = 0;
@@ -99,7 +99,7 @@ io_write_socket(int sockfd, unsigned char *bytes, int len)
 
 
 unsigned char *
-io_fread(FILE *f, int len)
+io_fread(FILE *f, size_t len)
 {
   unsigned char *buf;
 

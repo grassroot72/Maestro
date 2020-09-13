@@ -14,11 +14,11 @@ typedef struct _httpmsg httpmsg_t;
 httpmsg_t *msg_new();
 unsigned char *msg_body(httpmsg_t *msg);
 unsigned char *msg_zipped_body(httpmsg_t *msg);
-int msg_body_len(httpmsg_t *msg);
+size_t msg_body_len(httpmsg_t *msg);
 unsigned char *msg_body_start(httpmsg_t *msg);
 void msg_set_body_start(httpmsg_t *msg, unsigned char *s);
-void msg_add_body(httpmsg_t *msg, unsigned char *body, int len);
-void msg_add_zipped_body(httpmsg_t *msg, unsigned char *body_zipped, int len);
+void msg_add_body(httpmsg_t *msg, unsigned char *body, size_t len);
+void msg_add_zipped_body(httpmsg_t *msg, unsigned char *body_zipped, size_t len);
 void msg_destroy(httpmsg_t *msg, int delbody);
 
 int msg_split_lines(char *line[], int *end, unsigned char *buf);
