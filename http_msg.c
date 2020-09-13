@@ -36,9 +36,9 @@ struct _httpmsg {
   int len_headers;
   int num_headers;
 
-  char *body;    /* point to the body, raw or compressed */
-  char *body_zipped;
-  char *body_s;  /* point to the range start of the body */
+  unsigned char *body;    /* point to the body, raw or compressed */
+  unsigned char *body_zipped;
+  unsigned char *body_s;  /* point to the range start of the body */
   int len_body;
 };
 
@@ -60,13 +60,13 @@ msg_new()
   return msg;
 }
 
-char *
+unsigned char *
 msg_body(httpmsg_t *msg)
 {
   return msg->body;
 }
 
-char *
+unsigned char *
 msg_zipped_body(httpmsg_t *msg)
 {
   return msg->body_zipped;
@@ -78,27 +78,27 @@ msg_body_len(httpmsg_t *msg)
   return msg->len_body;
 }
 
-char *
+unsigned char *
 msg_body_start(httpmsg_t *msg)
 {
   return msg->body_s;
 }
 
 void
-msg_set_body_start(httpmsg_t *msg, char *s)
+msg_set_body_start(httpmsg_t *msg, unsigned char *s)
 {
   msg->body_s = s;
 }
 
 void
-msg_add_body(httpmsg_t *msg, char *body, int len)
+msg_add_body(httpmsg_t *msg, unsigned char *body, int len)
 {
   msg->body = body;
   msg->len_body = len;
 }
 
 void
-msg_add_zipped_body(httpmsg_t *msg, char *body_zipped, int len)
+msg_add_zipped_body(httpmsg_t *msg, unsigned char *body_zipped, int len)
 {
   msg->body_zipped = body_zipped;
   msg->len_body = len;
@@ -129,10 +129,10 @@ msg_destroy(httpmsg_t *msg, int delbody)
 }
 
 int
-msg_split_lines(char *line[], int *end, char *buf)
+msg_split_lines(char *line[], int *end, unsigned char *buf)
 {
-  char* p = buf;
-  char* h = p;
+  unsigned char* p = buf;
+  unsigned char* h = p;
   int i;
   int len;
   int size;
@@ -178,7 +178,7 @@ msg_split_lines(char *line[], int *end, char *buf)
   size = p - h;
   if (size) {
     line[i] = malloc(size);
-    strcpy(line[i], h);
+    memcpy(line[i], h, size - 1);
   }
 
   return i;

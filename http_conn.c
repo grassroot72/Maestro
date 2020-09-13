@@ -17,7 +17,7 @@
 #include "http_svc.h"
 #include "http_conn.h"
 
-#define DEBUG
+//#define DEBUG
 #include "debug.h"
 
 
@@ -55,7 +55,7 @@ httpconn_task(void *arg)
   long cur_time;
   struct epoll_event event;
 
-  char *bytes;
+  unsigned char *bytes;
   int rc;
 
   char *method;
@@ -99,7 +99,7 @@ httpconn_task(void *arg)
       http_rep_head(conn->sockfd, conn->cache, path, req);
     }
 
-    /* start timer recoding */
+    /* start timer recording */
     cur_time = mstime();
     list_update(conn->timers, conn, cur_time);
     msg_destroy(req, 1);

@@ -12,23 +12,24 @@
 #include <errno.h>
 #include "io.h"
 
+//#define DEBUG
 #include "debug.h"
 
 
-#define BUF_SIZE 255
+#define BUF_SIZE 1024
 #define BUF_MAX_SIZE 8192
 
 
-char *
+unsigned char *
 io_read_socket(int sockfd, int *rc)
 {
   int n;
-  char buf[BUF_SIZE];
-  char workbuf[BUF_MAX_SIZE];
-  char *last;
+  unsigned char buf[BUF_SIZE];
+  unsigned char workbuf[BUF_MAX_SIZE];
+  unsigned char *last;
   int last_sz;
 
-  char *bytes = NULL;
+  unsigned char *bytes = NULL;
 
   workbuf[0] = '\0';
   last = workbuf;
@@ -72,10 +73,10 @@ io_read_socket(int sockfd, int *rc)
 }
 
 void
-io_write_socket(int sockfd, char *bytes, int len)
+io_write_socket(int sockfd, unsigned char *bytes, int len)
 {
   int n;
-  char *last;
+  unsigned char *last;
   int done_sz;
   int left_sz;
 
@@ -85,9 +86,11 @@ io_write_socket(int sockfd, char *bytes, int len)
   /* use loop to write as much as possible in a task */
   do {
     left_sz = len - done_sz;
-    if (!left_sz) return;
+    if (left_sz == 0) return;
 
     n = write(sockfd, last, left_sz);
+    if (n == -1) continue;
+    DEBSI("[IO] write()", n);
 
     last += n;
     done_sz += n;
@@ -95,10 +98,10 @@ io_write_socket(int sockfd, char *bytes, int len)
 }
 
 
-char *
+unsigned char *
 io_fread(FILE *f, int len)
 {
-  char *buf;
+  unsigned char *buf;
 
   buf = malloc(len);
   fread(buf, 1, len, f);

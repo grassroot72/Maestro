@@ -42,7 +42,7 @@ b64_cleanup()
 }
 
 char *
-b64_encode(const unsigned char *data, size_t len_in, size_t* len_out)
+b64_encode(const unsigned char *data, size_t len_in, size_t *len_out)
 {
   int i, j;
   uint32_t octet_a;

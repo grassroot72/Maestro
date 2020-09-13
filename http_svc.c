@@ -19,7 +19,7 @@
 #include "http_msg.h"
 #include "http_svc.h"
 
-#define DEBUG
+//#define DEBUG
 #include "debug.h"
 
 
@@ -27,7 +27,7 @@ struct _cached_body {
   char *path;
   char *etag;
   char *last_modified;
-  char *body;
+  unsigned char *body;
   int len;
 };
 
@@ -167,7 +167,7 @@ _get_rep(char *ext, cached_body_t *data, httpmsg_t *req)
   char *last_modified;
   char *etag;
 
-  char *body;
+  unsigned char *body;
   int len_body;
 
   size_t len;
@@ -176,7 +176,7 @@ _get_rep(char *ext, cached_body_t *data, httpmsg_t *req)
 
   deflate_t *c;   /* compressor */
   char *zip_encoding;
-  char *body_zipped;
+  unsigned char *body_zipped;
   int len_zipped;
   int len_zipbuf;
 
@@ -211,15 +211,6 @@ _get_rep(char *ext, cached_body_t *data, httpmsg_t *req)
     msg_add_header(rep, "ETag", etag);
     msg_add_header(rep, "Last-Modified", last_modified);
 
-    /* Last-Modified is a weak validator,
-     * the If-Range header can be used either with a Last-Modified validator,
-     * or with an ETag, but not with both
-     *
-     *
-     * gmt_date(last_modified, &last_modified_time);
-     * msg_add_header(rep, "Last-Modified", last_modified);
-     */
-
     range_str = msg_header_value(req, "Range");
     DEBSS("[REQ] Range", range_str);
 
@@ -250,9 +241,9 @@ _get_rep(char *ext, cached_body_t *data, httpmsg_t *req)
       c = deflate_new();
       len_zipbuf = deflate_bound(len_body);
       body_zipped = malloc(len_zipbuf);
-      len_zipped = deflate(c, (unsigned char *)body_zipped,
+      len_zipped = deflate(c, body_zipped,
                               /* compressed body start syncs with body start */
-                              (unsigned char *)msg_body_start(rep),
+                              msg_body_start(rep),
                               len_body, 8);
       free(c);
 
@@ -298,7 +289,7 @@ _get_cached_body(list_t *cache, char *path)
 
 static void
 _set_cached_body(cached_body_t *data, char* path, char *etag, char *modified,
-                 char *body, int len)
+                 unsigned char *body, int len)
 {
   data->path = path;
   data->etag = etag;
@@ -322,7 +313,7 @@ httpmsg_t *
 _get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
 {
   FILE *f;
-  char *body;
+  unsigned char *body;
 
   char *ext;
   char curdir[MAX_CWD];
@@ -360,8 +351,8 @@ _get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
   /* not in the cache ... */
   if (!f) {
     perror("[SVC]");
-    body = strdup("<html><body>404 Page Not Found</body></html>");
-    _set_cached_body(data, NULL, NULL, NULL, body, strlen(body));
+    body = (unsigned char *)strdup("<html><body>404 Page Not Found</body></html>");
+    _set_cached_body(data, NULL, NULL, NULL, body, strlen((char *)body));
     rep = _get_rep("html", data, req);
   }
   else {

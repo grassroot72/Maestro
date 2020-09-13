@@ -29,7 +29,7 @@
 #define THREADS_PER_CORE 64
 #define MAXEVENTS 2048
 
-#define HTTP_KEEPALIVE_TIME 5000  /* 5 seconds */
+#define HTTP_KEEPALIVE_TIME 60000  /* 60 seconds */
 #define PORT 9000
 
 #define MAX_CACHE_TIME 86400000    /* 24 x 60 x 60 = 1 day */
@@ -277,6 +277,7 @@ main(int argc, char** argv)
   srvconn = httpconn_new(srvfd, epfd, NULL, NULL);
   event.data.ptr = (void *)srvconn;
   event.events = EPOLLIN | EPOLLET;
+  //event.events = EPOLLIN;
   if (epoll_ctl(epfd, EPOLL_CTL_ADD, srvfd, &event) == -1) {
     perror("epoll_ctl()");
     return -1;
