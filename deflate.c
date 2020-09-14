@@ -198,7 +198,7 @@ _find(struct _match *m,
   int limit = ((p - DEFLATE_WIN_SIZE) < DEFLATE_NIL) ?
               DEFLATE_NIL : (p - DEFLATE_WIN_SIZE);
   while (i > limit) {
-    if (in[i + m->len]==in[p + m->len] && (_uload32(&in[i])==_uload32(&in[p]))) {
+    if (in[i + m->len]==in[p + m->len] && _uload32(&in[i])==_uload32(&in[p])) {
       int n = DEFLATE_MIN_MATCH;
       while (n < max_match && in[i + n] == in[p + n]) n++;
       if (n > m->len) {

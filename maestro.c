@@ -327,6 +327,7 @@ main(int argc, char** argv)
   list_destroy(timers);
   free(srvconn);
   close(epfd);
+  free(events);
   puts("Exit gracefully...");
 
   return 0;
