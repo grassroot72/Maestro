@@ -19,7 +19,7 @@
 #include "http_msg.h"
 #include "http_svc.h"
 
-#define DEBUG
+//#define DEBUG
 #include "debug.h"
 
 
@@ -313,8 +313,8 @@ _get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
   char fullpath[MAX_PATH];
 
   struct stat sb;
-  char last_modified[30];
-  char etag[30];
+  char *last_modified;
+  char *etag;
 
   cached_body_t *data;
   httpmsg_t *rep;
@@ -349,13 +349,13 @@ _get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
   }
   else {
     stat(fullpath, &sb);
+    etag = malloc(30);
+    last_modified = malloc(30);
     sprintf(etag, "\"%lu-%lu-%lu\"", sb.st_ino, sb.st_size, sb.st_mtime);
     gmt_date(last_modified, &sb.st_mtime);
     body = io_fread(f, sb.st_size);
 
-    _set_cached_body(data, strdup(path), strdup(etag), strdup(last_modified),
-                     body, sb.st_size);
-
+    _set_cached_body(data, strdup(path), etag, last_modified, body, sb.st_size);
     list_update(cache, data, mstime());
 
     rep = _get_rep(ext, data, req);
@@ -366,39 +366,24 @@ _get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
 }
 
 void
-http_rep_head(int clifd, void *cache, char *path, void *req)
+http_rep_static(int clifd, void *cache, char *path, void *req, int method)
 {
   httpmsg_t *rep;
   int len_msg;
-  char *bytes;
+  unsigned char *bytes;
 
   rep = _get_rep_msg((list_t *)cache, path, req);
-  bytes = msg_create_rep(rep, &len_msg);
+  bytes = (unsigned char *)msg_create_rep(rep, &len_msg);
 
   /* send msg */
   DEBSI("[REP] Sending reply headers...", clifd);
-  write(clifd, bytes, len_msg);
+  io_write_socket(clifd, bytes, len_msg);
 
-  free(bytes);
-  msg_destroy(rep, 0);
-}
-
-void
-http_rep_get(int clifd, void *cache, char *path, void *req)
-{
-  httpmsg_t *rep;
-  int len_msg;
-  char *bytes;
-
-  rep = _get_rep_msg((list_t *)cache, path, req);
-  bytes = msg_create_rep(rep, &len_msg);
-
-  /* send msg */
-  DEBSI("[REP] Sending reply headers...", clifd);
-  write(clifd, bytes, len_msg);
-  /* send body */
-  DEBSI("[REP] Sending reply body...", clifd);
-  io_write_socket(clifd, msg_body_start(rep), msg_body_len(rep));
+  if (method == METHOD_GET) {
+    /* send body */
+    DEBSI("[REP] Sending reply body...", clifd);
+    io_write_socket(clifd, msg_body_start(rep), msg_body_len(rep));
+  }
 
   free(bytes);
   msg_destroy(rep, 0);

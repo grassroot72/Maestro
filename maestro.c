@@ -29,7 +29,7 @@
 #define THREADS_PER_CORE 64
 #define MAXEVENTS 2048
 
-#define HTTP_KEEPALIVE_TIME 60000  /* 60 seconds */
+#define HTTP_KEEPALIVE_TIME 30000  /* 30 seconds */
 #define PORT 9000
 
 #define MAX_CACHE_TIME 86400000    /* 24 x 60 x 60 = 1 day */

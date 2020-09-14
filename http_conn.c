@@ -86,7 +86,7 @@ httpconn_task(void *arg)
 
     /* static GET */
     if (strcmp(method, "GET") == 0) {
-      http_rep_get(conn->sockfd, conn->cache, path, req);
+      http_rep_static(conn->sockfd, conn->cache, path, req, METHOD_GET);
     }
 
     /* todo:
@@ -96,7 +96,7 @@ httpconn_task(void *arg)
     */
 
     if (strcmp(method, "HEAD") == 0) {
-      http_rep_head(conn->sockfd, conn->cache, path, req);
+      http_rep_static(conn->sockfd, conn->cache, path, req, METHOD_HEAD);
     }
 
     /* start timer recording */
