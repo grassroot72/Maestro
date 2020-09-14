@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <assert.h>
 #include <errno.h>
+#include "util.h"
 #include "io.h"
 
 //#define DEBUG
@@ -45,16 +46,9 @@ io_read_socket(int sockfd, int *rc)
       return NULL;
     }
     if (n == -1) {
-      /* socket blocked */
-      if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) {
-        DEBSI("[CONN] temp error reading socket", sockfd);
-        continue;
-      }
-      else {
-        perror("read()");
-        *rc = -1;
-        return NULL;
-      }
+      //perror("read()");
+      *rc = -1;
+      return NULL;
     }
 
     memcpy(last, buf, n);
@@ -69,6 +63,8 @@ io_read_socket(int sockfd, int *rc)
       *rc = 1;
       return bytes;
     }
+
+    msleep(5);
   } while (1);
 }
 
@@ -89,8 +85,12 @@ io_write_socket(int sockfd, unsigned char *bytes, size_t len)
     if (left_sz == 0) return;
 
     n = write(sockfd, last, left_sz);
-    if (n == -1) continue;
-    DEBSI("[IO] write()", n);
+    if (n == -1) {
+      //perror("write()")
+      if (errno == EPIPE) return;
+      msleep(5);
+      continue;
+    }
 
     last += n;
     done_sz += n;
