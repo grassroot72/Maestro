@@ -45,7 +45,7 @@ struct _match {
   int off, len;
 };
 
-#define _npow2(n) (1 << (_ilog2((n) - 1) +1 ))
+#define _npow2(n) (1 << (_ilog2((n) - 1) + 1))
 
 static const unsigned char deflate_mirror[256] = {
   #define R2(n) n, n + 128, n + 64, n + 192
