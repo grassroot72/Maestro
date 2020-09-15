@@ -16,12 +16,12 @@ char *itos(ssize_t value, char dst[I2S_SIZE], size_t *len);
 
 char *split_kv(char *kv, char delim);
 void gmt_date(char *date_gmt, long *tmgmt);
-size_t mk_etag(char *etag, char *file);
+long mk_etag(char *etag, char *file);
 
 char *find_ext(char *file);
 
-size_t msleep(size_t tms);
-size_t mstime();
+long msleep(long tms);
+long mstime();
 
 
 #endif

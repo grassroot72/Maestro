@@ -21,7 +21,7 @@ static char encoding_table[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
                                 '4', '5', '6', '7', '8', '9', '+', '/'};
 
 static char *decoding_table = NULL;
-static int mod_table[] = {0, 2, 1};
+static unsigned int mod_table[] = {0, 2, 1};
 
 
 static void
@@ -30,7 +30,7 @@ _build_decoding_table()
   int i = 0;
   decoding_table = malloc(256);
   do {
-    decoding_table[(unsigned char) encoding_table[i]] = i;
+    decoding_table[(unsigned char)encoding_table[i]] = i;
     i++;
   } while (i < 64);
 }
@@ -44,7 +44,7 @@ b64_cleanup()
 char *
 b64_encode(const unsigned char *data, size_t len_in, size_t *len_out)
 {
-  int i, j;
+  unsigned int i, j;
   uint32_t octet_a;
   uint32_t octet_b;
   uint32_t octet_c;
@@ -52,13 +52,13 @@ b64_encode(const unsigned char *data, size_t len_in, size_t *len_out)
 
   *len_out = 4 * ((len_in + 2) / 3);
 
-  char* encoded_data = malloc(*len_out + 1);
+  char *encoded_data = malloc(*len_out + 1);
   if (encoded_data == 0) return 0;
 
   for (i = 0, j = 0; i < len_in;) {
-    octet_a = i < len_in ? (unsigned char) data[i++] : 0;
-    octet_b = i < len_in ? (unsigned char) data[i++] : 0;
-    octet_c = i < len_in ? (unsigned char) data[i++] : 0;
+    octet_a = i < len_in ? (unsigned char)data[i++] : 0;
+    octet_b = i < len_in ? (unsigned char)data[i++] : 0;
+    octet_c = i < len_in ? (unsigned char)data[i++] : 0;
 
     triple = (octet_a << 0x10) + (octet_b << 0x08) + octet_c;
 
@@ -78,7 +78,7 @@ b64_encode(const unsigned char *data, size_t len_in, size_t *len_out)
 unsigned char *
 b64_decode(const char *data, size_t len_in, size_t *len_out)
 {
-  int i, j;
+  unsigned int i, j;
   uint32_t sextet_a;
   uint32_t sextet_b;
   uint32_t sextet_c;
@@ -98,10 +98,14 @@ b64_decode(const char *data, size_t len_in, size_t *len_out)
   if (decoded_data == 0) return 0;
 
   for (i = 0, j = 0; i < len_in;) {
-    sextet_a = data[i] == '=' ? 0 & i++ : decoding_table[(int) data[i++]];
-    sextet_b = data[i] == '=' ? 0 & i++ : decoding_table[(int) data[i++]];
-    sextet_c = data[i] == '=' ? 0 & i++ : decoding_table[(int) data[i++]];
-    sextet_d = data[i] == '=' ? 0 & i++ : decoding_table[(int) data[i++]];
+    sextet_a = data[i] == '=' ?
+               0 & i++ : (unsigned int)decoding_table[(unsigned char)data[i++]];
+    sextet_b = data[i] == '=' ?
+               0 & i++ : (unsigned int)decoding_table[(unsigned char)data[i++]];
+    sextet_c = data[i] == '=' ?
+               0 & i++ : (unsigned int)decoding_table[(unsigned char)data[i++]];
+    sextet_d = data[i] == '=' ?
+               0 & i++ : (unsigned int)decoding_table[(unsigned char)data[i++]];
 
     triple = (sextet_a << 3 * 6) +
              (sextet_b << 2 * 6) +

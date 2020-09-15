@@ -351,7 +351,7 @@ _get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
     stat(fullpath, &sb);
     etag = malloc(30);
     last_modified = malloc(30);
-    sprintf(etag, "\"%lu-%lu-%lu\"", sb.st_ino, sb.st_size, sb.st_mtime);
+    sprintf(etag, "\"%lu-%lu-%ld\"", sb.st_ino, sb.st_size, sb.st_mtime);
     gmt_date(last_modified, &sb.st_mtime);
     body = io_fread(f, sb.st_size);
 
