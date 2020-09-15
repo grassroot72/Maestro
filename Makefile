@@ -3,7 +3,7 @@
 # $< - first prerequisite (usually the source file)
 
 CC = gcc
-CFLAGS = -O2 -Wall
+CFLAGS = -O2 -Wall -Wextra -pedantic -g
 LDFLAGS = -lpthread
 OBJS = base64.o \
        deflate.o \
