@@ -9,10 +9,14 @@
  * The code is licensed under the MIT license
  */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h> /* memcpy */
 #include <limits.h> /* CHAR_BIT */
 #include "deflate.h"
+
+#define DEBUG
+#include "debug.h"
 
 
 #define DEFLATE_MAX_OFF (1 << 15)

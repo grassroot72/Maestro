@@ -61,7 +61,7 @@ itos(ssize_t value, char dst[I2S_SIZE], size_t *len)
 {
   char *p;
   if (value < 0) {
-    p = uitos((size_t) - value, dst, len);
+    p = uitos((size_t)-value, dst, len);
     *--p = '-';
     ++*len;
     return p;
