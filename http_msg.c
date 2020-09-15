@@ -30,11 +30,12 @@ struct _httpmsg {
   int ver_minor;
   int code;      /* status code */
   char *status;  /* status text */
-  struct _httphdr headers[MAX_NUM_HEADERS];
+
+  struct _httphdr *headers;
+  int num_headers;
 
   int len_startline;
   int len_headers;
-  int num_headers;
 
   unsigned char *body;    /* point to the body, raw or compressed */
   unsigned char *body_zipped;
@@ -46,7 +47,9 @@ struct _httpmsg {
 httpmsg_t *
 msg_new()
 {
-  httpmsg_t *msg = malloc(sizeof(httpmsg_t));
+  httpmsg_t *msg = malloc(sizeof(struct _httpmsg));
+  msg->headers = (struct _httphdr *)
+                 malloc(sizeof(struct _httphdr) * MAX_NUM_HEADERS);
   msg->len_startline = 0;
   msg->len_headers = 0;
   msg->num_headers = 0;
@@ -120,6 +123,7 @@ msg_destroy(httpmsg_t *msg, int delbody)
     if (msg->headers[i].value) free(msg->headers[i].value);
     i++;
   } while (i < msg->num_headers);
+  free(msg->headers);
 
   if (delbody) {
     if (msg->body) free(msg->body);
