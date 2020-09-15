@@ -2,7 +2,7 @@
  * Copyright (c) 2020 Micha Mettke
  * https://github.com/vurtun/sdefl
  *
- * I reformatted the code according to my coding style.
+ * I reformatted the code according to my coding style, I added some functions
  *
  * Copyright (C) 2020  Edward LEI <edward_lei72@hotmail.com>
  *
@@ -40,8 +40,8 @@
 
 struct _deflate {
   int bits, cnt;
-  int tbl[DEFLATE_HASH_SIZE];
-  int prv[DEFLATE_WIN_SIZE];
+  int *tbl;  /* size = DEFLATE_HASH_SIZE */
+  int *prv;  /* size = DEFLATE_WIN_SIZE */
 };
 
 
@@ -290,7 +290,17 @@ deflate_t *
 deflate_new()
 {
   deflate_t *s = (struct _deflate *)malloc(sizeof(struct _deflate));
+  s->tbl = (int *)malloc(sizeof(int) * DEFLATE_HASH_SIZE);
+  s->prv = (int *)malloc(sizeof(int) * DEFLATE_WIN_SIZE);
   return s;
+}
+
+void
+deflate_destroy(deflate_t *s)
+{
+  free(s->tbl);
+  free(s->prv);
+  free(s);
 }
 
 int

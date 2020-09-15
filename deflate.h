@@ -2,7 +2,7 @@
  * Copyright (c) 2020 Micha Mettke
  * https://github.com/vurtun/sdefl
  *
- * I reformatted the code according to my coding style.
+ * I reformatted the code according to my coding style, I added some functions
  *
  * Copyright (C) 2020  Edward LEI <edward_lei72@hotmail.com>
  *
@@ -17,6 +17,7 @@ typedef struct _deflate deflate_t;
 
 
 deflate_t *deflate_new();
+void deflate_destroy(deflate_t *s);
 
 int deflate(deflate_t *s,
             unsigned char *out,

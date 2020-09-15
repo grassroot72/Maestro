@@ -238,7 +238,7 @@ _get_rep(char *ext, cached_body_t *data, httpmsg_t *req)
       body_zipped = malloc(len_zipbuf);
       /* compressed body start should sync with body start */
       len_zipped = deflate(c, body_zipped, msg_body_start(rep), len_body, 8);
-      free(c);
+      deflate_destroy(c);
 
       DEBSL("[REP] len_body", len_body);
       DEBSL("[REP] len_zipped", len_zipped);
