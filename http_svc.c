@@ -300,6 +300,7 @@ http_del_cached_body(cached_body_t *data)
     if (data->last_modified) free(data->last_modified);
     free(data->body);
   }
+  free(data);
 }
 
 httpmsg_t *

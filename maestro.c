@@ -76,6 +76,7 @@ _expire_timers(list_t *timers, long timeout)
         sockfd = httpconn_sockfd(conn);
         DEBSI("[CONN] socket closed, server disconnected", sockfd);
         close(sockfd);
+        free(conn);
 
         list_del(timers, stamp);
       }
