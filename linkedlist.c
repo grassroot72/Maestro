@@ -94,8 +94,7 @@ list_del(list_t *list, long stamp)
   while (current != NULL) {
     if (current->stamp == stamp) {
       previous->next = current->next;
-      if (current == list->head)
-        list->head = current->next;
+      if (current == list->head) list->head = current->next;
       free(current);
       return;
     }
@@ -181,7 +180,6 @@ list_destroy(list_t *list)
   node_t *next = current;
   while (current != NULL) {
     next = current->next;
-    if (current->data) free(current->data);
     free(current);
     current = next;
   }

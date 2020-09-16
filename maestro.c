@@ -73,12 +73,12 @@ _expire_timers(list_t *timers, long timeout)
 
       if (cur_time - stamp >= timeout) {
         conn = (httpconn_t *)list_node_data(timer);
+        list_del(timers, stamp);
+
         sockfd = httpconn_sockfd(conn);
         DEBSI("[CONN] socket closed, server disconnected", sockfd);
         close(sockfd);
         free(conn);
-
-        list_del(timers, stamp);
       }
 
       timer = list_next(timers);
@@ -103,10 +103,10 @@ _expire_cache(list_t *cache, long timeout)
 
       if (cur_time - stamp >= timeout) {
         data = (cached_body_t *)list_node_data(node);
+        list_del(cache, stamp);
+
         http_del_cached_body(data);
         DEBS("[CACHE] cached data expired");
-
-        list_del(cache, stamp);
       }
 
       node = list_next(cache);

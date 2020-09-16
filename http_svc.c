@@ -306,7 +306,6 @@ http_del_cached_body(cached_body_t *data)
 httpmsg_t *
 _get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
 {
-  FILE *f;
   unsigned char *body;
 
   char *ext;
@@ -341,20 +340,19 @@ _get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
 
   /* not in the cache ... */
   data = (cached_body_t *)malloc(sizeof(cached_body_t));
-  f = fopen(fullpath, "r");
-  if (!f) {
+
+  if (stat(fullpath, &sb) == -1) {
     perror("[SVC]");
     body = (unsigned char *)strdup("<html><body>404 Page Not Found</body></html>");
     _set_cached_body(data, NULL, NULL, NULL, body, 44);
     rep = _get_rep("html", data, req);
   }
   else {
-    stat(fullpath, &sb);
     etag = malloc(30);
     last_modified = malloc(30);
     sprintf(etag, "\"%lu-%lu-%ld\"", sb.st_ino, sb.st_size, sb.st_mtime);
     gmt_date(last_modified, &sb.st_mtime);
-    body = io_fread(f, sb.st_size);
+    body = io_fread(fullpath, sb.st_size);
 
     _set_cached_body(data, strdup(path), etag, last_modified, body, sb.st_size);
     list_update(cache, data, mstime());
