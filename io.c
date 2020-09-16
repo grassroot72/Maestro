@@ -97,9 +97,22 @@ io_write_socket(int sockfd, unsigned char *bytes, size_t len)
   } while (1);
 }
 
+unsigned char *
+io_fread(char *fname, size_t len)
+{
+  FILE *f;
+  unsigned char *buf;
+
+  buf = malloc(len);
+  f = fopen(fname, "r");
+  fread(buf, 1, len, f);
+  fclose(f);
+
+  return buf;
+}
 
 unsigned char *
-io_fread(FILE *f, size_t len)
+io_fread_pipe(FILE *f, size_t len)
 {
   unsigned char *buf;
 
