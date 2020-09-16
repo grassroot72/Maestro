@@ -86,7 +86,7 @@ io_write_socket(int sockfd, unsigned char *bytes, size_t len)
 
     n = write(sockfd, last, left_sz);
     if (n == -1) {
-      //perror("write()")
+      /* perror("write()") */
       if (errno == EPIPE) return;
       msleep(3);
       continue;
