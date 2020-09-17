@@ -130,6 +130,7 @@ msg_destroy(httpmsg_t *msg, int delbody)
   }
 
   if (msg->body_zipped) free(msg->body_zipped);
+  free(msg);
 }
 
 int
