@@ -21,7 +21,6 @@ stage. More features will be added in the future.
   - download resumption
 
 
-
 ## Cloning
 ```
 git clone https://github.com/grassroot72/Maestro.git
@@ -84,10 +83,10 @@ Failed requests:        0
 Keep-Alive requests:    5000
 Total transferred:      6465000 bytes
 HTML transferred:       5125000 bytes
-Requests per second:    421.76 [#/sec] (mean)
+Requests per second:    449.23 [#/sec] (mean)
 Time per request:       237.101 [ms] (mean)
-Time per request:       2.371 [ms] (mean, across all concurrent requests)
-Transfer rate:          532.56 [Kbytes/sec] received
+Time per request:       2.226 [ms] (mean, across all concurrent requests)
+Transfer rate:          587.37 [Kbytes/sec] received
 
 Connection Times (ms)
               min  mean[+/-sd] median   max
