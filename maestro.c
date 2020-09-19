@@ -29,7 +29,8 @@
 #define THREADS_PER_CORE 64
 #define MAXEVENTS 2048
 
-#define HTTP_KEEPALIVE_TIME 60000  /* 60 seconds */
+#define EPOLL_TIMEOUT 1000         /* 1 second */
+#define HTTP_KEEPALIVE_TIME 75000  /* 75 seconds */
 #define PORT 9000
 
 #define MAX_CACHE_TIME 86400000    /* 24 x 60 x 60 = 1 day */
@@ -230,6 +231,7 @@ main(int argc, char** argv)
 
   list_t *cache;
   list_t *timers;
+  long loop_time;
 
   /*
    * install signal handle for SIGPIPE
@@ -255,6 +257,8 @@ main(int argc, char** argv)
   cache = list_new();
   /* list of timers */
   timers = list_new();
+  /* loop time */
+  loop_time = mstime();
 
 
   /* create the server socket */
@@ -287,15 +291,17 @@ main(int argc, char** argv)
   events = calloc(MAXEVENTS, sizeof(struct epoll_event));
 
   do {
-    nevents = epoll_wait(epfd, events, MAXEVENTS, HTTP_KEEPALIVE_TIME);
+    nevents = epoll_wait(epfd, events, MAXEVENTS, EPOLL_TIMEOUT);
     if (nevents == -1) perror("epoll_wait()");
 
-    /* expire the timers */
-    _expire_timers(timers, HTTP_KEEPALIVE_TIME);
+    if ((mstime() - loop_time) >= EPOLL_TIMEOUT) {
+      /* expire the timers */
+      _expire_timers(timers, HTTP_KEEPALIVE_TIME);
+      /* expire the cache */
+      _expire_cache(cache, MAX_CACHE_TIME);
 
-    /* expire the cache */
-    _expire_cache(cache, MAX_CACHE_TIME);
-
+      loop_time = mstime();
+    }
 
     /* loop through events */
     for (i = 0; i < nevents; i++) {
