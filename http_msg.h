@@ -21,8 +21,8 @@ void msg_add_body(httpmsg_t *msg, unsigned char *body, size_t len);
 void msg_add_zipped_body(httpmsg_t *msg, unsigned char *body_zipped, size_t len);
 void msg_destroy(httpmsg_t *msg, int delbody);
 
-int msg_split_lines(char *line[], int *end, unsigned char *buf);
-void msg_lines_destroy(char *line[], int count);
+int msg_split(unsigned char *line[], int *end, int *len_body, unsigned char *buf);
+void msg_lines_destroy(unsigned char *line[], int count);
 
 char *msg_method(httpmsg_t *msg);
 char *msg_path(httpmsg_t *msg);
@@ -31,7 +31,7 @@ void msg_set_rep_line(httpmsg_t *msg, int major, int minor, int code, char *stat
 
 void msg_add_header(httpmsg_t *msg, char *key, char *value);
 char *msg_header_value(httpmsg_t *msg, char *key);
-int msg_add_headers(httpmsg_t *msg, char *line[], int end);
+int msg_add_headers(httpmsg_t *msg, unsigned char *line[], int end);
 
 char *msg_create_req(httpmsg_t *req, int *len);
 char *msg_create_rep(httpmsg_t *rep, int *len);

@@ -387,3 +387,9 @@ http_rep_static(int clifd, void *cache, char *path, void *req, int method)
   free(bytes);
   msg_destroy(rep, 0);
 }
+
+void
+http_post(int clifd, char *path, void *req)
+{
+  DEBSS("[SVC] body", msg_body(req));
+}

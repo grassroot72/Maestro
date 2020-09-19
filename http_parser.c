@@ -9,6 +9,7 @@
 #include <string.h>
 #include "http_msg.h"
 
+//#define DEBUG
 #include "debug.h"
 
 
@@ -18,22 +19,22 @@
 httpmsg_t *
 http_parse_req(unsigned char *buf)
 {
-  char *line[MAX_NUM_MSG_LINES];  /* http messages lines */
+  unsigned char *line[MAX_NUM_MSG_LINES];  /* http messages lines */
   char *method;
   char *path;
   char *version;
   int major;
   int minor;
   int count, end;
+  int len_body;
 
   char *rest;
-
   httpmsg_t *req;
 
   if (!buf) return NULL;
 
   end = 0;
-  count = msg_split_lines(line, &end, buf);
+  count = msg_split(line, &end, &len_body, buf);
   if (!count) {
     DEBS("Empty message!!!");
     return NULL;
@@ -45,28 +46,20 @@ http_parse_req(unsigned char *buf)
     return NULL;
   }
 
-  if ((count - end) > 1) {
-    DEBS("Not a valid message");
-    msg_lines_destroy(line, count);
-    return NULL;
-  }
-
   req = msg_new();
 
   /* request line ... */
-  rest = line[0];
+  rest = (char *)line[0];
   method = strtok_r(rest, " ", &rest);
   path = strtok_r(NULL, " ", &rest);
   version = strtok_r(NULL, " ", &rest);
   major = version[5] - '0';
   minor = version[7] - '0';
 
-  if (strcmp(path, "/") == 0) {
+  if (strcmp(path, "/") == 0)
     msg_set_req_line(req, method, "/index.html", major, minor);
-  }
-  else {
+  else
     msg_set_req_line(req, method, path, major, minor);
-  }
 
   /* headers */
   if (!msg_add_headers(req, line, end)) {
@@ -74,37 +67,38 @@ http_parse_req(unsigned char *buf)
     return NULL;
   }
 
-  msg_lines_destroy(line, count);
+  if (len_body > 0) {
+    msg_add_body(req, line[count], len_body);
+    DEBSS("[PARSER] body", line[count]);
+    msg_lines_destroy(line, end);
+  }
+  else
+    msg_lines_destroy(line, count);
+
   return req;
 }
 
 httpmsg_t *
 http_parse_rep(unsigned char *buf)
 {
-  char *line[MAX_NUM_MSG_LINES];  /* http messages lines */
+  unsigned char *line[MAX_NUM_MSG_LINES];  /* http messages lines */
   char *version;
   int major;
   int minor;
   int code;
   char *status;
   int count, end;
+  int len_body;
 
   char *rest;
-
   httpmsg_t *rep;
 
   if (!buf) return NULL;
 
   end = 0;
-  count = msg_split_lines(line, &end, buf);
+  count = msg_split(line, &end, &len_body, buf);
   if (count < 3) {
     DEBS("Incomplete message 1!!!");
-    msg_lines_destroy(line, count);
-    return NULL;
-  }
-
-  if ((count - end) > 1) {
-    DEBS("Not a valid message");
     msg_lines_destroy(line, count);
     return NULL;
   }
@@ -112,7 +106,7 @@ http_parse_rep(unsigned char *buf)
   rep = msg_new();
 
   /* status line ... */
-  rest = line[0];
+  rest = (char *)line[0];
   version = strtok_r(rest, " ", &rest);
   major = version[5] - '0';
   minor = version[7] - '0';
@@ -127,27 +121,30 @@ http_parse_rep(unsigned char *buf)
     return NULL;
   }
 
-  msg_lines_destroy(line, count);
+  if (len_body > 0) {
+    msg_add_body(rep, line[count], len_body);
+    DEBSS("[PARSER] body", line[count]);
+    msg_lines_destroy(line, end);
+  }
+  else
+    msg_lines_destroy(line, count);
+
   return rep;
 }
 
 httpmsg_t *
 http_parse_headers(unsigned char *buf)
 {
-  char *line[MAX_NUM_MSG_LINES];
+  unsigned char *line[MAX_NUM_MSG_LINES];
   int count, end;
+  int len_body;
 
   httpmsg_t *hdrs;
 
   end = 0;
-  count = msg_split_lines(line, &end, buf);
+  count = msg_split(line, &end, &len_body, buf);
   if (count < 3) {
     DEBS("Incomplete message 1!!!");
-    return NULL;
-  }
-
-  if ((count - end) > 1) {
-    DEBS("Not a valid message");
     return NULL;
   }
 

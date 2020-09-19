@@ -10,6 +10,7 @@
 #include "util.h"
 #include "http_msg.h"
 
+#define DEBUG
 #include "debug.h"
 
 
@@ -134,7 +135,7 @@ msg_destroy(httpmsg_t *msg, int delbody)
 }
 
 int
-msg_split_lines(char *line[], int *end, unsigned char *buf)
+msg_split(unsigned char *line[], int *end, int *len_body, unsigned char *buf)
 {
   unsigned char* p = buf;
   unsigned char* h = p;
@@ -180,17 +181,17 @@ msg_split_lines(char *line[], int *end, unsigned char *buf)
   } while (*p);
 
   /* body */
-  size = p - h;
-  if (size) {
-    line[i] = malloc(size);
-    memcpy(line[i], h, size - 1);
+  *len_body = p - h;
+  if (*len_body) {
+    line[i] = malloc(*len_body);
+    memcpy(line[i], h, *len_body);
   }
 
   return i;
 }
 
 void
-msg_lines_destroy(char *line[], int count)
+msg_lines_destroy(unsigned char *line[], int count)
 {
   int i = 0;
   do {
@@ -269,8 +270,14 @@ msg_add_header(httpmsg_t *msg, char *key, char *value)
   len_k = strlen(key);
   len_v = strlen(value);
 
-  msg->headers[msg->num_headers].key = strdup(key);
-  msg->headers[msg->num_headers].value = strdup(value);
+  msg->headers[msg->num_headers].key = malloc(len_k + 1);
+  memcpy(msg->headers[msg->num_headers].key, key, len_k);
+  msg->headers[msg->num_headers].key[len_k] = 0;
+
+  msg->headers[msg->num_headers].value = malloc(len_v + 1);
+  memcpy(msg->headers[msg->num_headers].value, value, len_v);
+  msg->headers[msg->num_headers].value[len_v] = 0;
+
   total = len_k + len_v;
 
   /*
@@ -301,7 +308,7 @@ msg_header_value(httpmsg_t *msg, char *key)
 }
 
 int
-msg_add_headers(httpmsg_t *msg, char *line[], int end)
+msg_add_headers(httpmsg_t *msg, unsigned char *line[], int end)
 {
   char* key;
   char* value;
@@ -315,8 +322,8 @@ msg_add_headers(httpmsg_t *msg, char *line[], int end)
         DEBS("Not valid message 2!!!");
         return 0;
       }
-      key = line[i];
-      value = split_kv(line[i], ':');
+      key = (char *)line[i];
+      value = split_kv((char *)line[i], ':');
       msg_add_header(msg, key, value);
       i++;
     } while (i < end);

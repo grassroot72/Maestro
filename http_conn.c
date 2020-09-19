@@ -89,8 +89,12 @@ httpconn_task(void *arg)
       http_rep_static(conn->sockfd, conn->cache, path, req, METHOD_GET);
     }
 
+    /* POST */
+    if (strcmp(method, "POST") == 0) {
+      http_post(conn->sockfd, path, req);
+    }
+
     /* todo:
-    if (strcmp(method, "POST") == 0)
     if (strcmp(method, "PUT") == 0)
     if (strcmp(method, "DELETE") == 0)
     */
