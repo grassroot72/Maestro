@@ -146,7 +146,7 @@ _process_range(httpmsg_t *rep, char *range_str, size_t len_body, size_t *len_ran
   }
 
   msg_add_header(rep, "Content-Range", range);
-  DEBSS("[REP] Content-Range", range);
+  DEBSS("[GET_REP] Content-Range", range);
   return range_si;
 }
 
@@ -212,13 +212,12 @@ _get_rep(char *ext, cached_body_t *data, httpmsg_t *req)
     else {
       msg_set_rep_line(rep, 1, 1, 206, "Partial Content");
       range_s = _process_range(rep, range_str, len_body, &len_range);
-      DEBSL("[REP] range start", range_s);
-      DEBSL("[REP] range length", len_range);
+      DEBSL("[GET_REP] range start", range_s);
+      DEBSL("[GET_REP] range length", len_range);
       /* body syncs with the range start */
       msg_set_body_start(rep, body + range_s);
       len_body = len_range;
     }
-
 
     mime_type = _add_mime_type(rep, ext);
     if (mime_type == MIME_TXT) {
@@ -238,8 +237,8 @@ _get_rep(char *ext, cached_body_t *data, httpmsg_t *req)
       len_zipped = deflate(c, body_zipped, msg_body_start(rep), len_body, 8);
       deflate_destroy(c);
 
-      DEBSL("[REP] len_body", len_body);
-      DEBSL("[REP] len_zipped", len_zipped);
+      DEBSL("[GET_REP] len_body", len_body);
+      DEBSL("[GET_REP] len_zipped", len_zipped);
 
       /* set the compressed body start */
       msg_set_body_start(rep, body_zipped);
@@ -249,7 +248,7 @@ _get_rep(char *ext, cached_body_t *data, httpmsg_t *req)
     }
     else {
       msg_add_body(rep, body, len_body);
-      DEBSL("[REP] len_body", len_body);
+      DEBSL("[GET_REP] len_body", len_body);
       /* use uncompressed body length */
       msg_add_header(rep, "Content-Length", uitos(len_body, len_str, &len));
     }
@@ -325,7 +324,7 @@ _get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
   strcpy(fullpath, curdir);
   strcat(fullpath, path);
   ext = find_ext(path);
-  DEBSS("[SVC] Opening file", fullpath);
+  DEBSS("[GET_IO] Opening file", fullpath);
 
 
   /* check if the body is in the cache */
@@ -373,45 +372,14 @@ http_rep_static(int clifd, void *cache, char *path, void *req, int method)
   bytes = (unsigned char *)msg_create_rep(rep, &len_msg);
 
   /* send msg */
-  DEBSI("[REP] Sending reply headers...", clifd);
+  DEBSI("[GET_REP] Sending reply headers...", clifd);
   io_write_socket(clifd, bytes, len_msg);
 
   if (method == METHOD_GET) {
     /* send body */
-    DEBSI("[REP] Sending reply body...", clifd);
+    DEBSI("[GET_REP] Sending reply body...", clifd);
     io_write_socket(clifd, msg_body_start(rep), msg_body_len(rep));
   }
-
-  free(bytes);
-  msg_destroy(rep, 0);
-}
-
-void
-http_post(int clifd, char *path, void *req)
-{
-  httpmsg_t *rep;
-  int len_msg;
-  unsigned char *bytes;
-
-  unsigned char *body;
-
-  DEBSS("[SVC] body", msg_body(req));
-
-  rep = msg_new();
-  msg_set_rep_line(rep, 1, 1, 200, "OK");
-
-  body = (unsigned char *)strdup("<html><body>Data stored</body></html>");
-  msg_add_body(rep, body, 37);
-  msg_add_header(rep, "Content-Length", "37");
-
-  bytes = (unsigned char *)msg_create_rep(rep, &len_msg);
-
-  /* send msg */
-  DEBSI("[REP] Sending reply headers...", clifd);
-  io_write_socket(clifd, bytes, len_msg);
-  /* send body */
-  DEBSI("[REP] Sending reply body...", clifd);
-  io_write_socket(clifd, msg_body(rep), msg_body_len(rep));
 
   free(bytes);
   msg_destroy(rep, 0);
