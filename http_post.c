@@ -15,7 +15,7 @@
 #include "http_msg.h"
 #include "http_svc.h"
 
-//#define DEBUG
+#define DEBUG
 #include "debug.h"
 
 
@@ -28,7 +28,7 @@ http_post(int clifd, char *path, void *req)
 
   unsigned char *body;
 
-  DEBSS("[SVC] body", msg_body(req));
+  DEBSS("[REQ] body", msg_body(req));
 
   rep = msg_new();
   msg_set_rep_line(rep, 1, 1, 200, "OK");
@@ -40,10 +40,10 @@ http_post(int clifd, char *path, void *req)
   bytes = (unsigned char *)msg_create_rep(rep, &len_msg);
 
   /* send msg */
-  DEBSI("[REP] Sending reply headers...", clifd);
+  DEBSI("[POST_REP] Sending reply headers...", clifd);
   io_write_socket(clifd, bytes, len_msg);
   /* send body */
-  DEBSI("[REP] Sending reply body...", clifd);
+  DEBSI("[POST_REP] Sending reply body...", clifd);
   io_write_socket(clifd, msg_body(rep), msg_body_len(rep));
 
   free(bytes);
