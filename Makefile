@@ -15,7 +15,6 @@ OBJS = base64.o \
        http_msg.o \
        http_parser.o \
        http_get.o \
-       http_post.o \
        http_conn.o \
        maestro.o
 EXES = maestro
