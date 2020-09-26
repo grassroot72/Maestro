@@ -92,7 +92,8 @@ httpconn_task(void *arg)
     /* POST
     if (strcmp(method, "POST") == 0) {
       http_post(conn->sockfd, path, req);
-    }*/
+    }
+    */
 
     /* todo:
     if (strcmp(method, "PUT") == 0)

@@ -1,5 +1,5 @@
-# $@ - left side of rule.
-# $^ - right side of rule.
+# $@ - left side of rule
+# $^ - right side of rule
 # $< - first prerequisite (usually the source file)
 
 CC = gcc
