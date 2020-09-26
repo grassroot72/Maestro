@@ -32,8 +32,6 @@ struct _cached_body {
 };
 
 
-#define SVC_VERSION "Maestro/1.0"
-
 #define MAX_PATH 256
 #define MAX_CWD 64
 
@@ -391,5 +389,30 @@ http_rep_static(int clifd, void *cache, char *path, void *req, int method)
 void
 http_post(int clifd, char *path, void *req)
 {
+  httpmsg_t *rep;
+  int len_msg;
+  unsigned char *bytes;
+
+  unsigned char *body;
+
   DEBSS("[SVC] body", msg_body(req));
+
+  rep = msg_new();
+  msg_set_rep_line(rep, 1, 1, 200, "OK");
+
+  body = (unsigned char *)strdup("<html><body>Data stored</body></html>");
+  msg_add_body(rep, body, 37);
+  msg_add_header(rep, "Content-Length", "37");
+
+  bytes = (unsigned char *)msg_create_rep(rep, &len_msg);
+
+  /* send msg */
+  DEBSI("[REP] Sending reply headers...", clifd);
+  io_write_socket(clifd, bytes, len_msg);
+  /* send body */
+  DEBSI("[REP] Sending reply body...", clifd);
+  io_write_socket(clifd, msg_body(rep), msg_body_len(rep));
+
+  free(bytes);
+  msg_destroy(rep, 0);
 }

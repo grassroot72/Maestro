@@ -3,7 +3,8 @@
 # $< - first prerequisite (usually the source file)
 
 CC = gcc
-CFLAGS = -O2 -Wall -Wextra -pedantic -g
+#CFLAGS = -O0 -Wall -pedantic -g
+CFLAGS = -O2 -Wall -pedantic
 LDFLAGS = -lpthread
 OBJS = base64.o \
        deflate.o \
@@ -13,7 +14,8 @@ OBJS = base64.o \
        util.o \
        http_msg.o \
        http_parser.o \
-       http_svc.o \
+       http_get.o \
+       http_post.o \
        http_conn.o \
        maestro.o
 EXES = maestro
