@@ -26,7 +26,7 @@
 #include "debug.h"
 
 
-#define THREADS_PER_CORE 64
+#define THREADS_PER_CORE 96
 #define MAXEVENTS 2048
 
 #define EPOLL_TIMEOUT 1000         /* 1 second */
