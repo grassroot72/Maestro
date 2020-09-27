@@ -312,7 +312,9 @@ main(int argc, char** argv)
       /* error case */
       if ((events[i].events & EPOLLERR) || (events[i].events & EPOLLHUP) ||
           (!(events[i].events & EPOLLIN))) {
-        perror("EPOLL ERR|HUP");
+        if (errno != EAGAIN) {
+          perror("[EPOLL] ERR|HUP");
+        }
         list_update(timers, conn, mstime());
         break;
       }

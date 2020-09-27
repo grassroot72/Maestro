@@ -20,7 +20,7 @@
 #include "http_cache.h"
 #include "http_svc.h"
 
-#define DEBUG
+//#define DEBUG
 #include "debug.h"
 
 
@@ -288,7 +288,7 @@ _get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
   data = http_cached_new();
 
   if (stat(fullpath, &sb) == -1) {
-    perror("[SVC]");
+    perror("IO");
     body = (unsigned char *)strdup("<html><body>404 Page Not Found</body></html>");
     http_set_cached_body(data, NULL, NULL, NULL, body, 44);
     rep = _get_rep("html", data, req);
