@@ -12,24 +12,16 @@
 #include <time.h>
 #include <sys/stat.h>
 #include "util.h"
-#include "io.h"
 #include "linkedlist.h"
+#include "io.h"
 #include "base64.h"
 #include "deflate.h"
 #include "http_msg.h"
+#include "http_cache.h"
 #include "http_svc.h"
 
-//#define DEBUG
+#define DEBUG
 #include "debug.h"
-
-
-struct _cached_body {
-  char *path;
-  char *etag;
-  char *last_modified;
-  unsigned char *body;
-  size_t len;
-};
 
 
 #define MAX_PATH 256
@@ -151,7 +143,7 @@ _process_range(httpmsg_t *rep, char *range_str, size_t len_body, size_t *len_ran
 }
 
 static httpmsg_t *
-_get_rep(char *ext, cached_body_t *data, httpmsg_t *req)
+_get_rep(char *ext, cached_data_t *data, httpmsg_t *req)
 {
   time_t rep_time;
   char rep_date[30];
@@ -177,10 +169,10 @@ _get_rep(char *ext, cached_body_t *data, httpmsg_t *req)
   size_t len_range;
 
 
-  etag = data->etag;
-  last_modified = data->last_modified;
-  body = data->body;
-  len_body = data->len;
+  etag = http_cached_etag(data);
+  last_modified = http_cached_last_modified(data);
+  body = http_cached_body(data);
+  len_body = http_cached_len_body(data);
 
   httpmsg_t* rep = msg_new();
   msg_set_body_start(rep, body);
@@ -257,49 +249,6 @@ _get_rep(char *ext, cached_body_t *data, httpmsg_t *req)
   return rep;
 }
 
-static cached_body_t *
-_get_cached_body(list_t *cache, char *path)
-{
-  node_t *node;
-  cached_body_t *data;
-
-  node = list_first(cache);
-  if (node) {
-    do {
-      data = (cached_body_t *)list_node_data(node);
-      if (strcmp(path, data->path) == 0) {
-        return data;
-      }
-      node = list_next(cache);
-    } while (node);
-  }
-
-  return NULL;
-}
-
-static void
-_set_cached_body(cached_body_t *data, char* path, char *etag, char *modified,
-                 unsigned char *body, size_t len)
-{
-  data->path = path;
-  data->etag = etag;
-  data->last_modified = modified;
-  data->body = body;
-  data->len = len;
-}
-
-void
-http_del_cached_body(cached_body_t *data)
-{
-  if (data) {
-    if (data->path) free(data->path);
-    if (data->etag) free(data->etag);
-    if (data->last_modified) free(data->last_modified);
-    free(data->body);
-  }
-  free(data);
-}
-
 httpmsg_t *
 _get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
 {
@@ -313,7 +262,7 @@ _get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
   char *last_modified;
   char *etag;
 
-  cached_body_t *data;
+  cached_data_t *data;
   httpmsg_t *rep;
 
 
@@ -328,7 +277,7 @@ _get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
 
 
   /* check if the body is in the cache */
-  data = _get_cached_body(cache, path);
+  data = http_cached_data(cache, path);
   if (data) {
     rep = _get_rep(ext, data, req);
     DEBS("[CACHE] In the cache");
@@ -336,12 +285,12 @@ _get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
   }
 
   /* not in the cache ... */
-  data = (cached_body_t *)malloc(sizeof(cached_body_t));
+  data = http_cached_new();
 
   if (stat(fullpath, &sb) == -1) {
     perror("[SVC]");
     body = (unsigned char *)strdup("<html><body>404 Page Not Found</body></html>");
-    _set_cached_body(data, NULL, NULL, NULL, body, 44);
+    http_set_cached_body(data, NULL, NULL, NULL, body, 44);
     rep = _get_rep("html", data, req);
   }
   else {
@@ -351,7 +300,7 @@ _get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
     gmt_date(last_modified, &sb.st_mtime);
     body = io_fread(fullpath, sb.st_size);
 
-    _set_cached_body(data, strdup(path), etag, last_modified, body, sb.st_size);
+    http_set_cached_body(data, strdup(path), etag, last_modified, body, sb.st_size);
     list_update(cache, data, mstime());
 
     rep = _get_rep(ext, data, req);

@@ -19,6 +19,7 @@
 #include "util.h"
 #include "linkedlist.h"
 #include "thpool.h"
+#include "http_cache.h"
 #include "http_svc.h"
 #include "http_conn.h"
 
@@ -90,7 +91,7 @@ _expire_timers(list_t *timers, long timeout)
 static void
 _expire_cache(list_t *cache, long timeout)
 {
-  cached_body_t *data;
+  cached_data_t *data;
 
   node_t *node;
   long cur_time;
@@ -103,10 +104,10 @@ _expire_cache(list_t *cache, long timeout)
       stamp = list_node_stamp(node);
 
       if (cur_time - stamp >= timeout) {
-        data = (cached_body_t *)list_node_data(node);
+        data = (cached_data_t *)list_node_data(node);
         list_del(cache, stamp);
 
-        http_del_cached_body(data);
+        http_cached_destroy(data);
         DEBS("[CACHE] cached data expired");
       }
 
