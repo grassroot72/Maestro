@@ -8,17 +8,17 @@
 #define _HTTP_CACHE_H_
 
 
-typedef struct _cached_data cached_data_t;
+typedef struct _cache_data cache_data_t;
 
-cached_data_t *http_cached_new();
-void http_set_cached_body(cached_data_t *data, char* path, char *etag, char *modified, unsigned char *body, size_t len);
-void http_cached_destroy(cached_data_t *data);
-cached_data_t *http_cached_data(void *cache, char *path);
+cache_data_t *http_cache_new();
+void http_set_cache_body(cache_data_t *data, char* path, char *etag, char *modified, unsigned char *body, size_t len);
+void http_cache_destroy(cache_data_t *data);
+cache_data_t *http_cache_data(void *cache, char *path);
 
-char *http_cached_etag(cached_data_t *data);
-char *http_cached_last_modified(cached_data_t *data);
-unsigned char *http_cached_body(cached_data_t *data);
-size_t http_cached_len_body(cached_data_t *data);
+char *http_cache_etag(cache_data_t *data);
+char *http_cache_last_modified(cache_data_t *data);
+unsigned char *http_cache_body(cache_data_t *data);
+size_t http_cache_len_body(cache_data_t *data);
 
 
 #endif

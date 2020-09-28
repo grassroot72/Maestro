@@ -143,7 +143,7 @@ _process_range(httpmsg_t *rep, char *range_str, size_t len_body, size_t *len_ran
 }
 
 static httpmsg_t *
-_get_rep(char *ext, cached_data_t *data, httpmsg_t *req)
+_get_rep(char *ext, cache_data_t *data, httpmsg_t *req)
 {
   time_t rep_time;
   char rep_date[30];
@@ -169,10 +169,10 @@ _get_rep(char *ext, cached_data_t *data, httpmsg_t *req)
   size_t len_range;
 
 
-  etag = http_cached_etag(data);
-  last_modified = http_cached_last_modified(data);
-  body = http_cached_body(data);
-  len_body = http_cached_len_body(data);
+  etag = http_cache_etag(data);
+  last_modified = http_cache_last_modified(data);
+  body = http_cache_body(data);
+  len_body = http_cache_len_body(data);
 
   httpmsg_t* rep = msg_new();
   msg_set_body_start(rep, body);
@@ -262,7 +262,7 @@ _get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
   char *last_modified;
   char *etag;
 
-  cached_data_t *data;
+  cache_data_t *data;
   httpmsg_t *rep;
 
 
@@ -277,7 +277,7 @@ _get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
 
 
   /* check if the body is in the cache */
-  data = http_cached_data(cache, path);
+  data = http_cache_data(cache, path);
   if (data) {
     rep = _get_rep(ext, data, req);
     DEBS("[CACHE] In the cache");
@@ -285,12 +285,12 @@ _get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
   }
 
   /* not in the cache ... */
-  data = http_cached_new();
+  data = http_cache_new();
 
   if (stat(fullpath, &sb) == -1) {
     perror("IO");
     body = (unsigned char *)strdup("<html><body>404 Page Not Found</body></html>");
-    http_set_cached_body(data, NULL, NULL, NULL, body, 44);
+    http_set_cache_body(data, NULL, NULL, NULL, body, 44);
     rep = _get_rep("html", data, req);
   }
   else {
@@ -300,7 +300,7 @@ _get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
     gmt_date(last_modified, &sb.st_mtime);
     body = io_fread(fullpath, sb.st_size);
 
-    http_set_cached_body(data, strdup(path), etag, last_modified, body, sb.st_size);
+    http_set_cache_body(data, strdup(path), etag, last_modified, body, sb.st_size);
     list_update(cache, data, mstime());
 
     rep = _get_rep(ext, data, req);
