@@ -14,8 +14,6 @@
 #include "util.h"
 #include "linkedlist.h"
 #include "io.h"
-#include "base64.h"
-#include "deflate.h"
 #include "http_msg.h"
 #include "http_cache.h"
 #include "http_svc.h"
@@ -158,11 +156,9 @@ _get_rep(char *ext, cache_data_t *data, httpmsg_t *req)
   char len_str[I2S_SIZE];
   int mime_type;
 
-  deflate_t *c;   /* compressor */
   char *zip_encoding;
   unsigned char *body_zipped;
   size_t len_zipped;
-  size_t len_zipbuf;
 
   char *range_str;
   size_t range_s;
@@ -173,9 +169,10 @@ _get_rep(char *ext, cache_data_t *data, httpmsg_t *req)
   last_modified = http_cache_last_modified(data);
   body = http_cache_body(data);
   len_body = http_cache_len_body(data);
+  body_zipped = http_cache_body_zipped(data);
+  len_zipped = http_cache_len_zipped(data);
 
   httpmsg_t* rep = msg_new();
-  msg_set_body_start(rep, body);
 
   /* 404 code */
   if (!etag) {
@@ -199,50 +196,46 @@ _get_rep(char *ext, cache_data_t *data, httpmsg_t *req)
     range_str = msg_header_value(req, "Range");
     DEBSS("[REQ] Range", range_str);
 
-    if (!range_str)
-      msg_set_rep_line(rep, 1, 1, 200, "OK");
-    else {
-      msg_set_rep_line(rep, 1, 1, 206, "Partial Content");
-      range_s = _process_range(rep, range_str, len_body, &len_range);
-      DEBSL("[GET_REP] range start", range_s);
-      DEBSL("[GET_REP] range length", len_range);
-      /* body syncs with the range start */
-      msg_set_body_start(rep, body + range_s);
-      len_body = len_range;
-    }
-
+    zip_encoding = msg_header_value(req, "Accept-Encoding");
     mime_type = _add_mime_type(rep, ext);
-    if (mime_type == MIME_TXT) {
-      zip_encoding = msg_header_value(req, "Accept-Encoding");
-      if (zip_encoding && strstr(zip_encoding, "deflate")) {
-        msg_add_header(rep, "Content-Encoding", "deflate");
-        msg_add_header(rep, "Vary", "Accept-Encoding");
-      }
-
-      msg_add_body(rep, body, len_body);
-
-      /* compress the body */
-      c = deflate_new();
-      len_zipbuf = deflate_bound(len_body);
-      body_zipped = malloc(len_zipbuf);
-      /* compressed body start should sync with body start */
-      len_zipped = deflate(c, body_zipped, msg_body_start(rep), len_body, 8);
-      deflate_destroy(c);
-
-      DEBSL("[GET_REP] len_body", len_body);
-      DEBSL("[GET_REP] len_zipped", len_zipped);
-
-      /* set the compressed body start */
-      msg_set_body_start(rep, body_zipped);
+    if (mime_type == MIME_TXT &&
+        zip_encoding && strstr(zip_encoding, "gzip")) {
+      msg_add_header(rep, "Content-Encoding", "gzip");
+      msg_add_header(rep, "Vary", "Accept-Encoding");
       msg_add_zipped_body(rep, body_zipped, len_zipped);
-      /* use compressed body length */
-      msg_add_header(rep, "Content-Length", uitos(len_zipped, len_str, &len));
+
+      if (!range_str) {
+        msg_set_rep_line(rep, 1, 1, 200, "OK");
+        msg_set_body_start(rep, body_zipped);
+        msg_add_header(rep, "Content-Length", uitos(len_zipped, len_str, &len));
+      }
+      else {
+        msg_set_rep_line(rep, 1, 1, 206, "Partial Content");
+        range_s = _process_range(rep, range_str, len_zipped, &len_range);
+        DEBSL("[GET_REP] range start", range_s);
+        DEBSL("[GET_REP] range length", len_range);
+        msg_set_body_start(rep, body_zipped + range_s);
+        /* use compressed body length */
+        msg_add_header(rep, "Content-Length", uitos(len_range, len_str, &len));
+      }
     }
     else {
       msg_add_body(rep, body, len_body);
-      DEBSL("[GET_REP] len_body", len_body);
-      /* use uncompressed body length */
-      msg_add_header(rep, "Content-Length", uitos(len_body, len_str, &len));
+
+      if (!range_str) {
+        msg_set_rep_line(rep, 1, 1, 200, "OK");
+        msg_set_body_start(rep, body);
+        msg_add_header(rep, "Content-Length", uitos(len_body, len_str, &len));
+      }
+      else {
+        msg_set_rep_line(rep, 1, 1, 206, "Partial Content");
+        range_s = _process_range(rep, range_str, len_body, &len_range);
+        DEBSL("[GET_REP] range start", range_s);
+        DEBSL("[GET_REP] range length", len_range);
+        msg_set_body_start(rep, body + range_s);
+        /* use uncompressed body length */
+        msg_add_header(rep, "Content-Length", uitos(len_range, len_str, &len));
+      }
     }
   }
 
@@ -253,10 +246,14 @@ httpmsg_t *
 _get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
 {
   unsigned char *body;
+  unsigned char *body_zipped;
+  size_t len;
+  size_t len_zipped;
 
   char *ext;
   char curdir[MAX_CWD];
-  char fullpath[MAX_PATH];
+  char ospath[MAX_PATH];
+  char ospath_zipped[MAX_PATH];
 
   struct stat sb;
   char *last_modified;
@@ -270,10 +267,10 @@ _get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
   if (!getcwd(curdir, MAX_CWD)) {
     perror("Couldn't read curdir");
   }
-  strcpy(fullpath, curdir);
-  strcat(fullpath, path);
+  strcpy(ospath, curdir);
+  strcat(ospath, path);
   ext = find_ext(path);
-  DEBSS("[GET_IO] Opening file", fullpath);
+  DEBSS("[GET_IO] Opening file", ospath);
 
 
   /* check if the body is in the cache */
@@ -287,10 +284,11 @@ _get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
   /* not in the cache ... */
   data = http_cache_new();
 
-  if (stat(fullpath, &sb) == -1) {
+  if (stat(ospath, &sb) == -1) {
     perror("IO");
-    body = (unsigned char *)strdup("<html><body>404 Page Not Found</body></html>");
-    http_set_cache_body(data, NULL, NULL, NULL, body, 44);
+    body = (unsigned char *)
+           strdup("<html><body>404 Page Not Found</body></html>");
+    http_set_cache_body(data, NULL, NULL, NULL, body, 44, NULL, 0);
     rep = _get_rep("html", data, req);
   }
   else {
@@ -298,11 +296,25 @@ _get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
     last_modified = malloc(30);
     sprintf(etag, "\"%lu-%lu-%ld\"", sb.st_ino, sb.st_size, sb.st_mtime);
     gmt_date(last_modified, &sb.st_mtime);
-    body = io_fread(fullpath, sb.st_size);
+    len = sb.st_size;
+    DEBSL("[IO] len", len);
+    body = io_fread(ospath, len);
 
-    http_set_cache_body(data, strdup(path), etag, last_modified, body, sb.st_size);
+    strcpy(ospath_zipped, ospath);
+    strcat(ospath_zipped, ".gz");
+    if (stat(ospath_zipped, &sb) != -1) {
+      len_zipped = sb.st_size;
+      DEBSL("[IO] len_zipped", len_zipped);
+      body_zipped = io_fread(ospath_zipped, len_zipped);
+      http_set_cache_body(data, strdup(path), etag, last_modified,
+                          body, len, body_zipped, len_zipped);
+    }
+    else {
+      http_set_cache_body(data, strdup(path), etag, last_modified,
+                          body, len, NULL, 0);
+    }
+
     list_update(cache, data, mstime());
-
     rep = _get_rep(ext, data, req);
     DEBS("[CACHE] Cached in...");
   }

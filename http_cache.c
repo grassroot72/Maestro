@@ -9,7 +9,7 @@
 #include "linkedlist.h"
 #include "http_cache.h"
 
-#define DEBUG
+//#define DEBUG
 #include "debug.h"
 
 
@@ -18,7 +18,9 @@ struct _cache_data {
   char *etag;
   char *last_modified;
   unsigned char *body;
+  unsigned char *body_zipped;
   size_t len;
+  size_t len_zipped;
 };
 
 
@@ -31,14 +33,18 @@ http_cache_new()
 }
 
 void
-http_set_cache_body(cache_data_t *data, char* path, char *etag, char *modified,
-                    unsigned char *body, size_t len)
+http_set_cache_body(cache_data_t *data,
+                    char *path, char *etag, char *modified,
+                    unsigned char *body, size_t len,
+                    unsigned char *body_zipped, size_t len_zipped)
 {
   data->path = path;
   data->etag = etag;
   data->last_modified = modified;
   data->body = body;
   data->len = len;
+  data->body_zipped = body_zipped;
+  data->len_zipped = len_zipped;
 }
 
 void
@@ -48,7 +54,8 @@ http_cache_destroy(cache_data_t *data)
     if (data->path) free(data->path);
     if (data->etag) free(data->etag);
     if (data->last_modified) free(data->last_modified);
-    free(data->body);
+    if (data->body) free(data->body);
+    if (data->body_zipped) free(data->body_zipped);
   }
   free(data);
 }
@@ -96,3 +103,16 @@ http_cache_len_body(cache_data_t *data)
 {
   return data->len;
 }
+
+unsigned char *
+http_cache_body_zipped(cache_data_t *data)
+{
+  return data->body_zipped;
+}
+
+size_t
+http_cache_len_zipped(cache_data_t *data)
+{
+  return data->len_zipped;
+}
+

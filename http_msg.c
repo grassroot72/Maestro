@@ -128,9 +128,9 @@ msg_destroy(httpmsg_t *msg, int delbody)
 
   if (delbody) {
     if (msg->body) free(msg->body);
+    if (msg->body_zipped) free(msg->body_zipped);
   }
 
-  if (msg->body_zipped) free(msg->body_zipped);
   free(msg);
 }
 
