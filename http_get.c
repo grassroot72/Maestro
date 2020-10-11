@@ -282,13 +282,13 @@ _get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
   }
 
   /* not in the cache ... */
-  data = http_cache_new();
+  data = http_cache_data_new();
 
   if (stat(ospath, &sb) == -1) {
     perror("IO");
     body = (unsigned char *)
            strdup("<html><body>404 Page Not Found</body></html>");
-    http_set_cache_body(data, NULL, NULL, NULL, body, 44, NULL, 0);
+    http_set_cache_data(data, NULL, NULL, NULL, body, 44, NULL, 0);
     rep = _get_rep("html", data, req);
   }
   else {
@@ -306,11 +306,11 @@ _get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
       len_zipped = sb.st_size;
       DEBSL("[IO] len_zipped", len_zipped);
       body_zipped = io_fread(ospath_zipped, len_zipped);
-      http_set_cache_body(data, strdup(path), etag, last_modified,
+      http_set_cache_data(data, strdup(path), etag, last_modified,
                           body, len, body_zipped, len_zipped);
     }
     else {
-      http_set_cache_body(data, strdup(path), etag, last_modified,
+      http_set_cache_data(data, strdup(path), etag, last_modified,
                           body, len, NULL, 0);
     }
 

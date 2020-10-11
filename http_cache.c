@@ -25,7 +25,7 @@ struct _cache_data {
 
 
 cache_data_t *
-http_cache_new()
+http_cache_data_new()
 {
   cache_data_t *data;
   data = (cache_data_t *)malloc(sizeof(struct _cache_data));
@@ -33,7 +33,7 @@ http_cache_new()
 }
 
 void
-http_set_cache_body(cache_data_t *data,
+http_set_cache_data(cache_data_t *data,
                     char *path, char *etag, char *modified,
                     unsigned char *body, size_t len,
                     unsigned char *body_zipped, size_t len_zipped)
@@ -48,7 +48,7 @@ http_set_cache_body(cache_data_t *data,
 }
 
 void
-http_cache_destroy(cache_data_t *data)
+http_cache_data_destroy(cache_data_t *data)
 {
   if (data) {
     if (data->path) free(data->path);
@@ -56,8 +56,8 @@ http_cache_destroy(cache_data_t *data)
     if (data->last_modified) free(data->last_modified);
     if (data->body) free(data->body);
     if (data->body_zipped) free(data->body_zipped);
+		free(data);
   }
-  free(data);
 }
 
 cache_data_t *
