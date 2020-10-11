@@ -27,11 +27,11 @@
 #include "debug.h"
 
 
-#define THREADS_PER_CORE 96
+#define THREADS_PER_CORE 64
 #define MAXEVENTS 2048
 
 #define EPOLL_TIMEOUT 1000         /* 1 second */
-#define HTTP_KEEPALIVE_TIME 75000  /* 75 seconds */
+#define HTTP_KEEPALIVE_TIME 72000  /* 72 seconds */
 #define PORT 9000
 
 #define MAX_CACHE_TIME 86400000    /* 24 x 60 x 60 = 1 day */
@@ -75,15 +75,17 @@ _expire_timers(list_t *timers, long timeout)
 
       if (cur_time - stamp >= timeout) {
         conn = (httpconn_t *)list_node_data(timer);
-        list_del(timers, stamp);
 
         sockfd = httpconn_sockfd(conn);
         DEBSI("[CONN] socket closed, server disconnected", sockfd);
         close(sockfd);
+
+        timer = list_next(timers);
+        list_del(timers, stamp);
         free(conn);
       }
-
-      timer = list_next(timers);
+      else
+        timer = list_next(timers);
     } while (timer);
   }
 }
@@ -105,13 +107,14 @@ _expire_cache(list_t *cache, long timeout)
 
       if (cur_time - stamp >= timeout) {
         data = (cache_data_t *)list_node_data(node);
-        list_del(cache, stamp);
-
-        http_cache_destroy(data);
+        http_cache_data_destroy(data);
         DEBS("[CACHE] cached data expired");
-      }
 
-      node = list_next(cache);
+        node = list_next(cache);
+        list_del(cache, stamp);
+      }
+      else
+        node = list_next(cache);
     } while (node);
   }
 }
@@ -330,14 +333,18 @@ main(int argc, char** argv)
     }
   } while (svc_running);
 
-  thpool_wait(taskpool);
-  thpool_destroy(taskpool);
-
-  list_destroy(cache);
   list_destroy(timers);
+
+  _expire_cache(cache, 0);
+  list_destroy(cache);
+
   free(srvconn);
   close(epfd);
   free(events);
+
+  thpool_wait(taskpool);
+  thpool_destroy(taskpool);
+
   puts("Exit gracefully...");
 
   return 0;
