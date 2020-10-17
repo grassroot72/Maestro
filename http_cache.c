@@ -56,7 +56,7 @@ http_cache_data_destroy(cache_data_t *data)
     if (data->last_modified) free(data->last_modified);
     if (data->body) free(data->body);
     if (data->body_zipped) free(data->body_zipped);
-		free(data);
+    free(data);
   }
 }
 

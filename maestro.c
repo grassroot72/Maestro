@@ -27,11 +27,11 @@
 #include "debug.h"
 
 
-#define THREADS_PER_CORE 64
+#define THREADS_PER_CORE 96
 #define MAXEVENTS 2048
 
 #define EPOLL_TIMEOUT 1000         /* 1 second */
-#define HTTP_KEEPALIVE_TIME 72000  /* 72 seconds */
+#define HTTP_KEEPALIVE_TIME 75000  /* 75 seconds */
 #define PORT 9000
 
 #define MAX_CACHE_TIME 86400000    /* 24 x 60 x 60 = 1 day */
@@ -333,17 +333,16 @@ main(int argc, char** argv)
     }
   } while (svc_running);
 
-  list_destroy(timers);
+  thpool_wait(taskpool);
+  thpool_destroy(taskpool);
 
+  list_destroy(timers);
   _expire_cache(cache, 0);
   list_destroy(cache);
 
   free(srvconn);
   close(epfd);
   free(events);
-
-  thpool_wait(taskpool);
-  thpool_destroy(taskpool);
 
   puts("Exit gracefully...");
 
