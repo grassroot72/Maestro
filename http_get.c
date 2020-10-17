@@ -256,7 +256,7 @@ _get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
   char curdir[MAX_CWD];
   char ospath[MAX_PATH];
 
-  char content_type[16];
+  char content_type[32];
   int mime_type;
 
   deflate_t *c;   /* compressor */
