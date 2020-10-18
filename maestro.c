@@ -286,7 +286,6 @@ main(int argc, char** argv)
   srvconn = httpconn_new(srvfd, epfd, NULL, NULL);
   event.data.ptr = (void *)srvconn;
   event.events = EPOLLIN | EPOLLET;
-  //event.events = EPOLLIN;
   if (epoll_ctl(epfd, EPOLL_CTL_ADD, srvfd, &event) == -1) {
     perror("epoll_ctl()");
     return -1;
