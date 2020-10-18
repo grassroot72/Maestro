@@ -20,7 +20,7 @@
 #define BUF_SIZE 1024
 #define BUF_MAX_SIZE 8192
 
-#define IDLE_TIME 2
+#define IDLE_TIME 1
 
 
 unsigned char *
@@ -84,7 +84,7 @@ io_write_socket(int sockfd, unsigned char *bytes, size_t len)
   /* use loop to write as much as possible in a task */
   do {
     left_sz = len - done_sz;
-    if (left_sz == 0) return;
+    if (left_sz <= 0) return;
 
     n = write(sockfd, last, left_sz);
     if (n == -1) {
