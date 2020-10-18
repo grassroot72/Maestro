@@ -20,8 +20,6 @@
 #define BUF_SIZE 1024
 #define BUF_MAX_SIZE 8192
 
-#define IDLE_TIME 1
-
 
 unsigned char *
 io_read_socket(int sockfd, int *rc)
@@ -66,7 +64,7 @@ io_read_socket(int sockfd, int *rc)
       return bytes;
     }
 
-    msleep(IDLE_TIME);
+    msleep(1);
   } while (1);
 }
 
@@ -90,7 +88,7 @@ io_write_socket(int sockfd, unsigned char *bytes, size_t len)
     if (n == -1) {
       /* perror("write()") */
       if (errno == EPIPE) return;
-      msleep(IDLE_TIME);
+      msleep(1);
       continue;
     }
 
