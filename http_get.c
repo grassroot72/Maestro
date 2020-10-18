@@ -19,14 +19,14 @@
 #include "http_cache.h"
 #include "http_svc.h"
 
-//#define DEBUG
+#define DEBUG
 #include "debug.h"
 
 
 #define MAX_PATH 256
 #define MAX_CWD 64
 
-#define MIME_BIN 0   /* binary data */
+#define MIME_BIN 0   /* don't zip this type of data */
 #define MIME_TXT 1
 
 
@@ -56,13 +56,13 @@ _set_content_type(char *ctype, char *ext)
     strcpy(ctype, "image/x-icon");
     return MIME_BIN;
   }
-  if (strcmp(ext, "svg") == 0) {
-    strcpy(ctype, "image/svg+xml");
-    return MIME_BIN;
-  }
   if (strcmp(ext, "webp") == 0) {
     strcpy(ctype, "image/webp");
     return MIME_BIN;
+  }
+  if (strcmp(ext, "svg") == 0) {
+    strcpy(ctype, "image/svg+xml");
+    return MIME_TXT;
   }
 
   /* MIME type - pdf */
@@ -174,11 +174,11 @@ _get_rep(char *ctype, int mtype, cache_data_t *data, httpmsg_t *req)
 
   httpmsg_t* rep = msg_new();
 
-  /* 404 code */
-  if (!etag) {
+  if (!etag) {  /* 404 code */
     msg_set_rep_line(rep, 1, 1, 404, "Not Found");
-    msg_add_body(rep, body, len_body);
+    msg_set_body_start(rep, body);
     msg_add_header(rep, "Content-Length", itos(len_body, len_str, &len));
+    msg_add_body(rep, body, len_body);
   }
   else {
     msg_add_header(rep, "Server", SVC_VERSION);
@@ -199,6 +199,7 @@ _get_rep(char *ctype, int mtype, cache_data_t *data, httpmsg_t *req)
     zip_encoding = msg_header_value(req, "Accept-Encoding");
     msg_add_header(rep, "Content-Type", ctype);
 
+    /* compressed */
     if (mtype == MIME_TXT &&
         zip_encoding && strstr(zip_encoding, "deflate")) {
       msg_add_header(rep, "Content-Encoding", "deflate");
@@ -216,10 +217,10 @@ _get_rep(char *ctype, int mtype, cache_data_t *data, httpmsg_t *req)
         DEBSL("[GET_REP] range start", range_s);
         DEBSL("[GET_REP] range length", len_range);
         msg_set_body_start(rep, body_zipped + range_s);
-        /* use compressed body length */
         msg_add_header(rep, "Content-Length", uitos(len_range, len_str, &len));
       }
     }
+    /* uncompressed */
     else {
       msg_add_body(rep, body, len_body);
 
@@ -234,7 +235,6 @@ _get_rep(char *ctype, int mtype, cache_data_t *data, httpmsg_t *req)
         DEBSL("[GET_REP] range start", range_s);
         DEBSL("[GET_REP] range length", len_range);
         msg_set_body_start(rep, body + range_s);
-        /* use uncompressed body length */
         msg_add_header(rep, "Content-Length", uitos(len_range, len_str, &len));
       }
     }
@@ -293,11 +293,12 @@ _get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
   data = http_cache_data_new();
 
   if (stat(ospath, &sb) == -1) {
-    perror("IO");
+    perror("[SYS]");
+    len_body = 44;
     body = (unsigned char *)
            strdup("<html><body>404 Page Not Found</body></html>");
-    http_set_cache_data(data, NULL, NULL, NULL, body, 44, NULL, 0);
-    rep = _get_rep("text/html; charset=utf-8", MIME_TXT, data, req);
+    etag = NULL;
+    last_modified = NULL;
   }
   else {
     etag = malloc(30);
@@ -305,31 +306,31 @@ _get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
     sprintf(etag, "\"%lu-%lu-%ld\"", sb.st_ino, sb.st_size, sb.st_mtime);
     gmt_date(last_modified, &sb.st_mtime);
     len_body = sb.st_size;
-    DEBSL("[IO] len", len);
+    DEBSL("[IO] len_body", len_body);
     body = io_fread(ospath, len_body);
-
-    if (mime_type == MIME_TXT) {
-      /* compress the body */
-      c = deflate_new();
-      len_zipbuf = deflate_bound(len_body);
-      body_zipped = malloc(len_zipbuf);
-      /* compressed body start should sync with body start */
-      len_zipped = deflate(c, body_zipped, body, len_body, 8);
-      deflate_destroy(c);
-
-      DEBSL("[IO] len_zipped", len_zipped);
-      http_set_cache_data(data, strdup(path), etag, last_modified,
-                          body, len_body, body_zipped, len_zipped);
-    }
-    else {
-      http_set_cache_data(data, strdup(path), etag, last_modified,
-                          body, len_body, NULL, 0);
-    }
-
-    list_update(cache, data, mstime());
-    rep = _get_rep(content_type, mime_type, data, req);
-    DEBS("[CACHE] Cached in...");
   }
+
+  if (mime_type == MIME_TXT) {
+    /* compress the body */
+    c = deflate_new();
+    len_zipbuf = deflate_bound(len_body);
+    body_zipped = malloc(len_zipbuf);
+    /* compressed body start should sync with body start */
+    len_zipped = deflate(c, body_zipped, body, len_body, 8);
+    deflate_destroy(c);
+
+    DEBSL("[MEM] len_zipped", len_zipped);
+    http_set_cache_data(data, strdup(path), etag, last_modified,
+                        body, len_body, body_zipped, len_zipped);
+  }
+  else {
+    http_set_cache_data(data, strdup(path), etag, last_modified,
+                        body, len_body, NULL, 0);
+  }
+
+  list_update(cache, data, mstime());
+  rep = _get_rep(content_type, mime_type, data, req);
+  DEBS("[CACHE] Cached in...");
 
   return rep;
 }
