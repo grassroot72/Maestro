@@ -129,11 +129,11 @@ find_ext(char *file)
   return dot + 1;
 }
 
-long
+int
 msleep(long tms)
 {
   struct timespec ts;
-  long ret;
+  int ret;
 
   if (tms < 0) {
     errno = EINVAL;
@@ -142,6 +142,27 @@ msleep(long tms)
 
   ts.tv_sec = tms / 1000;
   ts.tv_nsec = (tms % 1000) * 1000000;
+
+  do {
+    ret = nanosleep(&ts, &ts);
+  } while (ret && errno == EINTR);
+
+  return ret;
+}
+
+int
+nsleep(long tms)
+{
+  struct timespec ts;
+  int ret;
+
+  if (tms < 0) {
+    errno = EINVAL;
+    return -1;
+  }
+
+  ts.tv_sec = 0;
+  ts.tv_nsec = tms;
 
   do {
     ret = nanosleep(&ts, &ts);
