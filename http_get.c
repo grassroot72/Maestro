@@ -19,7 +19,7 @@
 #include "http_cache.h"
 #include "http_svc.h"
 
-#define DEBUG
+//#define DEBUG
 #include "debug.h"
 
 
@@ -115,8 +115,8 @@ _process_range(httpmsg_t *rep, char *range_str, size_t len_body, size_t *len_ran
 {
   char *range_s;
   char *range_e;
-  size_t range_si;
-  size_t range_ei;
+  size_t range_si;  /* range start */
+  size_t range_ei;  /* range end */
   char range[64];
 
   range_s = split_kv(range_str, '=');
@@ -132,7 +132,7 @@ _process_range(httpmsg_t *rep, char *range_str, size_t len_body, size_t *len_ran
   /* req: bytes=xxxx- */
   else {
     *len_range = len_body - range_si;
-    //sprintf(range, "bytes %d-%d/%d", range_si, len_body - 1, len_body);
+    //sprintf(range, "bytes %lu-%lu/%lu", range_si, len_body - 1, len_body);
     sprintf(range, "bytes %lu-/%lu", range_si, len_body);
   }
 
