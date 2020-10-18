@@ -19,7 +19,7 @@
 #include "http_cache.h"
 #include "http_svc.h"
 
-//#define DEBUG
+#define DEBUG
 #include "debug.h"
 
 
@@ -171,14 +171,26 @@ _get_rep(char *ctype, int mtype, cache_data_t *data, httpmsg_t *req)
   len_body = http_cache_len_body(data);
   body_zipped = http_cache_body_zipped(data);
   len_zipped = http_cache_len_zipped(data);
+  zip_encoding = msg_header_value(req, "Accept-Encoding");
 
   httpmsg_t* rep = msg_new();
 
   if (!etag) {  /* 404 code */
     msg_set_rep_line(rep, 1, 1, 404, "Not Found");
-    msg_set_body_start(rep, body);
-    msg_add_header(rep, "Content-Length", itos(len_body, len_str, &len));
-    msg_add_body(rep, body, len_body);
+    /* compressed */
+    if (mtype == MIME_TXT &&
+        zip_encoding && strstr(zip_encoding, "deflate")) {
+      msg_add_header(rep, "Content-Encoding", "deflate");
+      msg_add_zipped_body(rep, body_zipped, len_zipped);
+      msg_set_body_start(rep, body_zipped);
+      msg_add_header(rep, "Content-Length", uitos(len_zipped, len_str, &len));
+    }
+    /* uncompressed */
+    else {
+      msg_add_body(rep, body, len_body);
+      msg_set_body_start(rep, body);
+      msg_add_header(rep, "Content-Length", itos(len_body, len_str, &len));
+    }
   }
   else {
     msg_add_header(rep, "Server", SVC_VERSION);
@@ -196,7 +208,6 @@ _get_rep(char *ctype, int mtype, cache_data_t *data, httpmsg_t *req)
     range_str = msg_header_value(req, "Range");
     DEBSS("[REQ] Range", range_str);
 
-    zip_encoding = msg_header_value(req, "Accept-Encoding");
     msg_add_header(rep, "Content-Type", ctype);
 
     /* compressed */
