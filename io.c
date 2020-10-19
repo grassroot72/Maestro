@@ -64,7 +64,7 @@ io_read_socket(int sockfd, int *rc)
       return bytes;
     }
 
-    msleep(1);
+    nsleep(10);
   } while (1);
 }
 
@@ -88,7 +88,7 @@ io_write_socket(int sockfd, unsigned char *bytes, size_t len)
     if (n == -1) {
       /* perror("write()") */
       if (errno == EPIPE) return;
-      msleep(1);
+      nsleep(100);
       continue;
     }
 
