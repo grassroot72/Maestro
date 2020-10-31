@@ -4,7 +4,7 @@
 
 CC = gcc
 #CFLAGS = -O0 -Wall -pedantic -g
-CFLAGS = -O2 -Wall -pedantic
+CFLAGS = -O2 -Wall -pedantic -Isvc -I.
 LDFLAGS = -lpthread
 OBJS = base64.o \
        deflate.o \
@@ -12,12 +12,14 @@ OBJS = base64.o \
        linkedlist.o \
        io.o \
        util.o \
+       jsmn.o \
        http_msg.o \
        http_parser.o \
        http_cache.o \
        http_get.o \
        http_post.o \
        http_conn.o \
+       svc/registration.o \
        maestro.o
 EXES = maestro
 
@@ -30,4 +32,4 @@ ${EXES}: $(OBJS)
 	${CC} -o $@ -c $< $(CFLAGS)
 
 clean:
-	$(RM) *.o $(EXES)
+	$(RM) *.o svc/*.o $(EXES)
