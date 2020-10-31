@@ -8,8 +8,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include "jsmn.h"
-#include "json.h"
 #include "registration.h"
+
+#define DEBUG
+#include "debug.h"
 
 
 struct _identity {
@@ -25,6 +27,7 @@ registration_parse_json_identity(char *body, jsmntok_t *t, int n)
 {
   int i;
   int len;
+  char sql[256];
 
   identity_t *id;
 
@@ -61,6 +64,14 @@ registration_parse_json_identity(char *body, jsmntok_t *t, int n)
       i++;
     }
   }
+
+  if (strcmp(id->action, "insert") == 0) {
+    sprintf(sql, "INSERT INTO identity(first_name, last_name, email) "
+                 "VALUES(%s, %s, %s)",
+            id->first_name, id->last_name, id->email);
+  }
+  DEBSS("[SQL]", sql);
+
   return id;
 }
 
