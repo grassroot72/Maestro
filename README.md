@@ -16,6 +16,7 @@ stage. More features will be added in the future.
   - HTTP/1.1 GET method (static file)
   - HTTP/1.1 HEAD method (static file)
   - HTTP/1.1 POST method
+  - HTTP/1.1 chunked transfer
   - HTTP/1.1 keep-alive (long connection, disconnected after timeouts)
   - built-in cache to provide better GET performance
   - deflate compression
