@@ -181,3 +181,33 @@ mstime()
   msec = tv.tv_sec * 1000 + tv.tv_usec / 1000;
   return msec;
 }
+
+/*
+ * n      -  number to be printed
+ * base   -  number base for conversion;  decimal=10,hex=16
+ * sign   -  signed or unsigned output
+ * outbuf -  buffer to hold the output number
+ */
+void
+itohex(unsigned long n, int base, char sign, unsigned char *outbuf)
+{
+  int i = 12;
+  int j = 0;
+
+  do {
+    outbuf[i] = "0123456789ABCDEF"[n % base];
+    i--;
+    n = n/base;
+  } while(n > 0);
+
+  if (sign != ' ') {
+    outbuf[0] = sign;
+    ++j;
+  }
+
+  while (++i < 13) {
+    outbuf[j++] = outbuf[i];
+  }
+
+  outbuf[j] = '\0';
+}

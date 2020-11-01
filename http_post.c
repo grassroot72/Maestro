@@ -11,6 +11,7 @@
 #include "io.h"
 #include "base64.h"
 #include "deflate.h"
+#include "util.h"
 #include "http_msg.h"
 #include "http_svc.h"
 #include "jsmn.h"
@@ -77,7 +78,10 @@ http_post(int clifd, char *path, void *req)
   int len_msg;
   unsigned char *bytes;
 
-  unsigned char *body;
+  char *chunked;
+  int len_chunked;
+  unsigned char hex_str[16];
+
 
   /* some logic to process request here ... */
   _process_json(req);
@@ -85,19 +89,48 @@ http_post(int clifd, char *path, void *req)
 
   rep = msg_new();
   msg_set_rep_line(rep, 1, 1, 200, "OK");
-
-  body = (unsigned char *)strdup("<html><body>Data stored</body></html>");
-  msg_add_body(rep, body, 37);
-  msg_add_header(rep, "Content-Length", "37");
+  msg_add_header(rep, "Transfer-Encoding", "chunked");
 
   bytes = (unsigned char *)msg_create_rep(rep, &len_msg);
 
   /* send msg */
   DEBSI("[POST_REP] Sending reply headers...", clifd);
   io_write_socket(clifd, bytes, len_msg);
-  /* send body */
-  DEBSI("[POST_REP] Sending reply body...", clifd);
-  io_write_socket(clifd, msg_body(rep), msg_body_len(rep));
+
+  chunked = strdup("<html><body>Data stored<br>");
+  len_chunked = strlen(chunked);
+  itohex(len_chunked, 16, ' ', hex_str);
+  /* send chunked length */
+  DEBSI("[POST_REP] Sending chunked length...", clifd);
+  io_write_socket(clifd, hex_str, strlen((char *)hex_str));
+  io_write_socket(clifd, (unsigned char *)"\r\n", 2);
+  /* send chunked */
+  DEBSI("[POST_REP] Sending chunked...", clifd);
+  io_write_socket(clifd, (unsigned char *)chunked, len_chunked);
+  io_write_socket(clifd, (unsigned char *)"\r\n", 2);
+
+
+  free(chunked);
+  chunked = strdup("This is a chunked body</body></html>");
+  len_chunked = strlen(chunked);
+  itohex(len_chunked, 16, ' ', hex_str);
+  /* send chunked length */
+  DEBSI("[POST_REP] Sending chunked length...", clifd);
+  io_write_socket(clifd, hex_str, strlen((char *)hex_str));
+  io_write_socket(clifd, (unsigned char *)"\r\n", 2);
+  /* send chunked */
+  DEBSI("[POST_REP] Sending chunked...", clifd);
+  io_write_socket(clifd, (unsigned char *)chunked, len_chunked);
+  io_write_socket(clifd, (unsigned char *)"\r\n", 2);
+
+
+  /* terminating the chuncked transfer */
+  DEBSI("[POST_REP] Sending terminating chunk...", clifd);
+  io_write_socket(clifd, (unsigned char *)"0\r\n", 3);
+  io_write_socket(clifd, (unsigned char *)"\r\n", 2);
+
+  free(chunked);
+
 
   free(bytes);
   msg_destroy(rep, 0);

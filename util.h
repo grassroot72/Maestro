@@ -24,5 +24,7 @@ int msleep(long tms);
 int nsleep(long tms);
 long mstime();
 
+void itohex(unsigned long n, int base, char sign, unsigned char *outbuf);
+
 
 #endif
