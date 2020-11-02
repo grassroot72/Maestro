@@ -3,7 +3,7 @@
 # $< - first prerequisite (usually the source file)
 
 CC = gcc
-#CFLAGS = -O0 -Wall -pedantic -g
+#CFLAGS = -O0 -g -Wall -pedantic -Isvc -I.
 CFLAGS = -O2 -Wall -pedantic -Isvc -I.
 LDFLAGS = -lpthread
 OBJS = base64.o \
