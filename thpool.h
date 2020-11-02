@@ -38,4 +38,3 @@ void thpool_destroy(thpool_t *pool);
 
 
 #endif
-
