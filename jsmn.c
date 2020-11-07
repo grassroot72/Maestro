@@ -15,20 +15,7 @@
 #include "jsmn.h"
 
 
-/**
- * JSON parser. Contains an array of token blocks available. Also stores
- * the string being parsed now and current position in that string.
- */
-
-struct _jsmn_parser {
-  unsigned int pos;     /* offset in the JSON string */
-  unsigned int toknext; /* next token to allocate */
-  int toksuper;         /* superior token node, e.g. parent object or array */
-};
-
-
-
-/**
+/*
  * Allocates a fresh unused token from the token pool.
  */
 static jsmntok_t *
@@ -48,7 +35,7 @@ _alloc_token(jsmn_parser *parser, jsmntok_t *tokens,
   return tok;
 }
 
-/**
+/*
  * Fills token type and boundaries.
  */
 static void
@@ -61,7 +48,7 @@ _fill_token(jsmntok_t *token, const jsmntype_t type,
   token->size = 0;
 }
 
-/**
+/*
  * Fills next available token with JSON primitive.
  */
 static int
@@ -121,7 +108,7 @@ found:
   return 0;
 }
 
-/**
+/*
  * Fills next token with JSON string.
  */
 static int
@@ -198,7 +185,7 @@ _parse_string(jsmn_parser *parser, const char *js,
   return JSMN_ERROR_PART;
 }
 
-/**
+/*
  * Parse JSON string and fill tokens.
  */
 int
@@ -390,20 +377,7 @@ jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
   return count;
 }
 
-jsmn_parser *
-jsmn_new()
-{
-  jsmn_parser *p = (jsmn_parser *)malloc(sizeof(struct _jsmn_parser));
-  return p;
-}
-
-void
-jsmn_destroy(jsmn_parser *p)
-{
-  if (p) free(p);
-}
-
-/**
+/*
  * Creates a new parser based over a given buffer with an array of tokens
  * available.
  */

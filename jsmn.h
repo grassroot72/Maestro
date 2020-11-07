@@ -56,16 +56,18 @@ struct _jsmntok {
 
 typedef struct _jsmn_parser jsmn_parser;
 
-
-jsmn_parser *jsmn_new();
-void jsmn_destroy(jsmn_parser *p);
-
-/**
- * Create JSON parser over an array of tokens
+/*
+ * JSON parser. Contains an array of token blocks available. Also stores
+ * the string being parsed now and current position in that string.
  */
-void jsmn_init(jsmn_parser *parser);
+struct _jsmn_parser {
+  unsigned int pos;     /* offset in the JSON string */
+  unsigned int toknext; /* next token to allocate */
+  int toksuper;         /* superior token node, e.g. parent object or array */
+};
 
-/**
+
+/*
  * Run JSON parser.
  * It parses a JSON data string into and array of tokens, each describing
  * a single JSON object.
@@ -73,6 +75,11 @@ void jsmn_init(jsmn_parser *parser);
 int jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
                jsmntok_t *tokens, const unsigned int num_tokens);
 
+
+/*
+ * Create JSON parser over an array of tokens
+ */
+void jsmn_init(jsmn_parser *parser);
 
 int jsoneq(const char *json, jsmntok_t *tok, const char *s);
 
