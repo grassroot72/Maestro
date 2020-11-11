@@ -22,11 +22,12 @@
 
 
 static int
-_process_json(void *req)
+_process_json(void *data)
 {
   int r;
   jsmntok_t t[128];  /* We expect no more than 128 JSON tokens */
-  jsmn_parser *p;
+  jsmn_parser p;
+  httpmsg_t *req;
   char *body;
   int len;
   char svc[32];
@@ -35,11 +36,10 @@ _process_json(void *req)
 
 
   /* process the request message here */
-  body = (char *)msg_body(req);
-
-  p = jsmn_new();
-  jsmn_init(p);
-  r = jsmn_parse(p, body, msg_body_len(req), t, 128);
+  req = (httpmsg_t *)data;
+  body = (char *)req->body;
+  jsmn_init(&p);
+  r = jsmn_parse(&p, body, req->len_body, t, 128);
 
   DEBSI("[REQ] number of json elements", r);
   if (r < 0) {
@@ -66,7 +66,6 @@ _process_json(void *req)
   }
 
   registration_destroy_json_identity(id);
-  jsmn_destroy(p);
 
   return 0;
 }

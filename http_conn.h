@@ -10,9 +10,16 @@
 
 typedef struct _httpconn httpconn_t;
 
+struct _httpconn {
+  int sockfd;
+  int epfd;
+
+  list_t *cache;
+  list_t *timers;
+};
+
 
 httpconn_t *httpconn_new(int sockfd, int epfd, void *cache, void *timers);
-int httpconn_sockfd(httpconn_t *conn);
 void httpconn_task(void *arg);
 
 

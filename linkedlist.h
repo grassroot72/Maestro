@@ -15,7 +15,18 @@
 
 
 typedef struct _node node_t;
+
+struct _node {
+  void *data;
+  long stamp;  /* time stamp */
+  struct _node *next;
+};
+
 typedef struct _list list_t;
+struct _list {
+  struct _node *head;
+  struct _node *current;
+};
 
 
 list_t *list_new();
@@ -29,9 +40,6 @@ void list_destroy(list_t *list);
 
 node_t *list_first(list_t *list);
 node_t *list_next(list_t *list);
-
-long list_node_stamp(node_t *node);
-void *list_node_data(node_t *node);
 
 
 #endif

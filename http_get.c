@@ -142,54 +142,42 @@ _process_range(httpmsg_t *rep, char *range_str, size_t len_body, size_t *len_ran
 }
 
 static httpmsg_t *
-_get_rep(char *ctype, int mtype, cache_data_t *data, httpmsg_t *req)
+_get_rep(char *ctype, int mtype, cache_data_t *cdata, httpmsg_t *req)
 {
   time_t rep_time;
   char rep_date[30];
-
-  char *last_modified;
-  char *etag;
-
-  unsigned char *body;
-  size_t len_body;
 
   size_t len;
   char len_str[I2S_SIZE];
 
   char *zip_encoding;
-  unsigned char *body_zipped;
-  size_t len_zipped;
 
   char *range_str;
   size_t range_s;
   size_t len_range;
 
 
-  etag = http_cache_etag(data);
-  last_modified = http_cache_last_modified(data);
-  body = http_cache_body(data);
-  len_body = http_cache_len_body(data);
-  body_zipped = http_cache_body_zipped(data);
-  len_zipped = http_cache_len_zipped(data);
   zip_encoding = msg_header_value(req, "Accept-Encoding");
 
   httpmsg_t* rep = msg_new();
 
-  if (!etag) {  /* 404 code */
+  if (!cdata->etag) {  /* 404 code */
     msg_set_rep_line(rep, 1, 1, 404, "Not Found");
     /* compressed */
     if (mtype == MIME_TXT &&
         zip_encoding && strstr(zip_encoding, "deflate")) {
       msg_add_header(rep, "Content-Encoding", "deflate");
-      msg_add_zipped_body(rep, body_zipped, len_zipped);
-      msg_set_body_start(rep, body_zipped);
-      msg_add_header(rep, "Content-Length", uitos(len_zipped, len_str, &len));
+      msg_add_zipped_body(rep, cdata->body_zipped, cdata->len_zipped);
+      msg_set_body_start(rep, cdata->body_zipped);
+      msg_add_header(rep, "Content-Length",
+                     uitos(cdata->len_zipped, len_str, &len));
     }
     /* uncompressed */
     else {
-      msg_add_body(rep, body, len_body);
-      msg_set_body_start(rep, body);
-      msg_add_header(rep, "Content-Length", itos(len_body, len_str, &len));
+      msg_add_body(rep, cdata->body, cdata->len_body);
+      msg_set_body_start(rep, cdata->body);
+      msg_add_header(rep, "Content-Length",
+                     uitos(cdata->len_body, len_str, &len));
     }
   }
   else {
@@ -202,8 +190,8 @@ _get_rep(char *ctype, int mtype, cache_data_t *data, httpmsg_t *req)
     gmt_date(rep_date, &rep_time);
     msg_add_header(rep, "Date", rep_date);
     /* ETag is a strong validator */
-    msg_add_header(rep, "ETag", etag);
-    msg_add_header(rep, "Last-Modified", last_modified);
+    msg_add_header(rep, "ETag", cdata->etag);
+    msg_add_header(rep, "Last-Modified", cdata->last_modified);
 
     range_str = msg_header_value(req, "Range");
     DEBSS("[REQ] Range", range_str);
@@ -215,37 +203,38 @@ _get_rep(char *ctype, int mtype, cache_data_t *data, httpmsg_t *req)
         zip_encoding && strstr(zip_encoding, "deflate")) {
       msg_add_header(rep, "Content-Encoding", "deflate");
       msg_add_header(rep, "Vary", "Accept-Encoding");
-      msg_add_zipped_body(rep, body_zipped, len_zipped);
+      msg_add_zipped_body(rep, cdata->body_zipped, cdata->len_zipped);
 
       if (!range_str) {
         msg_set_rep_line(rep, 1, 1, 200, "OK");
-        msg_set_body_start(rep, body_zipped);
-        msg_add_header(rep, "Content-Length", uitos(len_zipped, len_str, &len));
+        msg_set_body_start(rep, cdata->body_zipped);
+        msg_add_header(rep, "Content-Length",
+                       uitos(cdata->len_zipped, len_str, &len));
       }
       else {
         msg_set_rep_line(rep, 1, 1, 206, "Partial Content");
-        range_s = _process_range(rep, range_str, len_zipped, &len_range);
+        range_s = _process_range(rep, range_str, cdata->len_zipped, &len_range);
         DEBSL("[GET_REP] range start", range_s);
         DEBSL("[GET_REP] range length", len_range);
-        msg_set_body_start(rep, body_zipped + range_s);
+        msg_set_body_start(rep, cdata->body_zipped + range_s);
         msg_add_header(rep, "Content-Length", uitos(len_range, len_str, &len));
       }
     }
     /* uncompressed */
     else {
-      msg_add_body(rep, body, len_body);
+      msg_add_body(rep, cdata->body, cdata->len_body);
 
       if (!range_str) {
         msg_set_rep_line(rep, 1, 1, 200, "OK");
-        msg_set_body_start(rep, body);
-        msg_add_header(rep, "Content-Length", uitos(len_body, len_str, &len));
+        msg_set_body_start(rep, cdata->body);
+        msg_add_header(rep, "Content-Length", uitos(cdata->len_body, len_str, &len));
       }
       else {
         msg_set_rep_line(rep, 1, 1, 206, "Partial Content");
-        range_s = _process_range(rep, range_str, len_body, &len_range);
+        range_s = _process_range(rep, range_str, cdata->len_body, &len_range);
         DEBSL("[GET_REP] range start", range_s);
         DEBSL("[GET_REP] range length", len_range);
-        msg_set_body_start(rep, body + range_s);
+        msg_set_body_start(rep, cdata->body + range_s);
         msg_add_header(rep, "Content-Length", uitos(len_range, len_str, &len));
       }
     }
@@ -270,7 +259,7 @@ _get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
   char content_type[32];
   int mime_type;
 
-  deflate_t *c;   /* compressor */
+  deflate_t c;   /* compressor */
 
   struct stat sb;
   char *last_modified;
@@ -323,12 +312,10 @@ _get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
 
   if (mime_type == MIME_TXT) {
     /* compress the body */
-    c = deflate_new();
     len_zipbuf = deflate_bound(len_body);
     body_zipped = malloc(len_zipbuf);
     /* compressed body start should sync with body start */
-    len_zipped = deflate(c, body_zipped, body, len_body, 8);
-    deflate_destroy(c);
+    len_zipped = deflate(&c, body_zipped, body, len_body, 8);
 
     DEBSL("[MEM] len_zipped", len_zipped);
     http_set_cache_data(data, strdup(path), etag, last_modified,
@@ -363,7 +350,7 @@ http_rep_static(int clifd, void *cache, char *path, void *req, int method)
   if (method == METHOD_GET) {
     /* send body */
     DEBSI("[GET_REP] Sending reply body...", clifd);
-    io_write_socket(clifd, msg_body_start(rep), msg_body_len(rep));
+    io_write_socket(clifd, rep->body_s, rep->len_body);
   }
 
   free(bytes);

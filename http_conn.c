@@ -21,15 +21,6 @@
 #include "debug.h"
 
 
-struct _httpconn {
-  int sockfd;
-  int epfd;
-
-  list_t *cache;
-  list_t *timers;
-};
-
-
 httpconn_t *
 httpconn_new(int sockfd, int epfd, void *cache, void *timers)
 {
@@ -40,12 +31,6 @@ httpconn_new(int sockfd, int epfd, void *cache, void *timers)
   conn->timers = (list_t *)timers;
 
   return conn;
-}
-
-int
-httpconn_sockfd(httpconn_t *conn)
-{
-  return conn->sockfd;
 }
 
 void

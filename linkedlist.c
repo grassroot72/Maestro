@@ -18,18 +18,6 @@
 #include "debug.h"
 
 
-struct _node {
-  void *data;
-  long stamp;  /* time stamp */
-  struct _node *next;
-};
-
-struct _list {
-  struct _node *head;
-  struct _node *current;
-};
-
-
 static node_t *
 _node_new(void *data, long stamp)
 {
@@ -204,14 +192,14 @@ list_next(list_t *list)
   return current;
 }
 
-long
-list_node_stamp(node_t *node)
-{
-  return node->stamp;
-}
+//long
+//list_node_stamp(node_t *node)
+//{
+  //return node->stamp;
+//}
 
-void *
-list_node_data(node_t *node)
-{
-  return node->data;
-}
+//void *
+//list_node_data(node_t *node)
+//{
+  //return node->data;
+//}
