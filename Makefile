@@ -17,6 +17,7 @@ OBJS = base64.o \
        http_parser.o \
        http_cache.o \
        http_get.o \
+       http_post.o \
        http_conn.o \
        svc/registration.o \
        maestro.o
