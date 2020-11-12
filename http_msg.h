@@ -45,8 +45,6 @@ void msg_destroy(httpmsg_t *msg, int delbody);
 int msg_split(unsigned char *line[], int *end, int *len_body, unsigned char *buf);
 void msg_lines_destroy(unsigned char *line[], int count);
 
-char *msg_method(httpmsg_t *msg);
-char *msg_path(httpmsg_t *msg);
 void msg_set_req_line(httpmsg_t *msg, char *method, char *path, int major, int minor);
 void msg_set_rep_line(httpmsg_t *msg, int major, int minor, int code, char *status);
 

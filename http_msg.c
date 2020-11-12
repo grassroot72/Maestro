@@ -153,18 +153,6 @@ msg_lines_destroy(unsigned char *line[], int count)
   } while (i < count);
 }
 
-char *
-msg_method(httpmsg_t *msg)
-{
-  return msg->method;
-}
-
-char *
-msg_path(httpmsg_t *msg)
-{
-  return msg->path;
-}
-
 void
 msg_set_req_line(httpmsg_t *msg, char *method, char *path, int major, int minor)
 {

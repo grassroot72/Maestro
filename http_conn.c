@@ -43,9 +43,6 @@ httpconn_task(void *arg)
   unsigned char *bytes;
   int rc;
 
-  char *method;
-  char *path;
-
   httpmsg_t *req;
 
   bytes = io_read_socket(conn->sockfd, &rc);
@@ -66,16 +63,13 @@ httpconn_task(void *arg)
     req = http_parse_req(bytes);
     if (!req) return;
 
-    method = msg_method(req);
-    path = msg_path(req);
-
     /* static GET */
-    if (strcmp(method, "GET") == 0) {
-      http_rep_static(conn->sockfd, conn->cache, path, req, METHOD_GET);
+    if (strcmp(req->method, "GET") == 0) {
+      http_rep_static(conn->sockfd, conn->cache, req->path, req, METHOD_GET);
     }
 
-    if (strcmp(method, "POST") == 0) {
-      http_post(conn->sockfd, path, req);
+    if (strcmp(req->method, "POST") == 0) {
+      http_post(conn->sockfd, req->path, req);
     }
 
     /* todo:
@@ -83,8 +77,8 @@ httpconn_task(void *arg)
     if (strcmp(method, "DELETE") == 0)
     */
 
-    if (strcmp(method, "HEAD") == 0) {
-      http_rep_static(conn->sockfd, conn->cache, path, req, METHOD_HEAD);
+    if (strcmp(req->method, "HEAD") == 0) {
+      http_rep_static(conn->sockfd, conn->cache, req->path, req, METHOD_HEAD);
     }
 
     /* start timer recording */
