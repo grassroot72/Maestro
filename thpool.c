@@ -22,50 +22,6 @@
 
 const int TASK_QUEUE_MAX = 10000;
 
-
-struct _taskdata {
-  void (*work_routine)(void *);
-  void *arg;
-};
-
-struct _thpool {
-  /* N worker threads */
-  pthread_t *worker_threads;
-
-  /* A circular queue that holds tasks that are yet to be executed */
-  struct _taskdata *task_queue;
-
-  /* Head and tail of the queue */
-  int queue_head, queue_tail;
-
-  /* How many worker threads can we have */
-  int max_threads;
-
-  /*
-   * How many tasks are scheduled for execution
-   * We use this so that we can wait for completion
-   */
-  int scheduled;
-
-  pthread_mutex_t mutex;
-
-  /*
-   * A condition that's signaled on when we go:
-   * from a state of no work to a state of work available
-   */
-  pthread_cond_t work_available;
-
-  /* A condition that's signaled on no more tasks scheduled */
-  pthread_cond_t done;
-};
-
-
-int
-thpool_get_max_threads(struct _thpool *pool)
-{
-  return pool->max_threads;
-}
-
 static void *
 _worker_func(void *pool_arg)
 {

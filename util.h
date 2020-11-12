@@ -20,8 +20,11 @@ long mk_etag(char *etag, char *file);
 
 char *find_ext(char *file);
 
-long msleep(long tms);
+int msleep(long tms);
+int nsleep(long tms);
 long mstime();
+
+void itohex(unsigned long n, int base, char sign, unsigned char *outbuf);
 
 
 #endif

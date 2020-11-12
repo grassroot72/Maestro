@@ -15,6 +15,8 @@ stage. More features will be added in the future.
   - Epoll (so, linux specific)
   - HTTP/1.1 GET method (static file)
   - HTTP/1.1 HEAD method (static file)
+  - HTTP/1.1 POST method
+  - HTTP/1.1 chunked transfer
   - HTTP/1.1 keep-alive (long connection, disconnected after timeouts)
   - built-in cache to provide better GET performance
   - deflate compression
@@ -121,8 +123,7 @@ use it for download resumption test.
 
 I want to develop an HTTP/1.1 compatible webserver as well as an application
 server which skips traditional CGI function and directly provides dynamic
-services (POST/PUT/DELETE...) through built-in functions.
+services (POST) through built-in functions.
 
 todo list:
-  - HTTP/1.1 POST/PUT/DELETE
   - HTTPS

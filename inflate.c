@@ -12,16 +12,6 @@
 #include "inflate.h"
 
 
-typedef struct _inflate inflate_t;
-
-struct _inflate {
-  int bits, bitcnt;
-  unsigned lits[288];
-  unsigned dsts[32];
-  unsigned lens[19];
-  int tlit, tdist, tlen;
-};
-
 static const unsigned char inflate_mirror[256] = {
   #define R2(n) n, n + 128, n + 64, n + 192
   #define R4(n) R2(n), R2(n + 32), R2(n + 16), R2(n + 48)

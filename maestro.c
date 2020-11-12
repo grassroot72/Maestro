@@ -19,6 +19,7 @@
 #include "util.h"
 #include "linkedlist.h"
 #include "thpool.h"
+#include "http_cache.h"
 #include "http_svc.h"
 #include "http_conn.h"
 
@@ -30,7 +31,7 @@
 #define MAXEVENTS 2048
 
 #define EPOLL_TIMEOUT 1000         /* 1 second */
-#define HTTP_KEEPALIVE_TIME 75000  /* 75 seconds */
+#define HTTP_KEEPALIVE_TIME 72000  /* 72 seconds */
 #define PORT 9000
 
 #define MAX_CACHE_TIME 86400000    /* 24 x 60 x 60 = 1 day */
@@ -60,29 +61,25 @@ static void
 _expire_timers(list_t *timers, long timeout)
 {
   httpconn_t *conn;
-  int sockfd;
-
   node_t *timer;
   long cur_time;
-  long stamp;
 
   timer = list_first(timers);
   if (timer) {
     cur_time = mstime();
     do {
-      stamp = list_node_stamp(timer);
+      if (cur_time - timer->stamp >= timeout) {
+        conn = (httpconn_t *)timer->data;
 
-      if (cur_time - stamp >= timeout) {
-        conn = (httpconn_t *)list_node_data(timer);
-        list_del(timers, stamp);
-
-        sockfd = httpconn_sockfd(conn);
-        DEBSI("[CONN] socket closed, server disconnected", sockfd);
-        close(sockfd);
+        DEBSI("[CONN] socket closed from server", conn->sockfd);
+        close(conn->sockfd);
         free(conn);
-      }
 
-      timer = list_next(timers);
+        list_del(timers, timer->stamp);
+        timer = list_next(timers);
+      }
+      else
+        timer = list_next(timers);
     } while (timer);
   }
 }
@@ -90,27 +87,24 @@ _expire_timers(list_t *timers, long timeout)
 static void
 _expire_cache(list_t *cache, long timeout)
 {
-  cached_body_t *data;
-
+  cache_data_t *data;
   node_t *node;
   long cur_time;
-  long stamp;
 
   node = list_first(cache);
   if (node) {
     cur_time = mstime();
     do {
-      stamp = list_node_stamp(node);
-
-      if (cur_time - stamp >= timeout) {
-        data = (cached_body_t *)list_node_data(node);
-        list_del(cache, stamp);
-
-        http_del_cached_body(data);
+      if (cur_time - node->stamp >= timeout) {
+        data = (cache_data_t *)node->data;
+        http_cache_data_destroy(data);
         DEBS("[CACHE] cached data expired");
-      }
 
-      node = list_next(cache);
+        list_del(cache, node->stamp);
+        node = list_next(cache);
+      }
+      else
+        node = list_next(cache);
     } while (node);
   }
 }
@@ -215,7 +209,6 @@ int
 main(int argc, char** argv)
 {
   int srvfd;
-  int sockfd;
   int i;
 
   int epfd;
@@ -282,7 +275,6 @@ main(int argc, char** argv)
   srvconn = httpconn_new(srvfd, epfd, NULL, NULL);
   event.data.ptr = (void *)srvconn;
   event.events = EPOLLIN | EPOLLET;
-  //event.events = EPOLLIN;
   if (epoll_ctl(epfd, EPOLL_CTL_ADD, srvfd, &event) == -1) {
     perror("epoll_ctl()");
     return -1;
@@ -306,17 +298,18 @@ main(int argc, char** argv)
     /* loop through events */
     for (i = 0; i < nevents; i++) {
       conn = (httpconn_t *)events[i].data.ptr;
-      sockfd = httpconn_sockfd(conn);
 
       /* error case */
       if ((events[i].events & EPOLLERR) || (events[i].events & EPOLLHUP) ||
           (!(events[i].events & EPOLLIN))) {
-        perror("EPOLL ERR|HUP");
+        if (errno != EAGAIN) {
+          perror("[EPOLL] ERR|HUP");
+        }
         list_update(timers, conn, mstime());
         break;
       }
 
-      else if (sockfd == srvfd) {
+      else if (conn->sockfd == srvfd) {
         _receive_conn(srvfd, epfd, cache, timers);
       }
 
@@ -330,11 +323,14 @@ main(int argc, char** argv)
   thpool_wait(taskpool);
   thpool_destroy(taskpool);
 
-  list_destroy(cache);
   list_destroy(timers);
+  _expire_cache(cache, 0);
+  list_destroy(cache);
+
   free(srvconn);
   close(epfd);
   free(events);
+
   puts("Exit gracefully...");
 
   return 0;

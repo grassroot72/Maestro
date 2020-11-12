@@ -129,11 +129,11 @@ find_ext(char *file)
   return dot + 1;
 }
 
-long
+int
 msleep(long tms)
 {
   struct timespec ts;
-  long ret;
+  int ret;
 
   if (tms < 0) {
     errno = EINVAL;
@@ -142,6 +142,27 @@ msleep(long tms)
 
   ts.tv_sec = tms / 1000;
   ts.tv_nsec = (tms % 1000) * 1000000;
+
+  do {
+    ret = nanosleep(&ts, &ts);
+  } while (ret && errno == EINTR);
+
+  return ret;
+}
+
+int
+nsleep(long tms)
+{
+  struct timespec ts;
+  int ret;
+
+  if (tms < 0) {
+    errno = EINVAL;
+    return -1;
+  }
+
+  ts.tv_sec = 0;
+  ts.tv_nsec = tms;
 
   do {
     ret = nanosleep(&ts, &ts);
@@ -159,4 +180,34 @@ mstime()
   gettimeofday(&tv, 0);
   msec = tv.tv_sec * 1000 + tv.tv_usec / 1000;
   return msec;
+}
+
+/*
+ * n      -  number to be printed
+ * base   -  number base for conversion;  decimal=10,hex=16
+ * sign   -  signed or unsigned output
+ * outbuf -  buffer to hold the output number
+ */
+void
+itohex(unsigned long n, int base, char sign, unsigned char *outbuf)
+{
+  int i = 12;
+  int j = 0;
+
+  do {
+    outbuf[i] = "0123456789ABCDEF"[n % base];
+    i--;
+    n = n/base;
+  } while(n > 0);
+
+  if (sign != ' ') {
+    outbuf[0] = sign;
+    ++j;
+  }
+
+  while (++i < 13) {
+    outbuf[j++] = outbuf[i];
+  }
+
+  outbuf[j] = '\0';
 }

@@ -14,14 +14,47 @@
 #define _THREADPOOL_H_
 
 
+struct _taskdata {
+  void (*work_routine)(void *);
+  void *arg;
+};
+
+
 typedef struct _thpool thpool_t;
 
+struct _thpool {
+  /* N worker threads */
+  pthread_t *worker_threads;
+
+  /* A circular queue that holds tasks that are yet to be executed */
+  struct _taskdata *task_queue;
+
+  /* Head and tail of the queue */
+  int queue_head, queue_tail;
+
+  /* How many worker threads can we have */
+  int max_threads;
+
+  /*
+   * How many tasks are scheduled for execution
+   * We use this so that we can wait for completion
+   */
+  int scheduled;
+
+  pthread_mutex_t mutex;
+
+  /*
+   * A condition that's signaled on when we go:
+   * from a state of no work to a state of work available
+   */
+  pthread_cond_t work_available;
+
+  /* A condition that's signaled on no more tasks scheduled */
+  pthread_cond_t done;
+};
 
 /* Creates a thread pool and returns a pointer to it */
 thpool_t *thpool_init(int max_threads);
-
-/* Return maximum number of threads */
-int thpool_get_max_threads(thpool_t *pool);
 
 /*
  * Insert task into thread pool
@@ -38,4 +71,3 @@ void thpool_destroy(thpool_t *pool);
 
 
 #endif
-

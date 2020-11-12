@@ -19,32 +19,6 @@
 #define CR '\r'
 
 
-struct _httphdr {
-  char *key;
-  char *value;
-};
-
-struct _httpmsg {
-  char *method;
-  char *path;
-  int ver_major;
-  int ver_minor;
-  int code;      /* status code */
-  char *status;  /* status text */
-
-  struct _httphdr *headers;
-  int num_headers;
-
-  int len_startline;
-  int len_headers;
-
-  unsigned char *body;    /* point to the body, raw or compressed */
-  unsigned char *body_zipped;
-  unsigned char *body_s;  /* point to the range start of the body */
-  size_t len_body;
-};
-
-
 httpmsg_t *
 msg_new()
 {
@@ -64,29 +38,6 @@ msg_new()
   return msg;
 }
 
-unsigned char *
-msg_body(httpmsg_t *msg)
-{
-  return msg->body;
-}
-
-unsigned char *
-msg_zipped_body(httpmsg_t *msg)
-{
-  return msg->body_zipped;
-}
-
-size_t
-msg_body_len(httpmsg_t *msg)
-{
-  return msg->len_body;
-}
-
-unsigned char *
-msg_body_start(httpmsg_t *msg)
-{
-  return msg->body_s;
-}
 
 void
 msg_set_body_start(httpmsg_t *msg, unsigned char *s)
@@ -128,9 +79,9 @@ msg_destroy(httpmsg_t *msg, int delbody)
 
   if (delbody) {
     if (msg->body) free(msg->body);
+    if (msg->body_zipped) free(msg->body_zipped);
   }
 
-  if (msg->body_zipped) free(msg->body_zipped);
   free(msg);
 }
 

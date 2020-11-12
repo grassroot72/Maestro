@@ -19,32 +19,6 @@
 #include "debug.h"
 
 
-#define DEFLATE_MAX_OFF (1 << 15)
-#define DEFLATE_WIN_SIZE DEFLATE_MAX_OFF
-#define DEFLATE_WIN_MASK (DEFLATE_WIN_SIZE - 1)
-
-#define DEFLATE_MIN_MATCH 4
-#define DEFLATE_MAX_MATCH 258
-
-#define DEFLATE_HASH_BITS 15
-#define DEFLATE_HASH_SIZE (1 << DEFLATE_HASH_BITS)
-#define DEFLATE_HASH_MASK (DEFLATE_HASH_SIZE - 1)
-#define DEFLATE_NIL (-1)
-
-#define DEFLATE_LVL_MIN 0
-#define DEFLATE_LVL_DEF 5
-#define DEFLATE_LVL_MAX 8
-
-
-#define DEFLATE_ZLIB_HDR (0x01)
-
-struct _deflate {
-  int bits, cnt;
-  int *tbl;  /* size = DEFLATE_HASH_SIZE */
-  int *prv;  /* size = DEFLATE_WIN_SIZE */
-};
-
-
 struct _match {
   int off, len;
 };
@@ -284,23 +258,6 @@ _compress(struct _deflate *s,
   }
 
   return (int)(q - out);
-}
-
-deflate_t *
-deflate_new()
-{
-  deflate_t *s = (struct _deflate *)malloc(sizeof(struct _deflate));
-  s->tbl = (int *)malloc(sizeof(int) * DEFLATE_HASH_SIZE);
-  s->prv = (int *)malloc(sizeof(int) * DEFLATE_WIN_SIZE);
-  return s;
-}
-
-void
-deflate_destroy(deflate_t *s)
-{
-  free(s->tbl);
-  free(s->prv);
-  free(s);
 }
 
 int
