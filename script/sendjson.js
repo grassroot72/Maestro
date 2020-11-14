@@ -25,11 +25,11 @@ function sendJSON() {
   };
 
   // Converting JSON data to string
-  var data = JSON.stringify({ "svc": svc.value,
-                              "action": action.value,
-                              "first_name": first_name.value,
-                              "last_name": last_name.value,
-                              "email": email.value });
+  var data = JSON.stringify({"svc": svc.value,
+                             "action": action.value,
+                             "first_name": first_name.value,
+                             "last_name": last_name.value,
+                             "email": email.value});
   // Sending data with the request
   xhr.send(data);
 }
