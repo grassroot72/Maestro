@@ -71,6 +71,25 @@ The following is the test result on my very low-end laptop,
   - **MEM: 4G**
   - **NET: laptop built-in wireless**
 ```
+
+This is ApacheBench, Version 2.3 <$Revision: 1879490 $>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking localhost (be patient)
+Completed 50000 requests
+Completed 100000 requests
+Completed 150000 requests
+Completed 200000 requests
+Completed 250000 requests
+Completed 300000 requests
+Completed 350000 requests
+Completed 400000 requests
+Completed 450000 requests
+Completed 500000 requests
+Finished 500000 requests
+
+
 Server Software:        Maestro/1.0
 Server Hostname:        localhost
 Server Port:            9000
@@ -79,34 +98,34 @@ Document Path:          /bench.html
 Document Length:        1025 bytes
 
 Concurrency Level:      1000
-Time taken for tests:   34.536 seconds
+Time taken for tests:   34.448 seconds
 Complete requests:      500000
 Failed requests:        0
 Keep-Alive requests:    500000
-Total transferred:      616500000 bytes
-HTML transferred:       460000000 bytes
-Requests per second:    14477.83 [#/sec] (mean)
-Time per request:       69.071 [ms] (mean)
+Total transferred:      669500000 bytes
+HTML transferred:       512500000 bytes
+Requests per second:    14514.75 [#/sec] (mean)
+Time per request:       68.895 [ms] (mean)
 Time per request:       0.069 [ms] (mean, across all concurrent requests)
-Transfer rate:          17432.77 [Kbytes/sec] received
+Transfer rate:          18979.73 [Kbytes/sec] received
 
 Connection Times (ms)
               min  mean[+/-sd] median   max
-Connect:        0    0   3.8      0     112
-Processing:    26   69  18.5     65     169
-Waiting:        4   43  13.5     45     146
-Total:         26   69  18.8     65     169
+Connect:        0    0   3.6      0     105
+Processing:    27   69  18.4     65     178
+Waiting:        5   43  13.6     45     137
+Total:         27   69  18.7     65     181
 
 Percentage of the requests served within a certain time (ms)
   50%     65
   66%     73
-  75%     80
+  75%     79
   80%     84
   90%     96
   95%    105
-  98%    114
-  99%    121
- 100%    169 (longest request)
+  98%    115
+  99%    122
+ 100%    181 (longest request)
 
 If you test it on most recently manufactured computers, you will get much
 better benchmark results.
