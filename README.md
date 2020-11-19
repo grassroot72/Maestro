@@ -75,8 +75,8 @@ Server Software:        Maestro/1.0
 Server Hostname:        localhost
 Server Port:            9000
 
-Document Path:          /editable5.html
-Document Length:        920 bytes
+Document Path:          /bench.html
+Document Length:        1025 bytes
 
 Concurrency Level:      1000
 Time taken for tests:   34.536 seconds
