@@ -57,10 +57,10 @@ download finally finishes.
 ## Benchmark
 ```
 For Apache Bench, I used the following command,
-$ ab -k -n 5000 -c 100 http://localhost:9000/bench.html
+$ ab -k -n 500000 -c 1000 http://localhost:9000/bench.html
 
 You may also want to put the compression option on,
-$ ab -k -n 5000 -c 100 -H "Accept-Encoding: deflate" http://localhost:9000/bench.html
+$ ab -k -n 500000 -c 1000 -H "Accept-Encoding: deflate" http://localhost:9000/bench.html
 
 Please replace localhost with your hostname if you would like to test on
 other computers.
@@ -72,41 +72,41 @@ The following is the test result on my very low-end laptop,
   - **NET: laptop built-in wireless**
 ```
 Server Software:        Maestro/1.0
-Server Hostname:        warrior
+Server Hostname:        localhost
 Server Port:            9000
 
-Document Path:          /bench.html
-Document Length:        1025 bytes
+Document Path:          /editable5.html
+Document Length:        920 bytes
 
-Concurrency Level:      100
-Time taken for tests:   12.017 seconds
-Complete requests:      5000
+Concurrency Level:      1000
+Time taken for tests:   34.536 seconds
+Complete requests:      500000
 Failed requests:        0
-Keep-Alive requests:    5000
-Total transferred:      6465000 bytes
-HTML transferred:       5125000 bytes
-Requests per second:    449.23 [#/sec] (mean)
-Time per request:       237.101 [ms] (mean)
-Time per request:       2.226 [ms] (mean, across all concurrent requests)
-Transfer rate:          587.37 [Kbytes/sec] received
+Keep-Alive requests:    500000
+Total transferred:      616500000 bytes
+HTML transferred:       460000000 bytes
+Requests per second:    14477.83 [#/sec] (mean)
+Time per request:       69.071 [ms] (mean)
+Time per request:       0.069 [ms] (mean, across all concurrent requests)
+Transfer rate:          17432.77 [Kbytes/sec] received
 
 Connection Times (ms)
               min  mean[+/-sd] median   max
-Connect:        0    3  59.6      0    3229
-Processing:    34  228 154.9    155     863
-Waiting:       11   80  46.8     70     387
-Total:         40  231 166.0    155    3365
+Connect:        0    0   3.8      0     112
+Processing:    26   69  18.5     65     169
+Waiting:        4   43  13.5     45     146
+Total:         26   69  18.8     65     169
 
 Percentage of the requests served within a certain time (ms)
-  50%    155
-  66%    179
-  75%    202
-  80%    395
-  90%    510
-  95%    568
-  98%    631
-  99%    667
- 100%   3365 (longest request)
+  50%     65
+  66%     73
+  75%     80
+  80%     84
+  90%     96
+  95%    105
+  98%    114
+  99%    121
+ 100%    169 (longest request)
 
 If you test it on most recently manufactured computers, you will get much
 better benchmark results.
