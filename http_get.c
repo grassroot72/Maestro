@@ -164,8 +164,7 @@ _get_rep(char *ctype, int mtype, cache_data_t *cdata, httpmsg_t *req)
   if (!cdata->etag) {  /* 404 code */
     msg_set_rep_line(rep, 1, 1, 404, "Not Found");
     /* compressed */
-    if (mtype == MIME_TXT &&
-        zip_encoding && strstr(zip_encoding, "deflate")) {
+    if (mtype == MIME_TXT && zip_encoding && strstr(zip_encoding, "deflate")) {
       msg_add_header(rep, "Content-Encoding", "deflate");
       msg_add_zipped_body(rep, cdata->body_zipped, cdata->len_zipped);
       msg_set_body_start(rep, cdata->body_zipped);
