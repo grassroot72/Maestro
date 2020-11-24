@@ -19,7 +19,8 @@ OBJS = base64.o \
        http_get.o \
        http_post.o \
        http_conn.o \
-       svc/registration.o \
+       svc/dml_obj.o \
+       svc/identity.o \
        maestro.o
 EXES = maestro
 
