@@ -22,12 +22,19 @@ struct _cache_data {
 
 
 cache_data_t *http_cache_data_new();
+
 void http_set_cache_data(cache_data_t *data,
-                         char *path, char *etag, char *modified,
-                         unsigned char *body, size_t len_body,
-                         unsigned char *body_zipped, size_t len_zipped);
+                         char *path,
+                         char *etag,
+                         char *modified,
+                         unsigned char *body,
+                         size_t len_body,
+                         unsigned char *body_zipped,
+                         size_t len_zipped);
+
 void http_cache_data_destroy(cache_data_t *data);
-cache_data_t *http_cache_data(void *cache, char *path);
+
+cache_data_t *http_cache_data(list_t *cache, char *path);
 
 
 #endif

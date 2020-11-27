@@ -16,8 +16,7 @@
 #define MAX_NUM_MSG_LINES 35  /* MAX_NUM_HEADERS + 3 */
 
 
-httpmsg_t *
-http_parse_req(unsigned char *buf)
+httpmsg_t *http_parse_req(unsigned char *buf)
 {
   unsigned char *line[MAX_NUM_MSG_LINES];  /* http messages lines */
   char *method;
@@ -78,8 +77,7 @@ http_parse_req(unsigned char *buf)
   return req;
 }
 
-httpmsg_t *
-http_parse_rep(unsigned char *buf)
+httpmsg_t *http_parse_rep(unsigned char *buf)
 {
   unsigned char *line[MAX_NUM_MSG_LINES];  /* http messages lines */
   char *version;
@@ -132,8 +130,7 @@ http_parse_rep(unsigned char *buf)
   return rep;
 }
 
-httpmsg_t *
-http_parse_headers(unsigned char *buf)
+httpmsg_t *http_parse_headers(unsigned char *buf)
 {
   unsigned char *line[MAX_NUM_MSG_LINES];
   int count, end;

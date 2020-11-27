@@ -37,23 +37,57 @@ struct _httpmsg {
 
 
 httpmsg_t *msg_new();
-void msg_set_body_start(httpmsg_t *msg, unsigned char *s);
-void msg_add_body(httpmsg_t *msg, unsigned char *body, size_t len);
-void msg_add_zipped_body(httpmsg_t *msg, unsigned char *body_zipped, size_t len);
-void msg_destroy(httpmsg_t *msg, int delbody);
 
-int msg_split(unsigned char *line[], int *end, int *len_body, unsigned char *buf);
-void msg_lines_destroy(unsigned char *line[], int count);
+void msg_set_body_start(httpmsg_t *msg,
+                        unsigned char *s);
 
-void msg_set_req_line(httpmsg_t *msg, char *method, char *path, int major, int minor);
-void msg_set_rep_line(httpmsg_t *msg, int major, int minor, int code, char *status);
+void msg_add_body(httpmsg_t *msg,
+                  unsigned char *body,
+                  size_t len);
 
-void msg_add_header(httpmsg_t *msg, char *key, char *value);
-char *msg_header_value(httpmsg_t *msg, char *key);
-int msg_add_headers(httpmsg_t *msg, unsigned char *line[], int end);
+void msg_add_zipped_body(httpmsg_t *msg,
+                         unsigned char *body_zipped,
+                         size_t len);
 
-char *msg_create_req(httpmsg_t *req, int *len);
-char *msg_create_rep(httpmsg_t *rep, int *len);
+void msg_destroy(httpmsg_t *msg,
+                 int delbody);
+
+int msg_split(unsigned char *line[],
+              int *end,
+              int *len_body,
+              unsigned char *buf);
+
+void msg_lines_destroy(unsigned char *line[],
+                       int count);
+
+void msg_set_req_line(httpmsg_t *msg,
+                      char *method,
+                      char *path,
+                      int major,
+                      int minor);
+
+void msg_set_rep_line(httpmsg_t *msg,
+                      int major,
+                      int minor,
+                      int code,
+                      char *status);
+
+void msg_add_header(httpmsg_t *msg,
+                    char *key,
+                    char *value);
+
+char *msg_header_value(httpmsg_t *msg,
+                       char *key);
+
+int msg_add_headers(httpmsg_t *msg,
+                    unsigned char *line[],
+                    int end);
+
+char *msg_create_req(httpmsg_t *req,
+                     int *len);
+
+char *msg_create_rep(httpmsg_t *rep,
+                     int *len);
 
 
 #endif

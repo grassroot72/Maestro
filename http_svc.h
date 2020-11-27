@@ -15,9 +15,15 @@
 
 
 /* GET */
-void http_rep_static(int clifd, void *cache, char *path, void *req, int method);
+void http_rep_static(int clifd,
+                     list_t *cache,
+                     char *path,
+                     httpmsg_t *req,
+                     int method);
 /* POST */
-void http_post(int clifd, char *path, void *req);
+void http_post(int clifd,
+               char *path,
+               httpmsg_t *req);
 
 
 #endif

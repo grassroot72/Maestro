@@ -22,8 +22,7 @@
 
 const int TASK_QUEUE_MAX = 10000;
 
-static void *
-_worker_func(void *pool_arg)
+static void *_worker_func(void *pool_arg)
 {
   int rc;
   struct _taskdata picked_task;
@@ -75,8 +74,9 @@ _worker_func(void *pool_arg)
   return 0;
 }
 
-void
-thpool_add_task(struct _thpool *pool, void (*work_routine)(void *), void *arg)
+void thpool_add_task(struct _thpool *pool,
+                     void (*work_routine)(void *),
+                     void *arg)
 {
   int rc;
   struct _taskdata task;
@@ -102,8 +102,7 @@ thpool_add_task(struct _thpool *pool, void (*work_routine)(void *), void *arg)
   assert(rc == 0);
 }
 
-void
-thpool_wait(struct _thpool *pool)
+void thpool_wait(struct _thpool *pool)
 {
   int rc;
 
@@ -121,8 +120,7 @@ thpool_wait(struct _thpool *pool)
   DEBS("[POOL] Waiting done.");
 }
 
-struct _thpool *
-thpool_init(int max_threads)
+struct _thpool *thpool_init(int max_threads)
 {
   int rc;
   int i;
@@ -151,8 +149,7 @@ thpool_init(int max_threads)
   return pool;
 }
 
-void
-thpool_destroy(struct _thpool *pool)
+void thpool_destroy(struct _thpool *pool)
 {
   int rc;
   int i;

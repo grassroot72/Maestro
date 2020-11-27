@@ -19,8 +19,7 @@
 #define CR '\r'
 
 
-httpmsg_t *
-msg_new()
+httpmsg_t *msg_new()
 {
   httpmsg_t *msg = malloc(sizeof(struct _httpmsg));
   msg->headers = (struct _httphdr *)
@@ -39,28 +38,30 @@ msg_new()
 }
 
 
-void
-msg_set_body_start(httpmsg_t *msg, unsigned char *s)
+void msg_set_body_start(httpmsg_t *msg,
+                        unsigned char *s)
 {
   msg->body_s = s;
 }
 
-void
-msg_add_body(httpmsg_t *msg, unsigned char *body, size_t len)
+void msg_add_body(httpmsg_t *msg,
+                  unsigned char *body,
+                  size_t len)
 {
   msg->body = body;
   msg->len_body = len;
 }
 
-void
-msg_add_zipped_body(httpmsg_t *msg, unsigned char *body_zipped, size_t len)
+void msg_add_zipped_body(httpmsg_t *msg,
+                         unsigned char *body_zipped,
+                         size_t len)
 {
   msg->body_zipped = body_zipped;
   msg->len_body = len;
 }
 
-void
-msg_destroy(httpmsg_t *msg, int delbody)
+void msg_destroy(httpmsg_t *msg,
+                 int delbody)
 {
   if (!msg) return;
 
@@ -85,8 +86,10 @@ msg_destroy(httpmsg_t *msg, int delbody)
   free(msg);
 }
 
-int
-msg_split(unsigned char *line[], int *end, int *len_body, unsigned char *buf)
+int msg_split(unsigned char *line[],
+              int *end,
+              int *len_body,
+              unsigned char *buf)
 {
   unsigned char* p = buf;
   unsigned char* h = p;
@@ -141,8 +144,8 @@ msg_split(unsigned char *line[], int *end, int *len_body, unsigned char *buf)
   return i;
 }
 
-void
-msg_lines_destroy(unsigned char *line[], int count)
+void msg_lines_destroy(unsigned char *line[],
+                       int count)
 {
   int i = 0;
   do {
@@ -153,8 +156,11 @@ msg_lines_destroy(unsigned char *line[], int count)
   } while (i < count);
 }
 
-void
-msg_set_req_line(httpmsg_t *msg, char *method, char *path, int major, int minor)
+void msg_set_req_line(httpmsg_t *msg,
+                      char *method,
+                      char *path,
+                      int major,
+                      int minor)
 {
   int len, total = 0;
 
@@ -179,8 +185,11 @@ msg_set_req_line(httpmsg_t *msg, char *method, char *path, int major, int minor)
   msg->len_startline = total;
 }
 
-void
-msg_set_rep_line(httpmsg_t *msg, int major, int minor, int code, char *status)
+void msg_set_rep_line(httpmsg_t *msg,
+                      int major,
+                      int minor,
+                      int code,
+                      char *status)
 {
   int len;
 
@@ -201,8 +210,9 @@ msg_set_rep_line(httpmsg_t *msg, int major, int minor, int code, char *status)
   msg->len_startline = len;
 }
 
-void
-msg_add_header(httpmsg_t *msg, char *key, char *value)
+void msg_add_header(httpmsg_t *msg,
+                    char *key,
+                    char *value)
 {
   int len_k, len_v, total;
 
@@ -230,8 +240,8 @@ msg_add_header(httpmsg_t *msg, char *key, char *value)
   msg->num_headers++;
 }
 
-char *
-msg_header_value(httpmsg_t *msg, char *key)
+char *msg_header_value(httpmsg_t *msg,
+                       char *key)
 {
   int i;
 
@@ -246,8 +256,9 @@ msg_header_value(httpmsg_t *msg, char *key)
   return NULL;
 }
 
-int
-msg_add_headers(httpmsg_t *msg, unsigned char *line[], int end)
+int msg_add_headers(httpmsg_t *msg,
+                    unsigned char *line[],
+                    int end)
 {
   char* key;
   char* value;
@@ -275,8 +286,8 @@ msg_add_headers(httpmsg_t *msg, unsigned char *line[], int end)
   return 1;
 }
 
-char *
-msg_create_req(httpmsg_t *req, int *len)
+char *msg_create_req(httpmsg_t *req,
+                     int *len)
 {
   int i = 0;
   /*
@@ -308,8 +319,8 @@ msg_create_req(httpmsg_t *req, int *len)
   return msg;
 }
 
-char *
-msg_create_rep(httpmsg_t *rep, int *len)
+char *msg_create_rep(httpmsg_t *rep,
+                     int *len)
 {
   int i = 0;
   /*

@@ -61,7 +61,9 @@ thpool_t *thpool_init(int max_threads);
  * The pool will call work_routine and pass arg as an argument to it
  * This is a similar interface to pthread_create
  */
-void thpool_add_task(thpool_t *pool, void (*work_routine)(void *), void *arg);
+void thpool_add_task(thpool_t *pool,
+                     void (*work_routine)(void *),
+                     void *arg);
 
 /* Blocks until the thread pool is done executing its tasks */
 void thpool_wait(thpool_t *pool);

@@ -9,6 +9,7 @@
 #include <string.h>
 #include <errno.h>
 #include <sys/epoll.h>
+#include <libpq-fe.h>
 #include "util.h"
 #include "io.h"
 #include "linkedlist.h"
@@ -22,13 +23,18 @@
 
 
 httpconn_t *
-httpconn_new(int sockfd, int epfd, void *cache, void *timers)
+httpconn_new(int sockfd,
+             int epfd,
+             PGconn *pgconn,
+             list_t *cache,
+             list_t *timers)
 {
   httpconn_t *conn = malloc(sizeof(struct _httpconn));
   conn->sockfd = sockfd;
   conn->epfd = epfd;
-  conn->cache = (list_t *)cache;
-  conn->timers = (list_t *)timers;
+  conn->pgconn = pgconn;
+  conn->cache = cache;
+  conn->timers = timers;
 
   return conn;
 }

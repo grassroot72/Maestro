@@ -12,66 +12,36 @@
 #include "base64.h"
 #include "deflate.h"
 #include "util.h"
+#include "jsmn.h"
 #include "http_msg.h"
 #include "http_svc.h"
-#include "jsmn.h"
-#include "registration.h"
+#include "dml_obj.h"
 
 #define DEBUG
 #include "debug.h"
 
 
-static int
-_process_json(void *data)
+static int _process_json(httpmsg_t *req)
 {
-  int r;
-  jsmntok_t t[128];  /* We expect no more than 128 JSON tokens */
-  jsmn_parser p;
-  httpmsg_t *req;
   char *body;
-  int len;
-  char svc[32];
-
-  identity_t *id;
+  dml_obj_t *dmlo;
 
 
   /* process the request message here */
-  req = (httpmsg_t *)data;
   body = (char *)req->body;
-  jsmn_init(&p);
-  r = jsmn_parse(&p, body, req->len_body, t, 128);
+  DEBSS("[REQ] json string", body);
 
-  DEBSI("[REQ] number of json elements", r);
-  if (r < 0) {
-    DEBS("Failed to parse JSON");
-    return r;
-  }
+  dmlo = dml_json_parse(body, req->len_body);
 
-  /* Assume the top-level element is an object */
-  if (r < 1 || t[0].type != JSMN_OBJECT) {
-    DEBS("Object expected");
-    return r;
-  }
 
-  if (jsoneq(body, &t[1], "svc") == 0) {
-    len =  t[2].end - t[2].start;
-    strncpy(svc, body + t[2].start, len);
-    svc[len] = '\0';
-  }
-  else
-    return -3;  /* not a valid json string */
 
-  if (strcmp(svc, "registration") == 0) {
-    id = registration_parse_json_identity(body, t, r);
-  }
-
-  registration_destroy_json_identity(id);
+  dml_json_destroy(dmlo);
 
   return 0;
 }
 
-void
-_send_chunk(int clifd, char *data)
+void _send_chunk(int clifd,
+                 char *data)
 {
   char *chunk;
   int len_chunk;
@@ -92,16 +62,16 @@ _send_chunk(int clifd, char *data)
   free(chunk);
 }
 
-void
-http_post(int clifd, char *path, void *req)
+void http_post(int clifd,
+               char *path,
+               httpmsg_t *req)
 {
   httpmsg_t *rep;
   int len_msg;
   unsigned char *bytes;
 
-  /* some logic to process request here ... */
+  /* connect to database after receiving request */
   _process_json(req);
-
 
   rep = msg_new();
   msg_set_rep_line(rep, 1, 1, 200, "OK");

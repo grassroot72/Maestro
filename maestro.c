@@ -16,6 +16,8 @@
 #include <sys/sysinfo.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <libpq-fe.h>
+#include "pg_conn.h"
 #include "util.h"
 #include "linkedlist.h"
 #include "thpool.h"
@@ -27,7 +29,7 @@
 #include "debug.h"
 
 
-#define THREADS_PER_CORE 96
+#define THREADS_PER_CORE 128
 #define MAXEVENTS 2048
 
 #define EPOLL_TIMEOUT 1000         /* 1 second */
@@ -38,6 +40,7 @@
 
 
 static volatile int svc_running = 1;
+
 
 static void
 _svc_stopper(int dummy)
@@ -58,7 +61,8 @@ _set_nonblocking(int fd)
 }
 
 static void
-_expire_timers(list_t *timers, long timeout)
+_expire_timers(list_t *timers,
+               long timeout)
 {
   httpconn_t *conn;
   node_t *timer;
@@ -85,7 +89,8 @@ _expire_timers(list_t *timers, long timeout)
 }
 
 static void
-_expire_cache(list_t *cache, long timeout)
+_expire_cache(list_t *cache,
+              long timeout)
 {
   cache_data_t *data;
   node_t *node;
@@ -110,7 +115,11 @@ _expire_cache(list_t *cache, long timeout)
 }
 
 static void
-_receive_conn(int srvfd, int epfd, list_t *cache, list_t *timers)
+_receive_conn(int srvfd,
+              int epfd,
+              PGconn *pgconn,
+              list_t *cache,
+              list_t *timers)
 {
   int clifd;
   struct sockaddr cliaddr;
@@ -140,7 +149,7 @@ _receive_conn(int srvfd, int epfd, list_t *cache, list_t *timers)
     DEBSI("[CONN] on socket", clifd);
 
     _set_nonblocking(clifd);
-    cliconn = httpconn_new(clifd, epfd, cache, timers);
+    cliconn = httpconn_new(clifd, epfd, pgconn, cache, timers);
     event.data.ptr = (void *)cliconn;
     /*
      * With the use of EPOLLONESHOT, it is guaranteed that
@@ -176,7 +185,8 @@ _create_srv_socket()
 }
 
 static int
-_bind(int srvfd, uint16_t port)
+_bind(int srvfd,
+      uint16_t port)
 {
   struct sockaddr_in srvaddr;
 
@@ -206,8 +216,11 @@ _listen(int srvfd)
 }
 
 int
-main(int argc, char** argv)
+main(int argc, char **argv)
 {
+  PGconn *pgconn;
+  const char *pgconninfo;
+
   int srvfd;
   int i;
 
@@ -225,6 +238,11 @@ main(int argc, char** argv)
   list_t *cache;
   list_t *timers;
   long loop_time;
+
+  /* create a postgresql db connection */
+  pgconninfo = "dbname = demo";
+  pgconn = pg_connect(pgconninfo);
+
 
   /*
    * install signal handle for SIGPIPE
@@ -272,7 +290,7 @@ main(int argc, char** argv)
 
   /* mark the server socket for reading, and become edge-triggered */
   memset(&event, 0, sizeof(struct epoll_event));
-  srvconn = httpconn_new(srvfd, epfd, NULL, NULL);
+  srvconn = httpconn_new(srvfd, epfd, NULL, NULL, NULL);
   event.data.ptr = (void *)srvconn;
   event.events = EPOLLIN | EPOLLET;
   if (epoll_ctl(epfd, EPOLL_CTL_ADD, srvfd, &event) == -1) {
@@ -310,7 +328,7 @@ main(int argc, char** argv)
       }
 
       else if (conn->sockfd == srvfd) {
-        _receive_conn(srvfd, epfd, cache, timers);
+        _receive_conn(srvfd, epfd, pgconn, cache, timers);
       }
 
       else {

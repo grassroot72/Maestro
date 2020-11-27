@@ -21,8 +21,8 @@
 #define BUF_MAX_SIZE 8192
 
 
-unsigned char *
-io_read_socket(int sockfd, int *rc)
+unsigned char *io_read_socket(int sockfd,
+                              int *rc)
 {
   int n;
   unsigned char buf[BUF_SIZE];
@@ -68,8 +68,9 @@ io_read_socket(int sockfd, int *rc)
   } while (1);
 }
 
-void
-io_write_socket(int sockfd, unsigned char *bytes, size_t len)
+void io_write_socket(int sockfd,
+                     unsigned char *bytes,
+                     size_t len)
 {
   int n;
   unsigned char *last;
@@ -97,8 +98,8 @@ io_write_socket(int sockfd, unsigned char *bytes, size_t len)
   } while (1);
 }
 
-unsigned char *
-io_fread(char *fname, size_t len)
+unsigned char *io_fread(char *fname,
+                        size_t len)
 {
   FILE *f;
   unsigned char *buf;
@@ -111,8 +112,8 @@ io_fread(char *fname, size_t len)
   return buf;
 }
 
-unsigned char *
-io_fread_pipe(FILE *f, size_t len)
+unsigned char *io_fread_pipe(FILE *f,
+                             size_t len)
 {
   unsigned char *buf;
 
@@ -123,8 +124,8 @@ io_fread_pipe(FILE *f, size_t len)
   return buf;
 }
 
-char *
-io_fgetc(FILE *f, int *len)
+char *io_fgetc(FILE *f,
+               int *len)
 {
   int capacity = 10;
   int index = 0;

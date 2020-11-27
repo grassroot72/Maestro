@@ -33,7 +33,9 @@ static const unsigned char deflate_mirror[256] = {
 };
 
 static unsigned
-_adler32(unsigned adler32, const unsigned char *in, int in_len)
+_adler32(unsigned adler32,
+         const unsigned char *in,
+         int in_len)
 {
   #define DEFLATE_ADLER_INIT (1)
   const unsigned ADLER_MOD = 65521;
@@ -90,7 +92,10 @@ _hash32(const void *p)
 }
 
 static void
-_put(unsigned char **dst, struct _deflate *s, int code, int bitcnt)
+_put(unsigned char **dst,
+     struct _deflate *s,
+     int code,
+     int bitcnt)
 {
   s->bits |= (code << s->cnt);
   s->cnt += bitcnt;
@@ -104,7 +109,10 @@ _put(unsigned char **dst, struct _deflate *s, int code, int bitcnt)
 }
 
 static void
-_match_func(unsigned char **dst, struct _deflate *s, int dist, int len)
+_match_func(unsigned char **dst,
+            struct _deflate *s,
+            int dist,
+            int len)
 {
   static const char lxn[] = {
     0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0
@@ -154,7 +162,9 @@ _match_func(unsigned char **dst, struct _deflate *s, int dist, int len)
 }
 
 static void
-_lit(unsigned char **dst, struct _deflate *s, int c)
+_lit(unsigned char **dst,
+     struct _deflate *s,
+     int c)
 {
   if (c <= 143) {
     _put(dst, s, deflate_mirror[0x30 + c], 8);

@@ -18,8 +18,8 @@
 #include "debug.h"
 
 
-static node_t *
-_node_new(void *data, long stamp)
+static node_t *_node_new(void *data,
+                         long stamp)
 {
   node_t *n = malloc(sizeof(struct _node));
   if (!n) return NULL;
@@ -30,8 +30,7 @@ _node_new(void *data, long stamp)
   return n;
 }
 
-list_t *
-list_new()
+list_t *list_new()
 {
   list_t *list = malloc(sizeof(struct _list));
   if (!list) return NULL;
@@ -41,8 +40,9 @@ list_new()
   return list;
 }
 
-static void
-_add(list_t *list, void *data, long stamp)
+static void _add(list_t *list,
+                 void *data,
+                 long stamp)
 {
   node_t *current = NULL;
   if (list->head == NULL) {
@@ -57,8 +57,9 @@ _add(list_t *list, void *data, long stamp)
   }
 }
 
-void
-list_update(list_t *list, void *data, long stamp)
+void list_update(list_t *list,
+                 void *data,
+                 long stamp)
 {
   node_t *current = list->head;
   while (current != NULL){
@@ -74,8 +75,8 @@ list_update(list_t *list, void *data, long stamp)
   _add(list, data, stamp);
 }
 
-void
-list_del(list_t *list, long stamp)
+void list_del(list_t *list,
+              long stamp)
 {
   node_t *current = list->head;
   node_t *previous = current;
@@ -91,8 +92,7 @@ list_del(list_t *list, long stamp)
   }
 }
 
-void
-list_reverse(list_t *list)
+void list_reverse(list_t *list)
 {
   node_t *reversed = NULL;
   node_t *current = list->head;
@@ -106,8 +106,8 @@ list_reverse(list_t *list)
   list->head = reversed;
 }
 
-static void
-_swap(node_t *p1, node_t *p2)
+static void _swap(node_t *p1,
+                  node_t *p2)
 {
   long stamp = p1->stamp;
   void *data = p1->data;
@@ -119,8 +119,8 @@ _swap(node_t *p1, node_t *p2)
   p2->data = data;
 }
 
-void
-list_sort(list_t *list, int asc)
+void list_sort(list_t *list,
+               int asc)
 {
   node_t *start = list->head;
   node_t *traverse;
@@ -149,8 +149,7 @@ list_sort(list_t *list, int asc)
   }
 }
 
-void
-list_display(list_t *list)
+void list_display(list_t *list)
 {
   node_t *current = list->head;
   if (list->head == NULL) return;
@@ -161,8 +160,7 @@ list_display(list_t *list)
   }
 }
 
-void
-list_destroy(list_t *list)
+void list_destroy(list_t *list)
 {
   node_t *current = list->head;
   node_t *next = current;
@@ -174,15 +172,13 @@ list_destroy(list_t *list)
   free(list);
 }
 
-node_t *
-list_first(list_t *list)
+node_t *list_first(list_t *list)
 {
   list->current = list->head;
   return list->head;
 }
 
-node_t *
-list_next(list_t *list)
+node_t *list_next(list_t *list)
 {
   node_t *current = list->current;
   if (current) {
@@ -191,15 +187,3 @@ list_next(list_t *list)
   }
   return current;
 }
-
-//long
-//list_node_stamp(node_t *node)
-//{
-  //return node->stamp;
-//}
-
-//void *
-//list_node_data(node_t *node)
-//{
-  //return node->data;
-//}

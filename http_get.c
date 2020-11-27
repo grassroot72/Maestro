@@ -30,8 +30,8 @@
 #define MIME_TXT 1
 
 
-static int
-_set_content_type(char *ctype, char *ext)
+static int _set_content_type(char *ctype,
+                             char *ext)
 {
   /* MIME types - images */
   if (strcmp(ext, "png") == 0) {
@@ -110,8 +110,10 @@ _set_content_type(char *ctype, char *ext)
   return MIME_BIN;
 }
 
-static size_t
-_process_range(httpmsg_t *rep, char *range_str, size_t len_body, size_t *len_range)
+static size_t _process_range(httpmsg_t *rep,
+                             char *range_str,
+                             size_t len_body,
+                             size_t *len_range)
 {
   char *range_s;
   char *range_e;
@@ -141,8 +143,10 @@ _process_range(httpmsg_t *rep, char *range_str, size_t len_body, size_t *len_ran
   return range_si;
 }
 
-static httpmsg_t *
-_get_rep(char *ctype, int mtype, cache_data_t *cdata, httpmsg_t *req)
+static httpmsg_t *_get_rep(char *ctype,
+                           int mtype,
+                           cache_data_t *cdata,
+                           httpmsg_t *req)
 {
   time_t rep_time;
   char rep_date[30];
@@ -242,8 +246,9 @@ _get_rep(char *ctype, int mtype, cache_data_t *cdata, httpmsg_t *req)
   return rep;
 }
 
-httpmsg_t *
-_get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
+httpmsg_t *_get_rep_msg(list_t *cache,
+                        char *path,
+                        httpmsg_t *req)
 {
   unsigned char *body;
   unsigned char *body_zipped;
@@ -332,14 +337,17 @@ _get_rep_msg(list_t *cache, char *path, httpmsg_t *req)
   return rep;
 }
 
-void
-http_rep_static(int clifd, void *cache, char *path, void *req, int method)
+void http_rep_static(int clifd,
+                     list_t *cache,
+                     char *path,
+                     httpmsg_t *req,
+                     int method)
 {
   httpmsg_t *rep;
   int len_msg;
   unsigned char *bytes;
 
-  rep = _get_rep_msg((list_t *)cache, path, req);
+  rep = _get_rep_msg(cache, path, req);
   bytes = (unsigned char *)msg_create_rep(rep, &len_msg);
 
   /* send msg */

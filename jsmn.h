@@ -12,6 +12,8 @@
 #define _JSMN_H_
 
 
+#define MAX_JSMN_TOKENS 128
+
 /**
  * JSON type identifier. Basic types are:
  *  o Object
@@ -72,8 +74,11 @@ struct _jsmn_parser {
  * It parses a JSON data string into and array of tokens, each describing
  * a single JSON object.
  */
-int jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
-               jsmntok_t *tokens, const unsigned int num_tokens);
+int jsmn_parse(jsmn_parser *parser,
+               const char *js,
+               const size_t len,
+               jsmntok_t *tokens,
+               const unsigned int num_tokens);
 
 
 /*
@@ -81,7 +86,9 @@ int jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
  */
 void jsmn_init(jsmn_parser *parser);
 
-int jsoneq(const char *json, jsmntok_t *tok, const char *s);
+int jsoneq(const char *json,
+           jsmntok_t *tok,
+           const char *s);
 
 
 #endif

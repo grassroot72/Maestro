@@ -15,8 +15,9 @@
 #include "util.h"
 
 
-char *
-uitos(size_t value, char dst[I2S_SIZE], size_t *len)
+char *uitos(size_t value,
+            char dst[I2S_SIZE],
+            size_t *len)
 {
   /*
    * Based on routine by A. Alexandrescu, licensed under CC0
@@ -56,8 +57,9 @@ uitos(size_t value, char dst[I2S_SIZE], size_t *len)
   return dst + next - 1;
 }
 
-char *
-itos(ssize_t value, char dst[I2S_SIZE], size_t *len)
+char *itos(ssize_t value,
+           char dst[I2S_SIZE],
+           size_t *len)
 {
   char *p;
   if (value < 0) {
@@ -69,8 +71,8 @@ itos(ssize_t value, char dst[I2S_SIZE], size_t *len)
   return uitos((size_t)value, dst, len);
 }
 
-char *
-split_kv(char *kv, char delim)
+char *split_kv(char *kv,
+               char delim)
 {
   char *p = kv;
   do {
@@ -96,8 +98,8 @@ split_kv(char *kv, char delim)
   return p;  /* return the value */
 }
 
-void
-gmt_date(char *date_gmt, long *tmgmt)
+void gmt_date(char *date_gmt,
+              long *tmgmt)
 {
   struct tm tm_gmt;
   tm_gmt = *gmtime(tmgmt);
@@ -112,8 +114,8 @@ gmt_date(char *date_gmt, long *tmgmt)
   strftime(date_gmt, 30, "%a, %d %b %Y %H:%M:%S %Z", &tm_gmt);
 }
 
-long
-mk_etag(char *etag, char *file)
+long mk_etag(char *etag,
+             char *file)
 {
   struct stat sb;
   stat(file, &sb);
@@ -121,16 +123,14 @@ mk_etag(char *etag, char *file)
   return sb.st_mtime;
 }
 
-char *
-find_ext(char *file)
+char *find_ext(char *file)
 {
   char *dot = strrchr(file, '.');
   if(!dot || dot == file) return "";
   return dot + 1;
 }
 
-int
-msleep(long tms)
+int msleep(long tms)
 {
   struct timespec ts;
   int ret;
@@ -150,8 +150,7 @@ msleep(long tms)
   return ret;
 }
 
-int
-nsleep(long tms)
+int nsleep(long tms)
 {
   struct timespec ts;
   int ret;
@@ -171,8 +170,7 @@ nsleep(long tms)
   return ret;
 }
 
-long
-mstime()
+long mstime()
 {
   struct timeval tv;
   long msec;
@@ -188,8 +186,10 @@ mstime()
  * sign   -  signed or unsigned output
  * outbuf -  buffer to hold the output number
  */
-void
-itohex(unsigned long n, int base, char sign, unsigned char *outbuf)
+void itohex(unsigned long n,
+            int base,
+            char sign,
+            unsigned char *outbuf)
 {
   int i = 12;
   int j = 0;
