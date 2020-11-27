@@ -15,8 +15,9 @@
 #include "linkedlist.h"
 #include "jsmn.h"
 #include "http_msg.h"
-#include "http_svc.h"
 #include "dml_obj.h"
+#include "http_post.h"
+
 
 #define DEBUG
 #include "debug.h"
@@ -75,6 +76,9 @@ void http_post(int clifd,
   _process_json(req);
 
   rep = msg_new();
+  msg_add_header(rep, "Server", SVC_VERSION);
+  msg_add_header(rep, "Connection", "keep-alive");
+  msg_add_header(rep, "Accept-Ranges", "bytes");
   msg_set_rep_line(rep, 1, 1, 200, "OK");
   msg_add_header(rep, "Transfer-Encoding", "chunked");
 

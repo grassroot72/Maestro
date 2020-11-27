@@ -17,7 +17,7 @@
 #include "deflate.h"
 #include "http_msg.h"
 #include "http_cache.h"
-#include "http_svc.h"
+#include "http_get.h"
 
 //#define DEBUG
 #include "debug.h"
@@ -337,11 +337,11 @@ httpmsg_t *_get_rep_msg(list_t *cache,
   return rep;
 }
 
-void http_rep_static(int clifd,
-                     list_t *cache,
-                     char *path,
-                     httpmsg_t *req,
-                     int method)
+void http_get(int clifd,
+              list_t *cache,
+              char *path,
+              httpmsg_t *req,
+              int method)
 {
   httpmsg_t *rep;
   int len_msg;

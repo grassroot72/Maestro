@@ -8,6 +8,12 @@
 #define _HTTP_MSG_H_
 
 
+#define SVC_VERSION "Maestro/1.0"
+
+#define METHOD_GET 1
+#define METHOD_HEAD 0
+
+
 struct _httphdr {
   char *key;
   char *value;

@@ -15,19 +15,19 @@
 #include "linkedlist.h"
 #include "http_msg.h"
 #include "http_parser.h"
-#include "http_svc.h"
+#include "http_get.h"
+#include "http_post.h"
 #include "http_conn.h"
 
 //#define DEBUG
 #include "debug.h"
 
 
-httpconn_t *
-httpconn_new(int sockfd,
-             int epfd,
-             PGconn *pgconn,
-             list_t *cache,
-             list_t *timers)
+httpconn_t *httpconn_new(int sockfd,
+                         int epfd,
+                         PGconn *pgconn,
+                         list_t *cache,
+                         list_t *timers)
 {
   httpconn_t *conn = malloc(sizeof(struct _httpconn));
   conn->sockfd = sockfd;
@@ -39,8 +39,7 @@ httpconn_new(int sockfd,
   return conn;
 }
 
-void
-httpconn_task(void *arg)
+void httpconn_task(void *arg)
 {
   httpconn_t *conn = (struct _httpconn *)arg;
   long cur_time;
@@ -71,7 +70,7 @@ httpconn_task(void *arg)
 
     /* static GET */
     if (strcmp(req->method, "GET") == 0) {
-      http_rep_static(conn->sockfd, conn->cache, req->path, req, METHOD_GET);
+      http_get(conn->sockfd, conn->cache, req->path, req, METHOD_GET);
     }
 
     if (strcmp(req->method, "POST") == 0) {
@@ -84,7 +83,7 @@ httpconn_task(void *arg)
     */
 
     if (strcmp(req->method, "HEAD") == 0) {
-      http_rep_static(conn->sockfd, conn->cache, req->path, req, METHOD_HEAD);
+      http_get(conn->sockfd, conn->cache, req->path, req, METHOD_HEAD);
     }
 
     /* start timer recording */
