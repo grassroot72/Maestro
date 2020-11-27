@@ -12,6 +12,7 @@
 #include "base64.h"
 #include "deflate.h"
 #include "util.h"
+#include "linkedlist.h"
 #include "jsmn.h"
 #include "http_msg.h"
 #include "http_svc.h"

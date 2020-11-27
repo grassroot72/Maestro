@@ -22,6 +22,7 @@
 #include "linkedlist.h"
 #include "thpool.h"
 #include "http_cache.h"
+#include "http_msg.h"
 #include "http_svc.h"
 #include "http_conn.h"
 
