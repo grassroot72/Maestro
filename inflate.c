@@ -20,7 +20,7 @@ static const unsigned char inflate_mirror[256] = {
 };
 
 static int
-_get(const unsigned char* *src, const unsigned char* end, inflate_t* s, int n)
+_get(const unsigned char **src, const unsigned char *end, inflate_t *s, int n)
 {
   const unsigned char* in = *src;
   int v = s->bits & ((1 << n) - 1);
@@ -37,7 +37,7 @@ _get(const unsigned char* *src, const unsigned char* end, inflate_t* s, int n)
 }
 
 static int
-_build(unsigned* tree, unsigned char* lens, int symcnt)
+_build(unsigned *tree, unsigned char *lens, int symcnt)
 {
   int n, cnt[16] = {0}, first[16], codes[16];
   cnt[0] = first[0] = codes[0] = 0;
@@ -58,7 +58,11 @@ _build(unsigned* tree, unsigned char* lens, int symcnt)
 }
 
 static int
-_decode(const unsigned char* *in, const unsigned char* end, inflate_t* s, unsigned* tree, int max)
+_decode(const unsigned char **in,
+        const unsigned char *end,
+        inflate_t *s,
+        unsigned *tree,
+        int max)
 {
   /* bsearch next prefix code */
   #define _rev16(n) ((inflate_mirror[(n) & 0xff] << 8) | inflate_mirror[((n) >> 8) & 0xff])
@@ -76,7 +80,7 @@ _decode(const unsigned char* *in, const unsigned char* end, inflate_t* s, unsign
 }
 
 int
-inflate(unsigned char* out, const unsigned char* in, int size)
+inflate(unsigned char *out, const unsigned char *in, int size)
 {
   static const unsigned char order[] = {
     16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15

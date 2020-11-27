@@ -19,7 +19,7 @@ struct _inflate {
 };
 
 
-int inflate(unsigned char* out, const unsigned char* in, int size);
+int inflate(unsigned char *out, const unsigned char *in, int size);
 
 
 #endif
