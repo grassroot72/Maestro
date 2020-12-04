@@ -41,14 +41,12 @@
 static volatile int svc_running = 1;
 
 
-static void
-_svc_stopper(int dummy)
+static void _svc_stopper(int dummy)
 {
   svc_running = 0;
 }
 
-static void
-_set_nonblocking(int fd)
+static void _set_nonblocking(int fd)
 {
   int flags = fcntl(fd, F_GETFL, 0);
   if (flags == -1) {
@@ -59,9 +57,8 @@ _set_nonblocking(int fd)
     perror("fcntl()");
 }
 
-static void
-_expire_timers(list_t *timers,
-               long timeout)
+static void _expire_timers(list_t *timers,
+                           long timeout)
 {
   httpconn_t *conn;
   node_t *timer;
@@ -87,9 +84,8 @@ _expire_timers(list_t *timers,
   }
 }
 
-static void
-_expire_cache(list_t *cache,
-              long timeout)
+static void _expire_cache(list_t *cache,
+                          long timeout)
 {
   cache_data_t *data;
   node_t *node;
@@ -113,12 +109,11 @@ _expire_cache(list_t *cache,
   }
 }
 
-static void
-_receive_conn(int srvfd,
-              int epfd,
-              PGconn *pgconn,
-              list_t *cache,
-              list_t *timers)
+static void _receive_conn(int srvfd,
+                          int epfd,
+                          PGconn *pgconn,
+                          list_t *cache,
+                          list_t *timers)
 {
   int clifd;
   struct sockaddr cliaddr;
@@ -163,8 +158,7 @@ _receive_conn(int srvfd,
   } while (1);
 }
 
-static int
-_create_srv_socket()
+static int _create_srv_socket()
 {
   int srvfd;
   int opt = 1;
@@ -183,9 +177,8 @@ _create_srv_socket()
   return srvfd;
 }
 
-static int
-_bind(int srvfd,
-      uint16_t port)
+static int _bind(int srvfd,
+                 uint16_t port)
 {
   struct sockaddr_in srvaddr;
 
@@ -202,8 +195,7 @@ _bind(int srvfd,
   return 0;
 }
 
-static int
-_listen(int srvfd)
+static int _listen(int srvfd)
 {
   _set_nonblocking(srvfd);
   if (listen(srvfd, SOMAXCONN) < 0) {
@@ -214,11 +206,9 @@ _listen(int srvfd)
   return 0;
 }
 
-int
-main(int argc, char **argv)
+int main(int argc, char **argv)
 {
   PGconn *pgconn;
-  const char *pgconninfo;
 
   int srvfd;
   int i;
@@ -239,8 +229,7 @@ main(int argc, char **argv)
   long loop_time;
 
   /* create a postgresql db connection */
-  pgconninfo = "dbname = demo";
-  pgconn = pg_connect(pgconninfo);
+  pgconn = pg_connect("dbname = demo", "identity");
 
 
   /*

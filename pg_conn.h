@@ -8,7 +8,10 @@
 #define _PG_CONN_H_
 
 
-PGconn *pg_connect(const char *conninfo);
+void pg_exit_nicely(PGconn *conn);
+
+PGconn *pg_connect(const char *conninfo,
+                   const char *schema);
 
 
 #endif
