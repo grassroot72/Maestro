@@ -14,13 +14,13 @@
 #include "debug.h"
 
 
-dml_obj_t *
-dml_json_parse(char *body, size_t len)
+dml_obj_t *dml_json_parse(char *body,
+                          size_t len)
 {
   int i, j, n;
   int count;
 
-  jsmntok_t t[128];  /* We expect no more than 128 JSON tokens */
+  jsmntok_t t[MAX_JSMN_TOKENS];  /* MAX_JSMN_TOKENS = 128 */
   jsmntok_t *g;
   jsmn_parser p;
 
@@ -28,7 +28,7 @@ dml_json_parse(char *body, size_t len)
 
 
   jsmn_init(&p);
-  n = jsmn_parse(&p, body, len, t, 128);
+  n = jsmn_parse(&p, body, len, t, MAX_JSMN_TOKENS);
 
   dmlo = malloc(sizeof(struct _dml_obj));
   count = 0;
@@ -41,14 +41,19 @@ dml_json_parse(char *body, size_t len)
       strncpy(dmlo->table, body + t[i + 1].start, len);
       dmlo->table[len] = '\0';
       i++;
-      DEBSS("table", dmlo->table);
+      DEBSS("[DML] table", dmlo->table);
     }
     else if (jsoneq(body, &t[i], "cmd") == 0) {
       len =  t[i + 1].end - t[i + 1].start;
       strncpy(dmlo->cmd, body + t[i + 1].start, len);
       dmlo->cmd[len] = '\0';
       i++;
-      DEBSS("cmd", dmlo->cmd);
+      DEBSS("[DML] cmd", dmlo->cmd);
+    }
+    else if (jsoneq(body, &t[i], "prtcols") == 0) {
+      dmlo->prtcols = atoi(body + t[i + 1].start);
+      i++;
+      DEBSI("[DML] prtcols", dmlo->prtcols);
     }
 
     /* keys - json array */
@@ -63,7 +68,7 @@ dml_json_parse(char *body, size_t len)
         dmlo->keys[count] = malloc(len + 1);
         strncpy(dmlo->keys[count], body + g->start, len);
         dmlo->keys[count][len] = '\0';
-        DEBSS("key", dmlo->keys[count]);
+        DEBSS("[DML] key", dmlo->keys[count]);
         count++;
       }
       i += t[i + 1].size + 1;
@@ -81,7 +86,7 @@ dml_json_parse(char *body, size_t len)
         dmlo->values[count] = malloc(len + 1);
         strncpy(dmlo->values[count], body + g->start, len);
         dmlo->values[count][len] = '\0';
-        DEBSS("value", dmlo->values[count]);
+        DEBSS("[DML] value", dmlo->values[count]);
         count++;
       }
       i += t[i + 1].size + 1;
@@ -93,8 +98,7 @@ dml_json_parse(char *body, size_t len)
   return dmlo;
 }
 
-void
-dml_json_destroy(dml_obj_t *dmlo)
+void dml_json_destroy(dml_obj_t *dmlo)
 {
   int i;
   if (dmlo) {

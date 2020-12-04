@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html >
+<head>
+<meta charset="utf-8" />
+<title>Show Table Contents</title>
+<style>
+th {
+  padding: 5px;
+  text-align: center;
+  border-bottom: 1px dashed #cc0000;
+}
+.thead {
+  font-weight:bold;
+  color: #000fff;
+}
+td {
+  padding: 5px;
+  text-align: center;
+  border-bottom: 1px dashed #bbbbbb;
+}
+.tdata {
+  color: #ff00ff;
+}
+.idx {
+  color: #00ff00;
+}
+.idx:hover {
+  cursor: pointer;
+}
+.go_btn {
+  border-radius: 3px;
+  background-color: white;
+  border: 2px solid #4CAF50;
+  color: #4CAF50;
+  padding: 5px 10px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 14px;
+  margin: 6px 6px;
+  transition-duration: 0.4s;
+  cursor: pointer;
+}
+.go_btn:hover {
+  background-color: #4CAF50;
+  color: white;
+}
+</style>
+</head>
+<body>
+  <input type="hidden" id="cmd" value="SELECT">
+  <input class="input" type="text" id="tblname" placeholder="Table Name">
+  <input class="go_btn" type="button" onClick="showtable()" value="Go">
+
+  <table id="users">
+  <thead><tr></tr></thead>
+  <tbody><tr></tr></tbody>
+  </table>
+
+  <script src="script/showtable.js"></script>
+</body>
+</html>

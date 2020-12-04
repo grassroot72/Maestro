@@ -8,17 +8,22 @@
 #define _DML_OBJ_
 
 
+#define MAX_DML_KEYS 32
+
 typedef struct _dml_obj dml_obj_t;
 
 struct _dml_obj {
   char table[17];
   char cmd[7];
-  char *keys[3];
-  char *values[3];
+  int prtcols;
+  char *keys[MAX_DML_KEYS];
+  char *values[MAX_DML_KEYS];
   int nkeys;
 };
 
-dml_obj_t *dml_json_parse(char *body, size_t len);
+dml_obj_t *dml_json_parse(char *body,
+                          size_t len);
+
 void dml_json_destroy(dml_obj_t *dmlo);
 
 

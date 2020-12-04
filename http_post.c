@@ -8,14 +8,17 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <libpq-fe.h>
 #include "io.h"
 #include "base64.h"
 #include "deflate.h"
 #include "util.h"
 #include "linkedlist.h"
 #include "jsmn.h"
-#include "http_msg.h"
+#include "pg_conn.h"
 #include "dml_obj.h"
+#include "dml_ops.h"
+#include "http_msg.h"
 #include "http_post.h"
 
 
@@ -23,11 +26,12 @@
 #include "debug.h"
 
 
-static int _process_json(httpmsg_t *req)
+static int _process_json(int clifd,
+                         httpmsg_t *req,
+                         PGconn *pgconn)
 {
   char *body;
   dml_obj_t *dmlo;
-
 
   /* process the request message here */
   body = (char *)req->body;
@@ -35,45 +39,22 @@ static int _process_json(httpmsg_t *req)
 
   dmlo = dml_json_parse(body, req->len_body);
 
-
+  /* this is the microservice */
+  dml_select(clifd, pgconn, dmlo);
 
   dml_json_destroy(dmlo);
 
   return 0;
 }
 
-void _send_chunk(int clifd,
-                 char *data)
-{
-  char *chunk;
-  int len_chunk;
-  unsigned char hex_str[16];
-
-  chunk = strdup(data);
-  len_chunk = strlen(chunk);
-  itohex(len_chunk, 16, ' ', hex_str);
-  /* send chunked length */
-  DEBSI("[POST_REP] Sending chunked length...", clifd);
-  io_write_socket(clifd, hex_str, strlen((char *)hex_str));
-  io_write_socket(clifd, (unsigned char *)"\r\n", 2);
-  /* send chunked */
-  DEBSI("[POST_REP] Sending chunked...", clifd);
-  io_write_socket(clifd, (unsigned char *)chunk, len_chunk);
-  io_write_socket(clifd, (unsigned char *)"\r\n", 2);
-
-  free(chunk);
-}
-
 void http_post(int clifd,
+               PGconn *pgconn,
                char *path,
                httpmsg_t *req)
 {
   httpmsg_t *rep;
   int len_msg;
   unsigned char *bytes;
-
-  /* connect to database after receiving request */
-  _process_json(req);
 
   rep = msg_new();
   msg_add_header(rep, "Server", SVC_VERSION);
@@ -88,8 +69,8 @@ void http_post(int clifd,
   DEBSI("[POST_REP] Sending reply headers...", clifd);
   io_write_socket(clifd, bytes, len_msg);
 
-  _send_chunk(clifd, "<html><body>Data stored, ");
-  _send_chunk(clifd, "this is a chunked transfer</body></html> ");
+  /* connect to database after receiving request */
+  _process_json(clifd, req, pgconn);
 
   /* terminating the chuncked transfer */
   DEBSI("[POST_REP] Sending terminating chunk...", clifd);
