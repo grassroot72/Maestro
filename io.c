@@ -152,3 +152,25 @@ char *io_fgetc(FILE *f,
 
   return buf;
 }
+
+void io_send_chunk(int clifd,
+                   char *data)
+{
+  char *chunk;
+  int len_chunk;
+  unsigned char hex_str[16];
+
+  chunk = strdup(data);
+  len_chunk = strlen(chunk);
+  itohex(len_chunk, 16, ' ', hex_str);
+  /* chunked length in Hex */
+  DEBSI("[IO] Sending chunked length...", clifd);
+  io_write_socket(clifd, hex_str, strlen((char *)hex_str));
+  io_write_socket(clifd, (unsigned char *)"\r\n", 2);
+  /* chunk */
+  DEBSI("[IO] Sending chunked...", clifd);
+  io_write_socket(clifd, (unsigned char *)chunk, len_chunk);
+  io_write_socket(clifd, (unsigned char *)"\r\n", 2);
+
+  free(chunk);
+}

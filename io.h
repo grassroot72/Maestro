@@ -24,5 +24,8 @@ unsigned char *io_fread_pipe(FILE *f,
 char *io_fgetc(FILE *fpipe,
                int *len);
 
+void io_send_chunk(int clifd,
+                   char *data);
+
 
 #endif
