@@ -5,7 +5,7 @@
 CC = gcc
 #CFLAGS = -O0 -g -Wall -pedantic -Isvc -I.
 CFLAGS = -O2 -Wall -pedantic -Isvc -I.
-LDFLAGS = -lpthread
+LDFLAGS = -lpq -lpthread
 OBJS = base64.o \
        deflate.o \
        thpool.o \
@@ -19,8 +19,9 @@ OBJS = base64.o \
        http_get.o \
        http_post.o \
        http_conn.o \
+       pg_conn.o \
        svc/dml_obj.o \
-       svc/identity.o \
+       svc/dml_ops.o \
        maestro.o
 EXES = maestro
 
