@@ -94,9 +94,9 @@ void dml_select(int clifd,
   nRows = PQntuples(res);
   for (i = 0; i < nRows; i++) {
     if (i == 0)
-      sprintf(values, "\"d\":{\"r%d\":[", i);
+      sprintf(values, "\"d\":{\"r%03d\":[", i);
     else
-      sprintf(values, "\"r%d\":[", i);
+      sprintf(values, "\"r%03d\":[", i);
 
     for (j = 0; j < nFields; j++) {
       strcat(values, "\"");
