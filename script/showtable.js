@@ -1,4 +1,7 @@
 var prtcols;
+var pagesz = 5;
+var pgidx = 0;
+var dataobj;
 
 function showtable() {
   let result = document.querySelector('#result');
@@ -27,14 +30,16 @@ function showtable() {
   xhr.onreadystatechange = function () {
     if (xhr.readyState === 4 && xhr.status === 200) {
       // Print received data from server
-      let oData = JSON.parse(this.responseText);
-      let ohead = oData.h;
-      let odata = oData.d;
+      dataobj = JSON.parse(this.responseText);
+      let ohead = dataobj.h;
       if (prtcols == 1) {
         fillHead(ohead);
         prtcols = 0;
       }
-      fillRows(odata);
+      fillRows();
+      let loadbtn = document.querySelector('.load_btn');
+      loadbtn.disabled = true;
+      //loadbtn.style.visibility = "hidden";
     }
   };
 
@@ -56,23 +61,78 @@ function fillHead(oHead) {
   }
 }
 
-function fillRows(oData) {
+function padding(num, length) {
+  let len = (num + "").length;
+  let diff = length - len + 1; // pad number of length 0s
+  if (diff > 0) {
+    return Array(diff).join("0") + num;
+  }
+  return num;
+}
+
+function fillRows() {
   let oTable = document.querySelector('#users');
   let tBodies = oTable.tBodies;
   let tbody = tBodies[0];
-  let rowlen = tbody.rows.length-1;
+  let rowNum = 0;
+  let odata = dataobj.d;
+  let totalRows = Object.keys(odata).length;
 
-  for (row in oData) {
-    let tr = tbody.insertRow(rowlen);
+  do {
+    let pgRowNum = pagesz*pgidx + rowNum;
+    if (pgRowNum >= totalRows) return;
+    let row = "r" + padding(pgRowNum, 3);
+    let tr = tbody.insertRow(rowNum);
     let td0 = tr.insertCell(0);
-    td0.innerHTML = "<div class='idx'>" + rowlen + "</div>";
+    td0.innerHTML = "<div class='idx'>" + (pgRowNum+1) + "</div>";
     // i - col number
-    for (i = 0; i < oData[row].length; i++) {
+    for (i = 0; i < odata[row].length; i++) {
       let td = tr.insertCell(i+1);
-      td.innerHTML = "<div class='tdata' contenteditable='false'>" +
-                     oData[row][i] +
+      td.innerHTML = "<div class='tdata' contenteditable='true'>" +
+                     odata[row][i] +
                      "</div>";
     }
-    rowlen++;
+    rowNum++;
+  } while (rowNum < pagesz);
+}
+
+function delRows() {
+  let oTable = document.querySelector('#users');
+  let tBodies = oTable.tBodies;
+  let tbody = tBodies[0];
+
+  if (tbody !== "undefined") {
+    while (tbody.hasChildNodes()) {
+      tbody.removeChild(tbody.lastChild);
+    }
+  }
+}
+
+function nextpage() {
+  let odata = dataobj.d;
+  let totalRows = Object.keys(odata).length;
+  let totalpgs = totalRows/pagesz;
+  let total = Math.round(totalpgs);
+  if (total == totalpgs) {
+    total--;
+  }
+  else {
+    total = Math.round(totalpgs-0.5);
+  }
+  if (pgidx < total) {
+    delRows();
+    pgidx++;
+    fillRows();
+  }
+}
+
+function prevpage() {
+  let odata = dataobj.d;
+  let totalRows = Object.keys(odata).length;
+  let totalpgs = totalRows/pagesz;
+  if (pgidx > 0) {
+    delRows();
+    pgidx--;
+    fillRows();
   }
 }

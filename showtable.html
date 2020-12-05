@@ -5,24 +5,24 @@
 <title>Show Table Contents</title>
 <style>
 th {
-  padding: 5px;
+  padding: 10px;
   text-align: center;
-  border-bottom: 1px dashed #cc0000;
+  border-bottom: 1px dashed #CC0000;
 }
 .thead {
   font-weight:bold;
-  color: #000fff;
+  color: #00E0EE;
 }
 td {
-  padding: 5px;
+  padding: 10px;
   text-align: center;
-  border-bottom: 1px dashed #bbbbbb;
+  border-bottom: 1px dashed #CCCCCC;
 }
 .tdata {
-  color: #ff00ff;
+  color: #999999;
 }
 .idx {
-  color: #00ff00;
+  color: #00FF00;
 }
 .idx:hover {
   cursor: pointer;
@@ -37,25 +37,55 @@ td {
   text-decoration: none;
   display: inline-block;
   font-size: 14px;
-  margin: 6px 6px;
-  transition-duration: 0.4s;
+  margin: 3px 1px;
+  transition-duration: 0.3s;
   cursor: pointer;
 }
 .go_btn:hover {
   background-color: #4CAF50;
   color: white;
 }
+[contenteditable='true'] {
+  caret-color: red;
+}
+.load_btn {
+  border-radius: 3px;
+  background-color: white;
+  border: 2px solid #FC0000;
+  color: #FC0000;
+  padding: 5px 10px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 14px;
+  margin: 3px 1px;
+  transition-duration: 0.3s;
+  cursor: pointer;
+}
+.load_btn:hover {
+  background-color: #FC0000;
+  color: white;
+}
+.load_btn:disabled {
+  background-color: white;
+  border: 2px solid #EEEEEE;
+  color: #EEEEEE;
+}
 </style>
 </head>
 <body>
   <input type="hidden" id="cmd" value="SELECT">
   <input class="input" type="text" id="tblname" placeholder="Table Name">
-  <input class="go_btn" type="button" onClick="showtable()" value="Go">
+  <input class="load_btn" type="button" onClick="showtable()" value="Load">
 
   <table id="users">
-  <thead><tr></tr></thead>
-  <tbody><tr></tr></tbody>
+  <thead></thead>
+  <tbody></tbody>
   </table>
+
+  <input class="go_btn" type="button" onClick="prevpage()" value="<">
+  <input class="go_btn" type="button" onClick="nextpage()" value=">">
+  <input class="pgnum" type="text" onkeyup="numpage()" value=" ">
 
   <script src="script/showtable.js"></script>
 </body>
