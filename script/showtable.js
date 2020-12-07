@@ -1,5 +1,4 @@
 var prtcols;
-var pagesz = 5;
 var pgidx = 0;
 var dataobj;
 
@@ -8,6 +7,11 @@ function showtable() {
   let users = document.querySelector('#users');
   let table = document.querySelector('#tblname');
   let cmd = document.querySelector('#cmd');
+
+  if (table.value == "") {
+    alert("Please input table name!!!");
+    return;
+  }
 
   if (prtcols == undefined) {
     prtcols = 1;
@@ -77,6 +81,7 @@ function fillRows() {
   let rowNum = 0;
   let odata = dataobj.d;
   let totalRows = Object.keys(odata).length;
+  let pagesz = document.querySelector('#pagesz').value;
 
   do {
     let pgRowNum = pagesz*pgidx + rowNum;
@@ -109,6 +114,7 @@ function delRows() {
 }
 
 function nextpage() {
+  let pagesz = document.querySelector('#pagesz').value;
   let odata = dataobj.d;
   let totalRows = Object.keys(odata).length;
   let totalpgs = totalRows/pagesz;
@@ -127,12 +133,25 @@ function nextpage() {
 }
 
 function prevpage() {
+  let pagesz = document.querySelector('#pagesz').value;
   let odata = dataobj.d;
   let totalRows = Object.keys(odata).length;
   let totalpgs = totalRows/pagesz;
   if (pgidx > 0) {
     delRows();
     pgidx--;
+    fillRows();
+  }
+}
+
+function topage() {
+  let pagesz = document.querySelector('#pagesz').value;
+  let odata = dataobj.d;
+  let totalRows = Object.keys(odata).length;
+  let totalpgs = totalRows/pagesz;
+  if (pgidx >= 0) {
+    delRows();
+    pgidx = document.querySelector('#pgnum').value-1;
     fillRows();
   }
 }

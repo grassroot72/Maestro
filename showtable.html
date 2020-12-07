@@ -11,7 +11,7 @@ th {
 }
 .thead {
   font-weight:bold;
-  color: #00E0EE;
+  color: #C0C000;
 }
 td {
   padding: 10px;
@@ -22,7 +22,7 @@ td {
   color: #999999;
 }
 .idx {
-  color: #00FF00;
+  color: #EE0000;
 }
 .idx:hover {
   cursor: pointer;
@@ -51,8 +51,8 @@ td {
 .load_btn {
   border-radius: 3px;
   background-color: white;
-  border: 2px solid #FC0000;
-  color: #FC0000;
+  border: 2px solid #00CCCC;
+  color: #00CCCC;
   padding: 5px 10px;
   text-align: center;
   text-decoration: none;
@@ -63,7 +63,7 @@ td {
   cursor: pointer;
 }
 .load_btn:hover {
-  background-color: #FC0000;
+  background-color: #00CCCC;
   color: white;
 }
 .load_btn:disabled {
@@ -71,12 +71,51 @@ td {
   border: 2px solid #EEEEEE;
   color: #EEEEEE;
 }
+#tblname {
+  border-radius: 3px;
+  background-color: white;
+  border: 1px solid #4CAF50;
+  color: #111111;
+  padding: 5px 5px;
+  font-size: 16px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+}
+#pagesz {
+  border-radius: 3px;
+  background-color: white;
+  border: 1px solid #4CAF50;
+  color: #4CAF50;
+  padding: 5px 5px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  height:20px;
+  width:25px;
+}
+#pgnum {
+  border-radius: 3px;
+  background-color: white;
+  border: 1px solid #4CAF50;
+  color: #4CAF50;
+  padding: 5px 5px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  height:20px;
+  width:35px;
+}
+::-moz-placeholder { /* Mozilla Firefox 19+ */
+  color: #BBBBBB;
+}
 </style>
 </head>
 <body>
   <input type="hidden" id="cmd" value="SELECT">
   <input class="input" type="text" id="tblname" placeholder="Table Name">
   <input class="load_btn" type="button" onClick="showtable()" value="Load">
+  <input class="input" type="text" id="pagesz" value=5 placeholder="r/p">
 
   <table id="users">
   <thead></thead>
@@ -85,7 +124,8 @@ td {
 
   <input class="go_btn" type="button" onClick="prevpage()" value="<">
   <input class="go_btn" type="button" onClick="nextpage()" value=">">
-  <input class="pgnum" type="text" onkeyup="numpage()" value=" ">
+  <input class="input" type="text" id="pgnum">
+  <input class="load_btn" type="button" onClick="topage()" value="Go">
 
   <script src="script/showtable.js"></script>
 </body>
