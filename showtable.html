@@ -32,7 +32,7 @@ td {
   background-color: white;
   border: 2px solid #4CAF50;
   color: #4CAF50;
-  padding: 5px 10px;
+  padding: 6px 12px;
   text-align: center;
   text-decoration: none;
   display: inline-block;
@@ -53,7 +53,7 @@ td {
   background-color: white;
   border: 2px solid #00CCCC;
   color: #00CCCC;
-  padding: 5px 10px;
+  padding: 5px 11px;
   text-align: center;
   text-decoration: none;
   display: inline-block;
@@ -82,18 +82,6 @@ td {
   text-decoration: none;
   display: inline-block;
 }
-#pagesz {
-  border-radius: 3px;
-  background-color: white;
-  border: 1px solid #4CAF50;
-  color: #4CAF50;
-  padding: 5px 5px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  height:20px;
-  width:25px;
-}
 #pgnum {
   border-radius: 3px;
   background-color: white;
@@ -106,6 +94,18 @@ td {
   height:20px;
   width:35px;
 }
+#pagesz {
+  border-radius: 3px;
+  background-color: white;
+  border: 1px solid #4CAF50;
+  color: #4CAF50;
+  padding: 5px 5px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  height:20px;
+  width:25px;
+}
 ::-moz-placeholder { /* Mozilla Firefox 19+ */
   color: #BBBBBB;
 }
@@ -113,9 +113,21 @@ td {
 </head>
 <body>
   <input type="hidden" id="cmd" value="SELECT">
-  <input class="input" type="text" id="tblname" placeholder="Table Name">
+  <input id="tblname" list="tablename" placeholder="Table Name">
+  <datalist id="tablename">
+    <option value="users">
+    <option value="sales_orders">
+    <option value="purchase_orders">
+  </datalist>
+
   <input class="load_btn" type="button" onClick="showtable()" value="Load">
-  <input class="input" type="text" id="pagesz" value=5 placeholder="r/p">
+
+  <input id="pagesz" list="pagesize">
+  <datalist id="pagesize">
+    <option value=3>
+    <option value=5>
+    <option value=7>
+  </datalist>
 
   <table id="users">
   <thead></thead>
