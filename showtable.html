@@ -109,6 +109,9 @@ td {
 ::-moz-placeholder { /* Mozilla Firefox 19+ */
   color: #BBBBBB;
 }
+lable {
+  color: #C0C000;
+}
 </style>
 </head>
 <body>
@@ -121,23 +124,24 @@ td {
   </datalist>
 
   <input class="load_btn" type="button" onClick="showtable()" value="Load">
+  <input class="go_btn" type="button" onClick="prevpage()" value="<">
+  <input class="go_btn" type="button" onClick="nextpage()" value=">">
 
-  <input id="pagesz" list="pagesize">
+  <lable>Rows/Page:</lable>
+  <input id="pagesz" list="pagesize" value=5>
   <datalist id="pagesize">
     <option value=3>
     <option value=5>
     <option value=7>
   </datalist>
 
+  <lable>Jumpe to:</lable>
+  <input class="input" type="text" id="pgnum" onkeypress="topage()">
+
   <table id="users">
   <thead></thead>
   <tbody></tbody>
   </table>
-
-  <input class="go_btn" type="button" onClick="prevpage()" value="<">
-  <input class="go_btn" type="button" onClick="nextpage()" value=">">
-  <input class="input" type="text" id="pgnum">
-  <input class="load_btn" type="button" onClick="topage()" value="Go">
 
   <script src="script/showtable.js"></script>
 </body>

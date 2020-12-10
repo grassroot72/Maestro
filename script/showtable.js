@@ -145,13 +145,15 @@ function prevpage() {
 }
 
 function topage() {
-  let pagesz = document.querySelector('#pagesz').value;
-  let odata = dataobj.d;
-  let totalRows = Object.keys(odata).length;
-  let totalpgs = totalRows/pagesz;
-  if (pgidx >= 0) {
-    delRows();
-    pgidx = document.querySelector('#pgnum').value-1;
-    fillRows();
+  if (event.keyCode == 13) {
+    let pagesz = document.querySelector('#pagesz').value;
+    let odata = dataobj.d;
+    let totalRows = Object.keys(odata).length;
+    let totalpgs = totalRows/pagesz;
+    if (pgidx >= 0) {
+      delRows();
+      pgidx = document.querySelector('#pgnum').value-1;
+      fillRows();
+    }
   }
 }
