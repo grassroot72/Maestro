@@ -4,28 +4,30 @@
  * The code is licensed under the MIT license
  */
 
-#ifndef _DML_OBJ_
-#define _DML_OBJ_
+#ifndef _SQLOBJ_
+#define _SQLOBJ_
 
 
-#define MAX_DML_KEYS 32
+#define MAX_SQL_KEYS 32
 
-typedef struct _dml_obj dml_obj_t;
 
-struct _dml_obj {
+typedef struct _sqlobj sqlobj_t;
+
+struct _sqlobj {
   char table[17];
-  char cmd[7];
-  int prtcols;
-  char *keys[MAX_DML_KEYS];
-  char *values[MAX_DML_KEYS];
+  char cmd[7];  /* INSERT, UPDATE, DELETE */
+  char condition[128];  /* where clasue */
+  char *keys[MAX_SQL_KEYS];
+  char *values[MAX_SQL_KEYS];
   int nkeys;
+  int viscols;  /* field name visibility */
 };
 
-dml_obj_t *dml_json_parse(char *body,
-                          size_t len);
 
-void dml_json_destroy(dml_obj_t *dmlo);
+sqlobj_t *sql_json_parse(char *body,
+                         size_t len);
 
+void sql_json_destroy(sqlobj_t *sqlo);
 
 
 #endif

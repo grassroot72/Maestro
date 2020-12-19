@@ -8,14 +8,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include "jsmn.h"
-#include "dml_obj.h"
+#include "sqlobj.h"
 
 #define DEBUG
 #include "debug.h"
 
 
-dml_obj_t *dml_json_parse(char *body,
-                          size_t len)
+sqlobj_t *sql_json_parse(char *body,
+                         size_t len)
 {
   int i, j, n;
   int count;
@@ -24,36 +24,43 @@ dml_obj_t *dml_json_parse(char *body,
   jsmntok_t *g;
   jsmn_parser p;
 
-  dml_obj_t *dmlo;
+  sqlobj_t *sqlo;
 
 
   jsmn_init(&p);
   n = jsmn_parse(&p, body, len, t, MAX_JSMN_TOKENS);
 
-  dmlo = malloc(sizeof(struct _dml_obj));
+  sqlo = malloc(sizeof(struct _sqlobj));
   count = 0;
 
-  DEBSI("[DML] n_toks", n);
+  DEBSI("[SQL] n_toks", n);
   /* Loop over all keys */
   for (i = 1; i < n; i++) {
     if (jsoneq(body, &t[i], "table") == 0) {
       len =  t[i + 1].end - t[i + 1].start;
-      strncpy(dmlo->table, body + t[i + 1].start, len);
-      dmlo->table[len] = '\0';
+      strncpy(sqlo->table, body + t[i + 1].start, len);
+      sqlo->table[len] = '\0';
       i++;
-      DEBSS("[DML] table", dmlo->table);
+      DEBSS("[SQL] table", sqlo->table);
     }
     else if (jsoneq(body, &t[i], "cmd") == 0) {
       len =  t[i + 1].end - t[i + 1].start;
-      strncpy(dmlo->cmd, body + t[i + 1].start, len);
-      dmlo->cmd[len] = '\0';
+      strncpy(sqlo->cmd, body + t[i + 1].start, len);
+      sqlo->cmd[len] = '\0';
       i++;
-      DEBSS("[DML] cmd", dmlo->cmd);
+      DEBSS("[SQL] cmd", sqlo->cmd);
     }
-    else if (jsoneq(body, &t[i], "prtcols") == 0) {
-      dmlo->prtcols = atoi(body + t[i + 1].start);
+    else if (jsoneq(body, &t[i], "condition") == 0) {
+      len =  t[i + 1].end - t[i + 1].start;
+      strncpy(sqlo->condition, body + t[i + 1].start, len);
+      sqlo->condition[len] = '\0';
       i++;
-      DEBSI("[DML] prtcols", dmlo->prtcols);
+      DEBSS("[SQL] cmd", sqlo->condition);
+    }
+    else if (jsoneq(body, &t[i], "viscols") == 0) {
+      sqlo->viscols = atoi(body + t[i + 1].start);
+      i++;
+      DEBSI("[SQL] viscols", sqlo->viscols);
     }
 
     /* keys - json array */
@@ -65,10 +72,10 @@ dml_obj_t *dml_json_parse(char *body,
       for (j = 0; j < t[i + 1].size; j++) {
         g = &t[i + j + 2];
         len = g->end - g->start;
-        dmlo->keys[count] = malloc(len + 1);
-        strncpy(dmlo->keys[count], body + g->start, len);
-        dmlo->keys[count][len] = '\0';
-        DEBSS("[DML] key", dmlo->keys[count]);
+        sqlo->keys[count] = malloc(len + 1);
+        strncpy(sqlo->keys[count], body + g->start, len);
+        sqlo->keys[count][len] = '\0';
+        DEBSS("[SQL] key", sqlo->keys[count]);
         count++;
       }
       i += t[i + 1].size + 1;
@@ -83,28 +90,29 @@ dml_obj_t *dml_json_parse(char *body,
       for (j = 0; j < t[i + 1].size; j++) {
         g = &t[i + j + 2];
         len = g->end - g->start;
-        dmlo->values[count] = malloc(len + 1);
-        strncpy(dmlo->values[count], body + g->start, len);
-        dmlo->values[count][len] = '\0';
-        DEBSS("[DML] value", dmlo->values[count]);
+        sqlo->values[count] = malloc(len + 1);
+        strncpy(sqlo->values[count], body + g->start, len);
+        sqlo->values[count][len] = '\0';
+        DEBSS("[SQL] value", sqlo->values[count]);
         count++;
       }
       i += t[i + 1].size + 1;
-      dmlo->nkeys = count;
+      sqlo->nkeys = count;
     }
   }
-  DEBSI("[DML] nkeys", dmlo->nkeys);
+  DEBSI("[SQL] nkeys", sqlo->nkeys);
 
-  return dmlo;
+  return sqlo;
 }
 
-void dml_json_destroy(dml_obj_t *dmlo)
+void sql_json_destroy(sqlobj_t *sqlo)
 {
-  int i;
-  if (dmlo) {
-    for (i = 0; i < dmlo->nkeys; i++) {
-      if (dmlo->keys[i]) free(dmlo->keys[i]);
-      if (dmlo->values[i]) free(dmlo->values[i]);
-    }
+  int i = 0;
+  if (sqlo) {
+    do {
+      if (sqlo->keys[i]) free(sqlo->keys[i]);
+      if (sqlo->values[i]) free(sqlo->values[i]);
+      i++;
+    } while (i < sqlo->nkeys);
   }
 }

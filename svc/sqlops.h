@@ -4,13 +4,13 @@
  * The code is licensed under the MIT license
  */
 
-#ifndef _DML_OPS_
-#define _DML_OPS_
+#ifndef _SQLOPS_
+#define _SQLOPS_
 
 
-void dml_select(int clifd,
+void sql_select(int clifd,
                 PGconn *pgconn,
-                dml_obj_t *dmlo);
+                sqlobj_t *sqlo);
 
 
 #endif

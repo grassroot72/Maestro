@@ -10,16 +10,16 @@
 #include <libpq-fe.h>
 #include "io.h"
 #include "pg_conn.h"
-#include "dml_obj.h"
-#include "dml_ops.h"
+#include "sqlobj.h"
+#include "sqlops.h"
 
 #define DEBUG
 #include "debug.h"
 
 
-void dml_select(int clifd,
+void sql_select(int clifd,
                 PGconn *pgconn,
-                dml_obj_t *dmlo)
+                sqlobj_t *sqlo)
 {
   char sql[256];
 
@@ -31,9 +31,9 @@ void dml_select(int clifd,
   char values[512];
   int i, j;
 
-  if (strcmp(dmlo->cmd, "SELECT") == 0) {
+  if (strcmp(sqlo->cmd, "SELECT") == 0) {
     strcpy(sql, "SELECT * FROM ");
-    strcat(sql, dmlo->table);
+    strcat(sql, sqlo->table);
   }
 
   /* Start a transaction block */
@@ -77,7 +77,7 @@ void dml_select(int clifd,
 
   io_send_chunk(clifd, "{");
   /* attribute names */
-  if (dmlo->prtcols) {
+  if (sqlo->viscols) {
     strcpy(fnames, "\"h\":{\"hd\":[");
     for (i = 0; i < nFields; i++) {
       strcat(fnames, "\"");
