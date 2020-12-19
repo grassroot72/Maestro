@@ -89,7 +89,7 @@ void io_write_socket(int sockfd,
     if (n == -1) {
       /* perror("write()") */
       if (errno == EPIPE) return;
-      nsleep(100);
+      nsleep(10);
       continue;
     }
 
