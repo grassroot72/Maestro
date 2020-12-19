@@ -150,9 +150,11 @@ function topage() {
     let odata = dataobj.d;
     let totalRows = Object.keys(odata).length;
     let totalpgs = totalRows/pagesz;
+    let pgnum = document.querySelector('#pgnum').value;
+    if (pgnum > totalpgs) return;
     if (pgidx >= 0) {
       delRows();
-      pgidx = document.querySelector('#pgnum').value-1;
+      pgidx = pgnum-1;
       fillRows();
     }
   }
