@@ -1,4 +1,4 @@
-var prtcols;
+var viscols;
 var pgidx = 0;
 var dataobj;
 
@@ -13,13 +13,13 @@ function showtable() {
     return;
   }
 
-  if (prtcols == undefined) {
-    prtcols = 1;
+  if (viscols == undefined) {
+    viscols = 1;
   }
 
   let obj = {"table":table.value,
              "cmd":cmd.value,
-             "prtcols":prtcols};
+             "viscols":viscols};
 
   // Creating a XHR object
   let xhr = new XMLHttpRequest();
@@ -36,7 +36,7 @@ function showtable() {
       // Print received data from server
       dataobj = JSON.parse(this.responseText);
       let ohead = dataobj.h;
-      if (prtcols == 1) {
+      if (viscols == 1) {
         fillHead(ohead);
         prtcols = 0;
       }
