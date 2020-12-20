@@ -79,7 +79,6 @@ td {
   padding: 5px 5px;
   font-size: 16px;
   text-align: center;
-  text-decoration: none;
   display: inline-block;
 }
 #pgnum {
@@ -89,7 +88,6 @@ td {
   color: #4CAF50;
   padding: 5px 5px;
   text-align: center;
-  text-decoration: none;
   display: inline-block;
   height:20px;
   width:35px;
@@ -101,7 +99,6 @@ td {
   color: #4CAF50;
   padding: 5px 5px;
   text-align: center;
-  text-decoration: none;
   display: inline-block;
   height:20px;
   width:25px;
@@ -110,21 +107,21 @@ td {
   color: #BBBBBB;
 }
 lable {
-  font-size: 14px;
-  color: #C0C000;
-  padding: 5px 5px;
+  font-family:Arial, Helvetica, sans-serif;
+  font-weight: bold;
+  font-size: 15px;
+  color: #00C0C0;
+  padding: 3px 3px;
   margin: 3px 1px;
   text-align: center;
-  text-decoration: none;
   display: inline-block;
 }
 #tbltoggle {
-  color: #0000aa;
+  color: #0000bb;
   padding: 5px 5px;
   margin: 12px 1px;
   font-weight: bold;
-  font-size: 13px;
-  text-decoration: none;
+  font-size: 14px;
   cursor: pointer;
 }
 </style>
@@ -143,12 +140,7 @@ lable {
   <input class="go_btn" type="button" onClick="nextpage()" value=">">
 
   <lable>Rows/Page:</lable>
-  <input id="pagesz" list="pagesize" value=5>
-  <datalist id="pagesize">
-    <option value=3>
-    <option value=5>
-    <option value=7>
-  </datalist>
+  <input id="pagesz" value=5>
 
   <lable>To page:</lable>
   <input class="input" type="text" id="pgnum" onkeypress="topage()">
