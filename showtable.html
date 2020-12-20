@@ -110,7 +110,22 @@ td {
   color: #BBBBBB;
 }
 lable {
+  font-size: 14px;
   color: #C0C000;
+  padding: 5px 5px;
+  margin: 3px 1px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+}
+#tbltoggle {
+  color: #0000aa;
+  padding: 5px 5px;
+  margin: 12px 1px;
+  font-weight: bold;
+  font-size: 13px;
+  text-decoration: none;
+  cursor: pointer;
 }
 </style>
 </head>
@@ -135,13 +150,16 @@ lable {
     <option value=7>
   </datalist>
 
-  <lable>Jumpe to:</lable>
+  <lable>To page:</lable>
   <input class="input" type="text" id="pgnum" onkeypress="topage()">
 
+  <div id="tbltoggle" onClick="tbltoggle()"></div>
+  <div id="tblcontent">
   <table id="users">
   <thead></thead>
   <tbody></tbody>
   </table>
+  </div>
 
   <script src="script/showtable.js"></script>
 </body>

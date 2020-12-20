@@ -7,6 +7,7 @@ function showtable() {
   let users = document.querySelector('#users');
   let table = document.querySelector('#tblname');
   let cmd = document.querySelector('#cmd');
+  let tbltoggle = document.querySelector('#tbltoggle');
 
   if (table.value == "") {
     alert("Please input table name!!!");
@@ -37,6 +38,7 @@ function showtable() {
       dataobj = JSON.parse(this.responseText);
       let ohead = dataobj.h;
       if (viscols == 1) {
+        tbltoggle.innerHTML = "Table Content [ - ]";
         fillHead(ohead);
         prtcols = 0;
       }
@@ -157,5 +159,18 @@ function topage() {
       pgidx = pgnum-1;
       fillRows();
     }
+  }
+}
+
+function tbltoggle() {
+  let tblcontent = document.querySelector('#tblcontent');
+  let tbltoggle = document.querySelector('#tbltoggle');
+  if (tbltoggle.innerHTML == "Table Content [ - ]") {
+    tbltoggle.innerHTML = "Table Content [ + ]";
+    tblcontent.style.display = "none";
+  }
+  else {
+    tbltoggle.innerHTML = "Table Content [ - ]";
+    tblcontent.style.display = "block";
   }
 }
