@@ -31,9 +31,18 @@ void sql_select(int clifd,
   char values[512];
   int i, j;
 
-  if (strcmp(sqlo->cmd, "SELECT") == 0) {
+  if (sqlo->qfield[0]) {
+    strcpy(sql, "SELECT ");
+    strcat(sql, sqlo->qfield);
+    strcat(sql, " FROM");
+  }
+  else {
     strcpy(sql, "SELECT * FROM ");
     strcat(sql, sqlo->table);
+  }
+
+  if (sqlo->clause[0]) {
+    strcat(sql, sqlo->clause);
   }
 
   /* Start a transaction block */

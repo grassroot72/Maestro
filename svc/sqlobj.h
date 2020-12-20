@@ -15,8 +15,9 @@ typedef struct _sqlobj sqlobj_t;
 
 struct _sqlobj {
   char table[17];
-  char cmd[7];  /* INSERT, UPDATE, DELETE */
-  char condition[128];  /* where clasue */
+  char cmd[7];  /* SELECT, INSERT, UPDATE, DELETE */
+  char qfield[128];  /* query fields */
+  char clause[128];  /* where clasue */
   char *keys[MAX_SQL_KEYS];
   char *values[MAX_SQL_KEYS];
   int nkeys;

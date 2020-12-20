@@ -31,6 +31,10 @@ sqlobj_t *sql_json_parse(char *body,
   n = jsmn_parse(&p, body, len, t, MAX_JSMN_TOKENS);
 
   sqlo = malloc(sizeof(struct _sqlobj));
+  sqlo->table[0] = '\0';
+  sqlo->cmd[0] = '\0';
+  sqlo->qfield[0] = '\0';
+  sqlo->clause[0] = '\0';
   count = 0;
 
   DEBSI("[SQL] n_toks", n);
@@ -50,12 +54,12 @@ sqlobj_t *sql_json_parse(char *body,
       i++;
       DEBSS("[SQL] cmd", sqlo->cmd);
     }
-    else if (jsoneq(body, &t[i], "condition") == 0) {
+    else if (jsoneq(body, &t[i], "clause") == 0) {
       len =  t[i + 1].end - t[i + 1].start;
-      strncpy(sqlo->condition, body + t[i + 1].start, len);
-      sqlo->condition[len] = '\0';
+      strncpy(sqlo->clause, body + t[i + 1].start, len);
+      sqlo->clause[len] = '\0';
       i++;
-      DEBSS("[SQL] cmd", sqlo->condition);
+      DEBSS("[SQL] cmd", sqlo->clause);
     }
     else if (jsoneq(body, &t[i], "viscols") == 0) {
       sqlo->viscols = atoi(body + t[i + 1].start);
