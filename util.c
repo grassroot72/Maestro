@@ -15,60 +15,36 @@
 #include "util.h"
 
 
-char *uitos(size_t value,
-            char dst[I2S_SIZE],
-            size_t *len)
+/*
+ * n      -  number to be converted
+ * base   -  number base for conversion;  decimal=10,hex=16
+ * sign   -  signed or unsigned output
+ * outbuf -  buffer to hold the output number
+ */
+void itos(unsigned long n,
+          int base,
+          char sign,
+          unsigned char *outbuf)
 {
-  /*
-   * Based on routine by A. Alexandrescu, licensed under CC0
-   * https://creativecommons.org/publicdomain/zero/1.0/legalcode
-   */
-  static const size_t length = I2S_SIZE;
-  size_t next = length - 1;
+  int i = 12;
+  int j = 0;
 
-  static const char digits[201] =
-    "0001020304050607080910111213141516171819"
-    "2021222324252627282930313233343536373839"
-    "4041424344454647484950515253545556575859"
-    "6061626364656667686970717273747576777879"
-    "8081828384858687888990919293949596979899";
+  do {
+    outbuf[i] = "0123456789ABCDEF"[n % base];
+    i--;
+    n = n/base;
+  } while (n > 0);
 
-  dst[next--] = '\0';
-  while (value >= 100) {
-    const size_t i = (size_t)((value % 100) << 1);
-    value /= 100;
-    dst[next] = digits[i + 1];
-    dst[next - 1] = digits[i];
-    next -= 2;
+  if (sign != ' ') {
+    outbuf[0] = sign;
+    ++j;
   }
 
-  /* Handle last 1-2 digits */
-  if (value < 10) {
-    dst[next] = (char)('0' + (size_t)value);
-    *len = length - next - 1;
-    return dst + next;
+  while (++i < 13) {
+    outbuf[j++] = outbuf[i];
   }
 
-  size_t i = (size_t)(value << 1);
-  dst[next] = digits[i + 1];
-  dst[next - 1] = digits[i];
-  *len = length - next;
-
-  return dst + next - 1;
-}
-
-char *itos(ssize_t value,
-           char dst[I2S_SIZE],
-           size_t *len)
-{
-  char *p;
-  if (value < 0) {
-    p = uitos((size_t)-value, dst, len);
-    *--p = '-';
-    ++*len;
-    return p;
-  }
-  return uitos((size_t)value, dst, len);
+  outbuf[j] = '\0';
 }
 
 char *split_kv(char *kv,
@@ -178,36 +154,4 @@ long mstime()
   gettimeofday(&tv, 0);
   msec = tv.tv_sec * 1000 + tv.tv_usec / 1000;
   return msec;
-}
-
-/*
- * n      -  number to be printed
- * base   -  number base for conversion;  decimal=10,hex=16
- * sign   -  signed or unsigned output
- * outbuf -  buffer to hold the output number
- */
-void itohex(unsigned long n,
-            int base,
-            char sign,
-            unsigned char *outbuf)
-{
-  int i = 12;
-  int j = 0;
-
-  do {
-    outbuf[i] = "0123456789ABCDEF"[n % base];
-    i--;
-    n = n/base;
-  } while(n > 0);
-
-  if (sign != ' ') {
-    outbuf[0] = sign;
-    ++j;
-  }
-
-  while (++i < 13) {
-    outbuf[j++] = outbuf[i];
-  }
-
-  outbuf[j] = '\0';
 }

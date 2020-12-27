@@ -162,7 +162,7 @@ void io_send_chunk(int clifd,
 
   chunk = strdup(data);
   len_chunk = strlen(chunk);
-  itohex(len_chunk, 16, ' ', hex_str);
+  itos(len_chunk, 16, ' ', hex_str);
   /* chunked length in Hex */
   DEBSI("[IO] Sending chunked length...", clifd);
   io_write_socket(clifd, hex_str, strlen((char *)hex_str));

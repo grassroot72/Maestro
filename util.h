@@ -8,16 +8,10 @@
 #define _UTIL_H_
 
 
-#define I2S_SIZE 64
-
-
-char *uitos(size_t value,
-            char dst[I2S_SIZE],
-            size_t *len);
-
-char *itos(ssize_t value,
-           char dst[I2S_SIZE],
-           size_t *len);
+void itos(unsigned long n,
+          int base,
+          char sign,
+          unsigned char *outbuf);
 
 char *split_kv(char *kv,
                char delim);

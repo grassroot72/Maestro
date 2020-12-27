@@ -151,8 +151,7 @@ static httpmsg_t *_get_rep(char *ctype,
   time_t rep_time;
   char rep_date[30];
 
-  size_t len;
-  char len_str[I2S_SIZE];
+  char len_str[16];
 
   char *zip_encoding;
 
@@ -172,15 +171,15 @@ static httpmsg_t *_get_rep(char *ctype,
       msg_add_header(rep, "Content-Encoding", "deflate");
       msg_add_zipped_body(rep, cdata->body_zipped, cdata->len_zipped);
       msg_set_body_start(rep, cdata->body_zipped);
-      msg_add_header(rep, "Content-Length",
-                     uitos(cdata->len_zipped, len_str, &len));
+      itos(cdata->len_zipped, 10, ' ', (unsigned char *)len_str);
+      msg_add_header(rep, "Content-Length", len_str);
     }
     /* uncompressed */
     else {
       msg_add_body(rep, cdata->body, cdata->len_body);
       msg_set_body_start(rep, cdata->body);
-      msg_add_header(rep, "Content-Length",
-                     uitos(cdata->len_body, len_str, &len));
+      itos(cdata->len_body, 10, ' ', (unsigned char *)len_str);
+      msg_add_header(rep, "Content-Length", len_str);
     }
   }
   else {
@@ -211,8 +210,8 @@ static httpmsg_t *_get_rep(char *ctype,
       if (!range_str) {
         msg_set_rep_line(rep, 1, 1, 200, "OK");
         msg_set_body_start(rep, cdata->body_zipped);
-        msg_add_header(rep, "Content-Length",
-                       uitos(cdata->len_zipped, len_str, &len));
+        itos(cdata->len_zipped, 10, ' ', (unsigned char *)len_str);
+        msg_add_header(rep, "Content-Length", len_str);
       }
       else {
         msg_set_rep_line(rep, 1, 1, 206, "Partial Content");
@@ -220,7 +219,8 @@ static httpmsg_t *_get_rep(char *ctype,
         DEBSL("[GET_REP] range start", range_s);
         DEBSL("[GET_REP] range length", len_range);
         msg_set_body_start(rep, cdata->body_zipped + range_s);
-        msg_add_header(rep, "Content-Length", uitos(len_range, len_str, &len));
+        itos(len_range, 10, ' ', (unsigned char *)len_str);
+        msg_add_header(rep, "Content-Length", len_str);
       }
     }
     /* uncompressed */
@@ -230,7 +230,8 @@ static httpmsg_t *_get_rep(char *ctype,
       if (!range_str) {
         msg_set_rep_line(rep, 1, 1, 200, "OK");
         msg_set_body_start(rep, cdata->body);
-        msg_add_header(rep, "Content-Length", uitos(cdata->len_body, len_str, &len));
+        itos(cdata->len_body, 10, ' ', (unsigned char *)len_str);
+        msg_add_header(rep, "Content-Length", len_str);
       }
       else {
         msg_set_rep_line(rep, 1, 1, 206, "Partial Content");
@@ -238,7 +239,8 @@ static httpmsg_t *_get_rep(char *ctype,
         DEBSL("[GET_REP] range start", range_s);
         DEBSL("[GET_REP] range length", len_range);
         msg_set_body_start(rep, cdata->body + range_s);
-        msg_add_header(rep, "Content-Length", uitos(len_range, len_str, &len));
+        itos(len_range, 10, ' ', (unsigned char *)len_str);
+        msg_add_header(rep, "Content-Length", len_str);
       }
     }
   }
