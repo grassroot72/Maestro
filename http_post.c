@@ -32,6 +32,7 @@ static int _process_json(int clifd,
 {
   char *body;
   sqlobj_t *sqlo;
+  char sqlres[2048];
 
   /* process the request message here */
   body = (char *)req->body;
@@ -41,7 +42,8 @@ static int _process_json(int clifd,
 
   /* this is the microservice */
   if (strcmp(sqlo->cmd, "SELECT") == 0) {
-    sql_select(clifd, pgconn, sqlo);
+    sql_select(sqlres, pgconn, sqlo);
+    io_send_chunk(clifd, sqlres);
   }
 
   sql_json_destroy(sqlo);

@@ -8,7 +8,7 @@
 #define _SQLOPS_
 
 
-void sql_select(int clifd,
+void sql_select(char *res,
                 PGconn *pgconn,
                 sqlobj_t *sqlo);
 

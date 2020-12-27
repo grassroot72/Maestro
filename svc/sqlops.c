@@ -35,116 +35,116 @@ void _prep_select(char *sql,
   }
 }
 
-void _parse_result(int clifd,
-                   PGresult *res,
+void _parse_result(char *res,
+                   PGresult *pgres,
                    int viscols)
 {
   int nFields;
-  char fnames[256];
   int nRows;
-  char values[512];
   int i, j;
+  char tmp[64];
 
-  nFields = PQnfields(res);
+  nFields = PQnfields(pgres);
 
-  io_send_chunk(clifd, "{");
-  /* to show attribute names? */
+  strcpy(res, "{");
+  /* show attribute names? */
   if (viscols) {
-    strcpy(fnames, "\"h\":{\"hd\":[");
+    strcat(res, "\"h\":{\"hd\":[");
     for (i = 0; i < nFields; i++) {
-      strcat(fnames, "\"");
-      strcat(fnames, PQfname(res, i));
+      strcat(res, "\"");
+      strcat(res, PQfname(pgres, i));
       if (i != nFields - 1)
-        strcat(fnames, "\",");
+        strcat(res, "\",");
       else
-        strcat(fnames, "\"]},");
+        strcat(res, "\"]},");
     }
-    io_send_chunk(clifd, fnames);
   }
 
-  /* next, print out the rows */
-  nRows = PQntuples(res);
+  /* next, show the row values */
+  nRows = PQntuples(pgres);
   for (i = 0; i < nRows; i++) {
     if (i == 0)
-      sprintf(values, "\"d\":{\"r%03d\":[", i);
+      sprintf(tmp, "\"d\":{\"r%03d\":[", i);
     else
-      sprintf(values, "\"r%03d\":[", i);
+      sprintf(tmp, "\"r%03d\":[", i);
+
+    strcat(res, tmp);
 
     for (j = 0; j < nFields; j++) {
-      strcat(values, "\"");
-      strcat(values, PQgetvalue(res, i, j));
+      strcat(res, "\"");
+      strcat(res, PQgetvalue(pgres, i, j));
       if (j != nFields - 1)
-        strcat(values, "\",");
+        strcat(res, "\",");
       else {
         if (i != nRows - 1)
-          strcat(values, "\"],");
+          strcat(res, "\"],");
         else
-          strcat(values, "\"]}");
+          strcat(res, "\"]}");
       }
     }
-    io_send_chunk(clifd, values);
   }
-  io_send_chunk(clifd, "}");
-  PQclear(res);
+  strcat(res, "}");
+  PQclear(pgres);
 }
 
-void sql_select(int clifd,
+void sql_select(char *res,
                 PGconn *pgconn,
                 sqlobj_t *sqlo)
 {
   char sql[256];
 
-  PGresult *res;
+  PGresult *pgres;
   const char *stmt;
 
 
   _prep_select(sql, sqlo);
 
   /* Start a transaction block */
-  res = PQexec(pgconn, "BEGIN");
-  if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+  pgres = PQexec(pgconn, "BEGIN");
+  if (PQresultStatus(pgres) != PGRES_COMMAND_OK) {
     fprintf(stderr, "BEGIN command failed: %s", PQerrorMessage(pgconn));
-    PQclear(res);
+    PQclear(pgres);
     pg_exit_nicely(pgconn);
   }
-  PQclear(res);
+  PQclear(pgres);
 
   /* prepare statement name */
   stmt = "prep_select";
-  res = PQprepare(pgconn,
-                  stmt,
-                  sql,
-                  0,
-                  NULL);
-  if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+  pgres = PQprepare(pgconn,
+                    stmt,
+                    sql,
+                    0,
+                    NULL);
+  if (PQresultStatus(pgres) != PGRES_COMMAND_OK) {
     fprintf(stderr, "PREPARE failed: %s", PQerrorMessage(pgconn));
-    PQclear(res);
+    PQclear(pgres);
     pg_exit_nicely(pgconn);
   }
-  PQclear(res);
+  PQclear(pgres);
 
   /* execute the prepared statement */
-  res = PQexecPrepared(pgconn,
-                       stmt,
-                       0,
-                       NULL,
-                       NULL,
-                       NULL,
-                       0);  /* text result */
-  if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+  pgres = PQexecPrepared(pgconn,
+                         stmt,
+                         0,
+                         NULL,
+                         NULL,
+                         NULL,
+                         0);  /* text result */
+  if (PQresultStatus(pgres) != PGRES_TUPLES_OK) {
     fprintf(stderr, "SELECT failed: %s", PQerrorMessage(pgconn));
-    PQclear(res);
+    PQclear(pgres);
     pg_exit_nicely(pgconn);
   }
 
   /* parse the result set */
-  _parse_result(clifd, res, sqlo->viscols);
+  _parse_result(res, pgres, sqlo->viscols);
+  DEBSS("[SQL] pg result", res);
 
   /* Deallocate all prepared statements */
-  res = PQexec(pgconn, "DEALLOCATE ALL");
-  PQclear(res);
+  pgres = PQexec(pgconn, "DEALLOCATE ALL");
+  PQclear(pgres);
 
   /* end the transaction */
-  res = PQexec(pgconn, "END");
-  PQclear(res);
+  pgres = PQexec(pgconn, "END");
+  PQclear(pgres);
 }
