@@ -17,6 +17,77 @@
 #include "debug.h"
 
 
+void _prep_select(char *sql,
+                  sqlobj_t *sqlo)
+{
+  if (sqlo->qfield[0]) {
+    strcpy(sql, "SELECT ");
+    strcat(sql, sqlo->qfield);
+    strcat(sql, " FROM ");
+  }
+  else
+    strcpy(sql, "SELECT * FROM ");
+
+  strcat(sql, sqlo->table);
+
+  if (sqlo->clause[0]) {
+    strcat(sql, sqlo->clause);
+  }
+}
+
+void _parse_result(int clifd,
+                   PGresult *res,
+                   int viscols)
+{
+  int nFields;
+  char fnames[256];
+  int nRows;
+  char values[512];
+  int i, j;
+
+  nFields = PQnfields(res);
+
+  io_send_chunk(clifd, "{");
+  /* to show attribute names? */
+  if (viscols) {
+    strcpy(fnames, "\"h\":{\"hd\":[");
+    for (i = 0; i < nFields; i++) {
+      strcat(fnames, "\"");
+      strcat(fnames, PQfname(res, i));
+      if (i != nFields - 1)
+        strcat(fnames, "\",");
+      else
+        strcat(fnames, "\"]},");
+    }
+    io_send_chunk(clifd, fnames);
+  }
+
+  /* next, print out the rows */
+  nRows = PQntuples(res);
+  for (i = 0; i < nRows; i++) {
+    if (i == 0)
+      sprintf(values, "\"d\":{\"r%03d\":[", i);
+    else
+      sprintf(values, "\"r%03d\":[", i);
+
+    for (j = 0; j < nFields; j++) {
+      strcat(values, "\"");
+      strcat(values, PQgetvalue(res, i, j));
+      if (j != nFields - 1)
+        strcat(values, "\",");
+      else {
+        if (i != nRows - 1)
+          strcat(values, "\"],");
+        else
+          strcat(values, "\"]}");
+      }
+    }
+    io_send_chunk(clifd, values);
+  }
+  io_send_chunk(clifd, "}");
+  PQclear(res);
+}
+
 void sql_select(int clifd,
                 PGconn *pgconn,
                 sqlobj_t *sqlo)
@@ -25,25 +96,9 @@ void sql_select(int clifd,
 
   PGresult *res;
   const char *stmt;
-  int nFields;
-  char fnames[256];
-  int nRows;
-  char values[512];
-  int i, j;
 
-  if (sqlo->qfield[0]) {
-    strcpy(sql, "SELECT ");
-    strcat(sql, sqlo->qfield);
-    strcat(sql, " FROM");
-  }
-  else {
-    strcpy(sql, "SELECT * FROM ");
-    strcat(sql, sqlo->table);
-  }
 
-  if (sqlo->clause[0]) {
-    strcat(sql, sqlo->clause);
-  }
+  _prep_select(sql, sqlo);
 
   /* Start a transaction block */
   res = PQexec(pgconn, "BEGIN");
@@ -82,47 +137,8 @@ void sql_select(int clifd,
     pg_exit_nicely(pgconn);
   }
 
-  nFields = PQnfields(res);
-
-  io_send_chunk(clifd, "{");
-  /* attribute names */
-  if (sqlo->viscols) {
-    strcpy(fnames, "\"h\":{\"hd\":[");
-    for (i = 0; i < nFields; i++) {
-      strcat(fnames, "\"");
-      strcat(fnames, PQfname(res, i));
-      if (i != nFields - 1)
-        strcat(fnames, "\",");
-      else
-        strcat(fnames, "\"]},");
-    }
-    io_send_chunk(clifd, fnames);
-  }
-
-  /* next, print out the rows */
-  nRows = PQntuples(res);
-  for (i = 0; i < nRows; i++) {
-    if (i == 0)
-      sprintf(values, "\"d\":{\"r%03d\":[", i);
-    else
-      sprintf(values, "\"r%03d\":[", i);
-
-    for (j = 0; j < nFields; j++) {
-      strcat(values, "\"");
-      strcat(values, PQgetvalue(res, i, j));
-      if (j != nFields - 1)
-        strcat(values, "\",");
-      else {
-        if (i != nRows - 1)
-          strcat(values, "\"],");
-        else
-          strcat(values, "\"]}");
-      }
-    }
-    io_send_chunk(clifd, values);
-  }
-  io_send_chunk(clifd, "}");
-  PQclear(res);
+  /* parse the result set */
+  _parse_result(clifd, res, sqlo->viscols);
 
   /* Deallocate all prepared statements */
   res = PQexec(pgconn, "DEALLOCATE ALL");
