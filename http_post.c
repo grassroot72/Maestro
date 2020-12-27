@@ -16,8 +16,8 @@
 #include "linkedlist.h"
 #include "jsmn.h"
 #include "pg_conn.h"
-#include "dml_obj.h"
-#include "dml_ops.h"
+#include "sqlobj.h"
+#include "sqlops.h"
 #include "http_msg.h"
 #include "http_post.h"
 
@@ -31,18 +31,20 @@ static int _process_json(int clifd,
                          PGconn *pgconn)
 {
   char *body;
-  dml_obj_t *dmlo;
+  sqlobj_t *sqlo;
 
   /* process the request message here */
   body = (char *)req->body;
   DEBSS("[REQ] json string", body);
 
-  dmlo = dml_json_parse(body, req->len_body);
+  sqlo = sql_json_parse(body, req->len_body);
 
   /* this is the microservice */
-  dml_select(clifd, pgconn, dmlo);
+  if (strcmp(sqlo->cmd, "SELECT") == 0) {
+    sql_select(clifd, pgconn, sqlo);
+  }
 
-  dml_json_destroy(dmlo);
+  sql_json_destroy(sqlo);
 
   return 0;
 }
