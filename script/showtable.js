@@ -153,7 +153,7 @@ function topage() {
     let totalRows = Object.keys(odata).length;
     let totalpgs = totalRows/pagesz;
     let pgnum = document.querySelector('#pgnum').value;
-    if (pgnum > totalpgs) return;
+    if (pgnum == "" || pgnum > totalpgs) return;
     if (pgidx >= 0) {
       delRows();
       pgidx = pgnum-1;
