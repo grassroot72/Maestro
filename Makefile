@@ -20,8 +20,8 @@ OBJS = base64.o \
        http_post.o \
        http_conn.o \
        pg_conn.o \
-       svc/dml_obj.o \
-       svc/dml_ops.o \
+       svc/sqlobj.o \
+       svc/sqlops.o \
        maestro.o
 EXES = maestro
 
