@@ -5,9 +5,9 @@
  * I reformatted the code according to my coding style and made some tweeks.
  * pminkov's code was not licensed, but should be acknowledged.
  *
- * Copyright (C) 2020  Edward LEI <edward_lei72@hotmail.com>
+ * Copyright (C) 2021  Edward LEI <edward_lei72@hotmail.com>
  *
- * The code is licensed under the MIT license
+ * license: MIT license
  */
 
 #include <stdio.h>

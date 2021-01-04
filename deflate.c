@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2020 Micha Mettke
+ * Copyright (c) 2021 Micha Mettke
  * https://github.com/vurtun/lib
  *
  * I have reformatted the code according to my coding style
  *
- * Copyright (C) 2020  Edward LEI <edward_lei72@hotmail.com>
+ * Copyright (C) 2021  Edward LEI <edward_lei72@hotmail.com>
  *
- * The code is licensed under the MIT license
+ * license: MIT license
  */
 
 #include <stdio.h>
@@ -453,11 +453,11 @@ static void _fnd(struct sdefl_match *m,
   }
 }
 
-static int _compr(struct sdefl *s,
-                  unsigned char *out,
-                  const unsigned char *in,
-                  const int in_len,
-                  const int lvl)
+static int _compress(struct sdefl *s,
+                     unsigned char *out,
+                     const unsigned char *in,
+                     const int in_len,
+                     const int lvl)
 {
   unsigned char *q = out;
   static const unsigned char pref[] = {8,10,14,24,30,48,65,96,130};
@@ -526,7 +526,7 @@ int deflate(struct sdefl *s,
             const int lvl)
 {
   s->bits = s->bitcnt = 0;
-  return _compr(s, (unsigned char*)out, (const unsigned char*)in, n, lvl);
+  return _compress(s, (unsigned char*)out, (const unsigned char*)in, n, lvl);
 }
 
 static unsigned _adler32(unsigned adler32,
@@ -576,7 +576,7 @@ int zdeflate(struct sdefl *s,
   s->bits = s->bitcnt = 0;
   _put(&q, s, 0x78, 8); /* deflate, 32k window */
   _put(&q, s, 0x01, 8); /* fast compression */
-  q += _compr(s, q, (const unsigned char*)in, n, lvl);
+  q += _compress(s, q, (const unsigned char*)in, n, lvl);
 
   /* append adler checksum */
   a = _adler32(SDEFL_ADLER_INIT, (const unsigned char*)in, n);

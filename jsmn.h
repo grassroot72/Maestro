@@ -3,9 +3,9 @@
  *
  * I reformatted the code according to my coding style and made some tweeks.
  *
- * Copyright (C) 2020  Edward LEI <edward_lei72@hotmail.com>
+ * Copyright (C) 2021  Edward LEI <edward_lei72@hotmail.com>
  *
- * The code is licensed under the MIT license
+ * license: MIT license
  */
 
 #ifndef _JSMN_H_

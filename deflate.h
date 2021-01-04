@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2020 Micha Mettke
+ * Copyright (c) 2021 Micha Mettke
  * https://github.com/vurtun/lib
  *
  * I have reformatted the code according to my coding style
  *
- * Copyright (C) 2020  Edward LEI <edward_lei72@hotmail.com>
+ * Copyright (C) 2021  Edward LEI <edward_lei72@hotmail.com>
  *
- * The code is licensed under the MIT license
+ * license: MIT license
  */
 
 #ifndef _DEFLATE_H_

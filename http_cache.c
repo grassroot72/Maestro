@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2020  Edward LEI <edward_lei72@hotmail.com>
+ * Copyright (C) 2021  Edward LEI <edward_lei72@hotmail.com>
  *
- * The code is licensed under the MIT license
+ * license: MIT license
  */
 
 #include <stdlib.h>
