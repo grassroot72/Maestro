@@ -10,7 +10,11 @@
 
 void sql_select(char *res,
                 PGconn *pgconn,
-                sqlobj_t *sqlo);
+                const sqlobj_t *sqlo);
+
+void sql_fetch(char *res,
+               PGconn *pgconn,
+               const sqlobj_t *sqlo);
 
 
 #endif

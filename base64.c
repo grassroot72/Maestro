@@ -24,8 +24,7 @@ static char *decoding_table = NULL;
 static unsigned int mod_table[] = {0, 2, 1};
 
 
-static void
-_build_decoding_table()
+static void _build_decoding_table()
 {
   int i = 0;
   decoding_table = malloc(256);
@@ -35,16 +34,14 @@ _build_decoding_table()
   } while (i < 64);
 }
 
-void
-b64_cleanup()
+void b64_cleanup()
 {
   free(decoding_table);
 }
 
-char *
-b64_encode(const unsigned char *data,
-           size_t len_in,
-           size_t *len_out)
+char *b64_encode(size_t *len_out,
+                 const size_t len_in,
+                 const unsigned char *data)
 {
   unsigned int i, j;
   uint32_t octet_a;
@@ -77,10 +74,9 @@ b64_encode(const unsigned char *data,
   return encoded_data;
 }
 
-unsigned char *
-b64_decode(const char *data,
-           size_t len_in,
-           size_t *len_out)
+unsigned char *b64_decode(size_t *len_out,
+                          const size_t len_in,
+                          const char *data)
 {
   unsigned int i, j;
   uint32_t sextet_a;

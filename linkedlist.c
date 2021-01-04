@@ -19,7 +19,7 @@
 
 
 static node_t *_node_new(void *data,
-                         long stamp)
+                         const long stamp)
 {
   node_t *n = malloc(sizeof(struct _node));
   if (!n) return NULL;
@@ -42,7 +42,7 @@ list_t *list_new()
 
 static void _add(list_t *list,
                  void *data,
-                 long stamp)
+                 const long stamp)
 {
   node_t *current = NULL;
   if (list->head == NULL) {
@@ -59,7 +59,7 @@ static void _add(list_t *list,
 
 void list_update(list_t *list,
                  void *data,
-                 long stamp)
+                 const long stamp)
 {
   node_t *current = list->head;
   while (current != NULL){
@@ -76,7 +76,7 @@ void list_update(list_t *list,
 }
 
 void list_del(list_t *list,
-              long stamp)
+              const long stamp)
 {
   node_t *current = list->head;
   node_t *previous = current;
@@ -120,7 +120,7 @@ static void _swap(node_t *p1,
 }
 
 void list_sort(list_t *list,
-               int asc)
+               const int asc)
 {
   node_t *start = list->head;
   node_t *traverse;

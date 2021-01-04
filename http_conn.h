@@ -13,15 +13,14 @@ typedef struct _httpconn httpconn_t;
 struct _httpconn {
   int sockfd;
   int epfd;
-
   PGconn *pgconn;
   list_t *cache;
   list_t *timers;
 };
 
 
-httpconn_t *httpconn_new(int sockfd,
-                         int epfd,
+httpconn_t *httpconn_new(const int sockfd,
+                         const int epfd,
                          PGconn *pgconn,
                          list_t *cache,
                          list_t *timers);

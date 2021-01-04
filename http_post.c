@@ -26,13 +26,13 @@
 #include "debug.h"
 
 
-static int _process_json(int clifd,
-                         httpmsg_t *req,
-                         PGconn *pgconn)
+static int _process_json(const int clifd,
+                         PGconn *pgconn,
+                         const httpmsg_t *req)
 {
   char *body;
   sqlobj_t *sqlo;
-  char sqlres[2048];
+  char sqlres[2048] = "";
 
   /* process the request message here */
   body = (char *)req->body;
@@ -42,7 +42,7 @@ static int _process_json(int clifd,
 
   /* this is the microservice */
   if (strcmp(sqlo->cmd, "SELECT") == 0) {
-    sql_select(sqlres, pgconn, sqlo);
+    sql_fetch(sqlres, pgconn, sqlo);
     io_send_chunk(clifd, sqlres);
   }
 
@@ -51,10 +51,10 @@ static int _process_json(int clifd,
   return 0;
 }
 
-void http_post(int clifd,
+void http_post(const int clifd,
                PGconn *pgconn,
-               char *path,
-               httpmsg_t *req)
+               const char *path,
+               const httpmsg_t *req)
 {
   httpmsg_t *rep;
   int len_msg;
@@ -74,7 +74,7 @@ void http_post(int clifd,
   io_write_socket(clifd, bytes, len_msg);
 
   /* connect to database after receiving request */
-  _process_json(clifd, req, pgconn);
+  _process_json(clifd, pgconn, req);
 
   /* terminating the chuncked transfer */
   DEBSI("[POST_REP] Sending terminating chunk...", clifd);

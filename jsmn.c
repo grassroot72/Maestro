@@ -18,7 +18,7 @@
 /*
  * Allocates a fresh unused token from the token pool.
  */
-static jsmntok_t *_alloc_token(jsmn_parser *parser,
+static jsmntok_t *_alloc_token(jsmn_parser_t *parser,
                                jsmntok_t *tokens,
                                const size_t num_tokens)
 {
@@ -52,7 +52,7 @@ static void _fill_token(jsmntok_t *token,
 /*
  * Fills next available token with JSON primitive.
  */
-static int _parse_primitive(jsmn_parser *parser,
+static int _parse_primitive(jsmn_parser_t *parser,
                             const char *js,
                             const size_t len,
                             jsmntok_t *tokens,
@@ -78,7 +78,7 @@ static int _parse_primitive(jsmn_parser *parser,
     case '}':
       goto found;
     default:
-                   /* to quiet a warning from gcc*/
+      /* to quiet a warning from gcc*/
       break;
     }
     if (js[parser->pos] < 32 || js[parser->pos] >= 127) {
@@ -113,7 +113,7 @@ found:
 /*
  * Fills next token with JSON string.
  */
-static int _parse_string(jsmn_parser *parser,
+static int _parse_string(jsmn_parser_t *parser,
                          const char *js,
                          const size_t len,
                          jsmntok_t *tokens,
@@ -191,7 +191,7 @@ static int _parse_string(jsmn_parser *parser,
 /*
  * Parse JSON string and fill tokens.
  */
-int jsmn_parse(jsmn_parser *parser,
+int jsmn_parse(jsmn_parser_t *parser,
                const char *js,
                const size_t len,
                jsmntok_t *tokens,
@@ -386,7 +386,7 @@ int jsmn_parse(jsmn_parser *parser,
  * Creates a new parser based over a given buffer with an array of tokens
  * available.
  */
-void jsmn_init(jsmn_parser *parser)
+void jsmn_init(jsmn_parser_t *parser)
 {
   parser->pos = 0;
   parser->toknext = 0;
@@ -394,11 +394,10 @@ void jsmn_init(jsmn_parser *parser)
 }
 
 int jsoneq(const char *json,
-           jsmntok_t *tok,
+           const jsmntok_t *tok,
            const char *s)
 {
-  if (tok->type == JSMN_STRING &&
-      (int)strlen(s) == tok->end - tok->start &&
+  if (tok->type == JSMN_STRING && (int)strlen(s) == tok->end - tok->start &&
       strncmp(json + tok->start, s, tok->end - tok->start) == 0) {
     return 0;
   }

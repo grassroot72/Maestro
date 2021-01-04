@@ -9,11 +9,11 @@
 
 
 /* GET */
-void http_get(int clifd,
+void http_get(const int clifd,
               list_t *cache,
-              char *path,
-              httpmsg_t *req,
-              int method);
+              const char *path,
+              const httpmsg_t *req,
+              const int method);
 
 
 #endif

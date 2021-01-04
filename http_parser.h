@@ -8,9 +8,9 @@
 #define _HTTP_PARSER_H_
 
 
-httpmsg_t *http_parse_req(unsigned char *buf);
-httpmsg_t *http_parse_rep(unsigned char *buf);
-httpmsg_t *http_parse_headers(unsigned char *buf);
+httpmsg_t *http_parse_req(const unsigned char *buf);
+httpmsg_t *http_parse_rep(const unsigned char *buf);
+httpmsg_t *http_parse_headers(const unsigned char *buf);
 
 
 #endif

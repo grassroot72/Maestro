@@ -25,8 +25,8 @@ struct _sqlobj {
 };
 
 
-sqlobj_t *sql_json_parse(char *body,
-                         size_t len);
+sqlobj_t *sql_json_parse(const char *body,
+                         const size_t len_body);
 
 void sql_json_destroy(sqlobj_t *sqlo);
 

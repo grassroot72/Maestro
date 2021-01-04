@@ -8,32 +8,26 @@
 #define _UTIL_H_
 
 
-void itos(unsigned long n,
-          int base,
-          char sign,
-          unsigned char *outbuf);
+void itos(unsigned char *outbuf,
+          unsigned long n,
+          const int base,
+          const char sign);
 
 char *split_kv(char *kv,
                char delim);
 
 void gmt_date(char *date_gmt,
-              long *tmgmt);
+              const long *tmgmt);
 
-long mk_etag(char *etag,
-             char *file);
+long mk_etag(char *etag, const char *file);
 
-char *find_ext(char *file);
+char *find_ext(const char *file);
 
-int msleep(long tms);
+int msleep(const long tms);
 
-int nsleep(long tms);
+int nsleep(const long tms);
 
 long mstime();
-
-void itohex(unsigned long n,
-            int base,
-            char sign,
-            unsigned char *outbuf);
 
 
 #endif

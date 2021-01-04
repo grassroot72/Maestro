@@ -23,8 +23,8 @@
 #include "debug.h"
 
 
-httpconn_t *httpconn_new(int sockfd,
-                         int epfd,
+httpconn_t *httpconn_new(const int sockfd,
+                         const int epfd,
                          PGconn *pgconn,
                          list_t *cache,
                          list_t *timers)
@@ -74,7 +74,7 @@ void httpconn_task(void *arg)
     }
 
     if (strcmp(req->method, "POST") == 0) {
-      http_post(conn->sockfd, req->path, req);
+      http_post(conn->sockfd, conn->pgconn, req->path, req);
     }
 
     /* todo:

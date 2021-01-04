@@ -56,7 +56,7 @@ struct _jsmntok {
 #endif
 };
 
-typedef struct _jsmn_parser jsmn_parser;
+typedef struct _jsmn_parser jsmn_parser_t;
 
 /*
  * JSON parser. Contains an array of token blocks available. Also stores
@@ -74,7 +74,7 @@ struct _jsmn_parser {
  * It parses a JSON data string into and array of tokens, each describing
  * a single JSON object.
  */
-int jsmn_parse(jsmn_parser *parser,
+int jsmn_parse(jsmn_parser_t *parser,
                const char *js,
                const size_t len,
                jsmntok_t *tokens,
@@ -84,10 +84,10 @@ int jsmn_parse(jsmn_parser *parser,
 /*
  * Create JSON parser over an array of tokens
  */
-void jsmn_init(jsmn_parser *parser);
+void jsmn_init(jsmn_parser_t *parser);
 
 int jsoneq(const char *json,
-           jsmntok_t *tok,
+           const jsmntok_t *tok,
            const char *s);
 
 

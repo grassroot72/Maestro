@@ -31,7 +31,7 @@
 
 
 static int _set_content_type(char *ctype,
-                             char *ext)
+                             const char *ext)
 {
   /* MIME types - images */
   if (strcmp(ext, "png") == 0) {
@@ -112,8 +112,8 @@ static int _set_content_type(char *ctype,
 
 static size_t _process_range(httpmsg_t *rep,
                              char *range_str,
-                             size_t len_body,
-                             size_t *len_range)
+                             size_t *len_range,
+                             const size_t len_body)
 {
   char *range_s;
   char *range_e;
@@ -143,10 +143,10 @@ static size_t _process_range(httpmsg_t *rep,
   return range_si;
 }
 
-static httpmsg_t *_get_rep(char *ctype,
-                           int mtype,
+static httpmsg_t *_get_rep(const char *ctype,
+                           const int mtype,
                            cache_data_t *cdata,
-                           httpmsg_t *req)
+                           const httpmsg_t *req)
 {
   time_t rep_time;
   char rep_date[30];
@@ -171,14 +171,14 @@ static httpmsg_t *_get_rep(char *ctype,
       msg_add_header(rep, "Content-Encoding", "deflate");
       msg_add_zipped_body(rep, cdata->body_zipped, cdata->len_zipped);
       msg_set_body_start(rep, cdata->body_zipped);
-      itos(cdata->len_zipped, 10, ' ', (unsigned char *)len_str);
+      itos((unsigned char *)len_str, cdata->len_zipped, 10, ' ');
       msg_add_header(rep, "Content-Length", len_str);
     }
     /* uncompressed */
     else {
       msg_add_body(rep, cdata->body, cdata->len_body);
       msg_set_body_start(rep, cdata->body);
-      itos(cdata->len_body, 10, ' ', (unsigned char *)len_str);
+      itos((unsigned char *)len_str, cdata->len_body, 10, ' ');
       msg_add_header(rep, "Content-Length", len_str);
     }
   }
@@ -210,16 +210,16 @@ static httpmsg_t *_get_rep(char *ctype,
       if (!range_str) {
         msg_set_rep_line(rep, 1, 1, 200, "OK");
         msg_set_body_start(rep, cdata->body_zipped);
-        itos(cdata->len_zipped, 10, ' ', (unsigned char *)len_str);
+        itos((unsigned char *)len_str, cdata->len_zipped, 10, ' ');
         msg_add_header(rep, "Content-Length", len_str);
       }
       else {
         msg_set_rep_line(rep, 1, 1, 206, "Partial Content");
-        range_s = _process_range(rep, range_str, cdata->len_zipped, &len_range);
+        range_s = _process_range(rep, range_str, &len_range, cdata->len_zipped);
         DEBSL("[GET_REP] range start", range_s);
         DEBSL("[GET_REP] range length", len_range);
         msg_set_body_start(rep, cdata->body_zipped + range_s);
-        itos(len_range, 10, ' ', (unsigned char *)len_str);
+        itos((unsigned char *)len_str, len_range, 10, ' ');
         msg_add_header(rep, "Content-Length", len_str);
       }
     }
@@ -230,16 +230,16 @@ static httpmsg_t *_get_rep(char *ctype,
       if (!range_str) {
         msg_set_rep_line(rep, 1, 1, 200, "OK");
         msg_set_body_start(rep, cdata->body);
-        itos(cdata->len_body, 10, ' ', (unsigned char *)len_str);
+        itos((unsigned char *)len_str, cdata->len_body, 10, ' ');
         msg_add_header(rep, "Content-Length", len_str);
       }
       else {
         msg_set_rep_line(rep, 1, 1, 206, "Partial Content");
-        range_s = _process_range(rep, range_str, cdata->len_body, &len_range);
+        range_s = _process_range(rep, range_str, &len_range, cdata->len_body);
         DEBSL("[GET_REP] range start", range_s);
         DEBSL("[GET_REP] range length", len_range);
         msg_set_body_start(rep, cdata->body + range_s);
-        itos(len_range, 10, ' ', (unsigned char *)len_str);
+        itos((unsigned char *)len_str, len_range, 10, ' ');
         msg_add_header(rep, "Content-Length", len_str);
       }
     }
@@ -249,8 +249,8 @@ static httpmsg_t *_get_rep(char *ctype,
 }
 
 httpmsg_t *_get_rep_msg(list_t *cache,
-                        char *path,
-                        httpmsg_t *req)
+                        const char *path,
+                        const httpmsg_t *req)
 {
   unsigned char *body;
   unsigned char *body_zipped;
@@ -265,7 +265,7 @@ httpmsg_t *_get_rep_msg(list_t *cache,
   char content_type[32];
   int mime_type;
 
-  deflate_t c;   /* compressor */
+  struct sdefl c;   /* compressor */
 
   struct stat sb;
   char *last_modified;
@@ -321,7 +321,7 @@ httpmsg_t *_get_rep_msg(list_t *cache,
     len_zipbuf = deflate_bound(len_body);
     body_zipped = malloc(len_zipbuf);
     /* compressed body start should sync with body start */
-    len_zipped = deflate(&c, body_zipped, body, len_body, 8);
+    len_zipped = deflate(&c, body_zipped, body, len_body, 5);
 
     DEBSL("[MEM] len_zipped", len_zipped);
     http_set_cache_data(data, strdup(path), etag, last_modified,
@@ -339,11 +339,11 @@ httpmsg_t *_get_rep_msg(list_t *cache,
   return rep;
 }
 
-void http_get(int clifd,
+void http_get(const int clifd,
               list_t *cache,
-              char *path,
-              httpmsg_t *req,
-              int method)
+              const char *path,
+              const httpmsg_t *req,
+              const int method)
 {
   httpmsg_t *rep;
   int len_msg;

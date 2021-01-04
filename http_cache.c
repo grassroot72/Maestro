@@ -13,23 +13,21 @@
 #include "debug.h"
 
 
-cache_data_t *
-http_cache_data_new()
+cache_data_t *http_cache_data_new()
 {
   cache_data_t *data;
   data = (cache_data_t *)malloc(sizeof(struct _cache_data));
   return data;
 }
 
-void
-http_set_cache_data(cache_data_t *data,
-                    char *path,
-                    char *etag,
-                    char *modified,
-                    unsigned char *body,
-                    size_t len_body,
-                    unsigned char *body_zipped,
-                    size_t len_zipped)
+void http_set_cache_data(cache_data_t *data,
+                         char *path,
+                         char *etag,
+                         char *modified,
+                         unsigned char *body,
+                         const size_t len_body,
+                         unsigned char *body_zipped,
+                         const size_t len_zipped)
 {
   data->path = path;
   data->etag = etag;
@@ -40,8 +38,7 @@ http_set_cache_data(cache_data_t *data,
   data->len_zipped = len_zipped;
 }
 
-void
-http_cache_data_destroy(cache_data_t *data)
+void http_cache_data_destroy(cache_data_t *data)
 {
   if (data) {
     if (data->path) free(data->path);
@@ -53,8 +50,8 @@ http_cache_data_destroy(cache_data_t *data)
   }
 }
 
-cache_data_t *
-http_cache_data(list_t *cache, char *path)
+cache_data_t *http_cache_data(list_t *cache,
+                              const char *path)
 {
   node_t *node;
   cache_data_t *data;

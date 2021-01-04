@@ -46,7 +46,7 @@ void msg_set_body_start(httpmsg_t *msg,
 
 void msg_add_body(httpmsg_t *msg,
                   unsigned char *body,
-                  size_t len)
+                  const size_t len)
 {
   msg->body = body;
   msg->len_body = len;
@@ -54,14 +54,14 @@ void msg_add_body(httpmsg_t *msg,
 
 void msg_add_zipped_body(httpmsg_t *msg,
                          unsigned char *body_zipped,
-                         size_t len)
+                         const size_t len)
 {
   msg->body_zipped = body_zipped;
   msg->len_body = len;
 }
 
 void msg_destroy(httpmsg_t *msg,
-                 int delbody)
+                 const int delbody)
 {
   if (!msg) return;
 
@@ -86,13 +86,13 @@ void msg_destroy(httpmsg_t *msg,
   free(msg);
 }
 
-int msg_split(unsigned char *line[],
-              int *end,
+int msg_split(unsigned char *lines[],
+              int *nlines,
               int *len_body,
-              unsigned char *buf)
+              const unsigned char *buf)
 {
-  unsigned char* p = buf;
-  unsigned char* h = p;
+  const unsigned char* p = buf;
+  const unsigned char* h = p;
   int i;
   int len;
   int size;
@@ -118,9 +118,9 @@ int msg_split(unsigned char *line[],
       size = p - h;
       if (!size) return 0;
       len = size - 1;
-      line[i] = malloc(size);
-      memcpy(line[i], h, len);
-      line[i][len] = 0;
+      lines[i] = malloc(size);
+      memcpy(lines[i], h, len);
+      lines[i][len] = 0;
       h = p + 1;
       i++;
     }
@@ -128,7 +128,7 @@ int msg_split(unsigned char *line[],
     /* a http message should at least consist of 3 lines */
     if (i > 3 && *(p - 1) == CR && *(p - 2) == LF && *(p - 3) == CR) {
       if (*(p + 1) == CR) return 0;  /* CR without LF followed */
-      *end = i - 1;  /* end of headers */
+      *nlines = i - 1;  /* end of headers */
     }
 
     p++;
@@ -137,30 +137,30 @@ int msg_split(unsigned char *line[],
   /* body */
   *len_body = p - h;
   if (*len_body) {
-    line[i] = malloc(*len_body);
-    memcpy(line[i], h, *len_body);
+    lines[i] = malloc(*len_body);
+    memcpy(lines[i], h, *len_body);
   }
 
   return i;
 }
 
-void msg_lines_destroy(unsigned char *line[],
-                       int count)
+void msg_lines_destroy(unsigned char *lines[],
+                       const int count)
 {
   int i = 0;
   do {
-    if (line[i]) {
-      free(line[i]);
+    if (lines[i]) {
+      free(lines[i]);
       i++;
     }
   } while (i < count);
 }
 
 void msg_set_req_line(httpmsg_t *msg,
-                      char *method,
-                      char *path,
-                      int major,
-                      int minor)
+                      const char *method,
+                      const char *path,
+                      const int major,
+                      const int minor)
 {
   int len, total = 0;
 
@@ -186,10 +186,10 @@ void msg_set_req_line(httpmsg_t *msg,
 }
 
 void msg_set_rep_line(httpmsg_t *msg,
-                      int major,
-                      int minor,
-                      int code,
-                      char *status)
+                      const int major,
+                      const int minor,
+                      const int code,
+                      const char *status)
 {
   int len;
 
@@ -211,8 +211,8 @@ void msg_set_rep_line(httpmsg_t *msg,
 }
 
 void msg_add_header(httpmsg_t *msg,
-                    char *key,
-                    char *value)
+                    const char *key,
+                    const char *value)
 {
   int len_k, len_v, total;
 
@@ -240,8 +240,8 @@ void msg_add_header(httpmsg_t *msg,
   msg->num_headers++;
 }
 
-char *msg_header_value(httpmsg_t *msg,
-                       char *key)
+char *msg_header_value(const httpmsg_t *msg,
+                       const char *key)
 {
   int i;
 
@@ -257,26 +257,26 @@ char *msg_header_value(httpmsg_t *msg,
 }
 
 int msg_add_headers(httpmsg_t *msg,
-                    unsigned char *line[],
-                    int end)
+                    unsigned char *lines[],
+                    const int nlines)
 {
   char* key;
   char* value;
   int i;
 
   /* headers ... */
-  if (line[end][0] == 0) {  /* empty line */
+  if (lines[nlines][0] == 0) {  /* empty line */
     i = 1;
     do {
-      if (line[i][0] == 0) { /* wrong empty line */
+      if (lines[i][0] == 0) {  /* wrong empty line */
         DEBS("Not valid message 2!!!");
         return 0;
       }
-      key = (char *)line[i];
-      value = split_kv((char *)line[i], ':');
+      key = (char *)lines[i];
+      value = split_kv((char *)lines[i], ':');
       msg_add_header(msg, key, value);
       i++;
-    } while (i < end);
+    } while (i < nlines);
   }
   else {
     DEBS("Incomplete message 2!!!");

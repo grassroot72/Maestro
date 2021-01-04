@@ -33,15 +33,15 @@ list_t *list_new();
 
 void list_update(list_t *list,
                  void *data,
-                 long stamp);
+                 const long stamp);
 
 void list_del(list_t *list,
-              long stamp);
+              const long stamp);
 
 void list_reverse(list_t *list);
 
 void list_sort(list_t *list,
-               int asc);
+               const int asc);
 
 void list_display(list_t *list);
 

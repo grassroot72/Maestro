@@ -46,7 +46,7 @@ static void _svc_stopper(int dummy)
   svc_running = 0;
 }
 
-static void _set_nonblocking(int fd)
+static void _set_nonblocking(const int fd)
 {
   int flags = fcntl(fd, F_GETFL, 0);
   if (flags == -1) {
@@ -58,7 +58,7 @@ static void _set_nonblocking(int fd)
 }
 
 static void _expire_timers(list_t *timers,
-                           long timeout)
+                           const long timeout)
 {
   httpconn_t *conn;
   node_t *timer;
@@ -85,7 +85,7 @@ static void _expire_timers(list_t *timers,
 }
 
 static void _expire_cache(list_t *cache,
-                          long timeout)
+                          const long timeout)
 {
   cache_data_t *data;
   node_t *node;
@@ -109,8 +109,8 @@ static void _expire_cache(list_t *cache,
   }
 }
 
-static void _receive_conn(int srvfd,
-                          int epfd,
+static void _receive_conn(const int srvfd,
+                          const int epfd,
                           PGconn *pgconn,
                           list_t *cache,
                           list_t *timers)
@@ -177,8 +177,8 @@ static int _create_srv_socket()
   return srvfd;
 }
 
-static int _bind(int srvfd,
-                 uint16_t port)
+static int _bind(const int srvfd,
+                 const uint16_t port)
 {
   struct sockaddr_in srvaddr;
 
@@ -195,7 +195,7 @@ static int _bind(int srvfd,
   return 0;
 }
 
-static int _listen(int srvfd)
+static int _listen(const int srvfd)
 {
   _set_nonblocking(srvfd);
   if (listen(srvfd, SOMAXCONN) < 0) {

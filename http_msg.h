@@ -49,45 +49,45 @@ void msg_set_body_start(httpmsg_t *msg,
 
 void msg_add_body(httpmsg_t *msg,
                   unsigned char *body,
-                  size_t len);
+                  const size_t len);
 
 void msg_add_zipped_body(httpmsg_t *msg,
                          unsigned char *body_zipped,
-                         size_t len);
+                         const size_t len);
 
 void msg_destroy(httpmsg_t *msg,
-                 int delbody);
+                 const int delbody);
 
-int msg_split(unsigned char *line[],
-              int *end,
+int msg_split(unsigned char *lines[],
+              int *nlines,
               int *len_body,
-              unsigned char *buf);
+              const unsigned char *buf);
 
-void msg_lines_destroy(unsigned char *line[],
-                       int count);
+void msg_lines_destroy(unsigned char *lines[],
+                       const int count);
 
 void msg_set_req_line(httpmsg_t *msg,
-                      char *method,
-                      char *path,
-                      int major,
-                      int minor);
+                      const char *method,
+                      const char *path,
+                      const int major,
+                      const int minor);
 
 void msg_set_rep_line(httpmsg_t *msg,
-                      int major,
-                      int minor,
-                      int code,
-                      char *status);
+                      const int major,
+                      const int minor,
+                      const int code,
+                      const char *status);
 
 void msg_add_header(httpmsg_t *msg,
-                    char *key,
-                    char *value);
+                    const char *key,
+                    const char *value);
 
-char *msg_header_value(httpmsg_t *msg,
-                       char *key);
+char *msg_header_value(const httpmsg_t *msg,
+                       const char *key);
 
 int msg_add_headers(httpmsg_t *msg,
-                    unsigned char *line[],
-                    int end);
+                    unsigned char *lines[],
+                    const int nlines);
 
 char *msg_create_req(httpmsg_t *req,
                      int *len);

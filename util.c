@@ -16,15 +16,15 @@
 
 
 /*
+ * outbuf -  buffer to hold the output number
  * n      -  number to be converted
  * base   -  number base for conversion;  decimal=10,hex=16
- * sign   -  signed or unsigned output
- * outbuf -  buffer to hold the output number
+ * sign   -  sign bit set in output? ex. '+' or '-', ' ' if not set
  */
-void itos(unsigned long n,
-          int base,
-          char sign,
-          unsigned char *outbuf)
+void itos(unsigned char *outbuf,
+          unsigned long n,
+          const int base,
+          const char sign)
 {
   int i = 12;
   int j = 0;
@@ -58,7 +58,7 @@ char *split_kv(char *kv,
        *  ^           ^              ^
        *  h           p              p
        */
-      *p = 0;
+      *p = '\0';
       p++;
       break;
     }
@@ -75,7 +75,7 @@ char *split_kv(char *kv,
 }
 
 void gmt_date(char *date_gmt,
-              long *tmgmt)
+              const long *tmgmt)
 {
   struct tm tm_gmt;
   tm_gmt = *gmtime(tmgmt);
@@ -90,8 +90,7 @@ void gmt_date(char *date_gmt,
   strftime(date_gmt, 30, "%a, %d %b %Y %H:%M:%S %Z", &tm_gmt);
 }
 
-long mk_etag(char *etag,
-             char *file)
+long mk_etag(char *etag, const char *file)
 {
   struct stat sb;
   stat(file, &sb);
@@ -99,14 +98,14 @@ long mk_etag(char *etag,
   return sb.st_mtime;
 }
 
-char *find_ext(char *file)
+char *find_ext(const char *file)
 {
   char *dot = strrchr(file, '.');
   if(!dot || dot == file) return "";
   return dot + 1;
 }
 
-int msleep(long tms)
+int msleep(const long tms)
 {
   struct timespec ts;
   int ret;
@@ -126,7 +125,7 @@ int msleep(long tms)
   return ret;
 }
 
-int nsleep(long tms)
+int nsleep(const long tms)
 {
   struct timespec ts;
   int ret;

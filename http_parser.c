@@ -16,15 +16,15 @@
 #define MAX_NUM_MSG_LINES 35  /* MAX_NUM_HEADERS + 3 */
 
 
-httpmsg_t *http_parse_req(unsigned char *buf)
+httpmsg_t *http_parse_req(const unsigned char *buf)
 {
-  unsigned char *line[MAX_NUM_MSG_LINES];  /* http messages lines */
+  unsigned char *lines[MAX_NUM_MSG_LINES];  /* http messages lines */
   char *method;
   char *path;
   char *version;
   int major;
   int minor;
-  int count, end;
+  int count, nlines;
   int len_body;
 
   char *rest;
@@ -32,8 +32,8 @@ httpmsg_t *http_parse_req(unsigned char *buf)
 
   if (!buf) return NULL;
 
-  end = 0;
-  count = msg_split(line, &end, &len_body, buf);
+  nlines = 0;
+  count = msg_split(lines, &nlines, &len_body, buf);
   if (!count) {
     DEBS("Empty message!!!");
     return NULL;
@@ -41,14 +41,14 @@ httpmsg_t *http_parse_req(unsigned char *buf)
 
   if (count < 3) {
     DEBS("Incomplete message 1!!!");
-    msg_lines_destroy(line, count);
+    msg_lines_destroy(lines, count);
     return NULL;
   }
 
   req = msg_new();
 
   /* request line ... */
-  rest = (char *)line[0];
+  rest = (char *)lines[0];
   method = strtok_r(rest, " ", &rest);
   path = strtok_r(NULL, " ", &rest);
   version = strtok_r(NULL, " ", &rest);
@@ -61,31 +61,31 @@ httpmsg_t *http_parse_req(unsigned char *buf)
     msg_set_req_line(req, method, path, major, minor);
 
   /* headers */
-  if (!msg_add_headers(req, line, end)) {
-    msg_lines_destroy(line, count);
+  if (!msg_add_headers(req, lines, nlines)) {
+    msg_lines_destroy(lines, count);
     return NULL;
   }
 
   if (len_body > 0) {
-    msg_add_body(req, line[count], len_body);
-    DEBSS("[PARSER] body", line[count]);
-    msg_lines_destroy(line, end);
+    msg_add_body(req, lines[count], len_body);
+    DEBSS("[PARSER] body", lines[count]);
+    msg_lines_destroy(lines, nlines);
   }
   else
-    msg_lines_destroy(line, count);
+    msg_lines_destroy(lines, count);
 
   return req;
 }
 
-httpmsg_t *http_parse_rep(unsigned char *buf)
+httpmsg_t *http_parse_rep(const unsigned char *buf)
 {
-  unsigned char *line[MAX_NUM_MSG_LINES];  /* http messages lines */
+  unsigned char *lines[MAX_NUM_MSG_LINES];  /* http messages lines */
   char *version;
   int major;
   int minor;
   int code;
   char *status;
-  int count, end;
+  int count, nlines;
   int len_body;
 
   char *rest;
@@ -93,18 +93,18 @@ httpmsg_t *http_parse_rep(unsigned char *buf)
 
   if (!buf) return NULL;
 
-  end = 0;
-  count = msg_split(line, &end, &len_body, buf);
+  nlines = 0;
+  count = msg_split(lines, &nlines, &len_body, buf);
   if (count < 3) {
     DEBS("Incomplete message 1!!!");
-    msg_lines_destroy(line, count);
+    msg_lines_destroy(lines, count);
     return NULL;
   }
 
   rep = msg_new();
 
   /* status line ... */
-  rest = (char *)line[0];
+  rest = (char *)lines[0];
   version = strtok_r(rest, " ", &rest);
   major = version[5] - '0';
   minor = version[7] - '0';
@@ -114,32 +114,32 @@ httpmsg_t *http_parse_rep(unsigned char *buf)
   msg_set_rep_line(rep, major, minor, code, status);
 
   /* headers */
-  if (!msg_add_headers(rep, line, end)) {
-    msg_lines_destroy(line, count);
+  if (!msg_add_headers(rep, lines, nlines)) {
+    msg_lines_destroy(lines, count);
     return NULL;
   }
 
   if (len_body > 0) {
-    msg_add_body(rep, line[count], len_body);
-    DEBSS("[PARSER] body", line[count]);
-    msg_lines_destroy(line, end);
+    msg_add_body(rep, lines[count], len_body);
+    DEBSS("[PARSER] body", lines[count]);
+    msg_lines_destroy(lines, nlines);
   }
   else
-    msg_lines_destroy(line, count);
+    msg_lines_destroy(lines, count);
 
   return rep;
 }
 
-httpmsg_t *http_parse_headers(unsigned char *buf)
+httpmsg_t *http_parse_headers(const unsigned char *buf)
 {
-  unsigned char *line[MAX_NUM_MSG_LINES];
-  int count, end;
+  unsigned char *lines[MAX_NUM_MSG_LINES];
+  int count, nlines;
   int len_body;
 
   httpmsg_t *hdrs;
 
-  end = 0;
-  count = msg_split(line, &end, &len_body, buf);
+  nlines = 0;
+  count = msg_split(lines, &nlines, &len_body, buf);
   if (count < 3) {
     DEBS("Incomplete message 1!!!");
     return NULL;
@@ -148,11 +148,11 @@ httpmsg_t *http_parse_headers(unsigned char *buf)
   hdrs = msg_new();
 
   /* headers */
-  if (!msg_add_headers(hdrs, line, end)) {
-    msg_lines_destroy(line, count);
+  if (!msg_add_headers(hdrs, lines, nlines)) {
+    msg_lines_destroy(lines, count);
     return NULL;
   }
 
-  msg_lines_destroy(line, count);
+  msg_lines_destroy(lines, count);
   return hdrs;
 }

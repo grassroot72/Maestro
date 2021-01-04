@@ -18,15 +18,15 @@
 
 
 void _prep_select(char *sql,
-                  sqlobj_t *sqlo)
+                  const sqlobj_t *sqlo)
 {
+  strcat(sql, "SELECT ");
   if (sqlo->qfield[0]) {
-    strcpy(sql, "SELECT ");
     strcat(sql, sqlo->qfield);
     strcat(sql, " FROM ");
   }
   else
-    strcpy(sql, "SELECT * FROM ");
+    strcat(sql, "* FROM ");
 
   strcat(sql, sqlo->table);
 
@@ -37,7 +37,7 @@ void _prep_select(char *sql,
 
 void _parse_result(char *res,
                    PGresult *pgres,
-                   int viscols)
+                   const int viscols)
 {
   int nFields;
   int nRows;
@@ -46,7 +46,7 @@ void _parse_result(char *res,
 
   nFields = PQnfields(pgres);
 
-  strcpy(res, "{");
+  strcat(res, "{");
   /* show attribute names? */
   if (viscols) {
     strcat(res, "\"h\":{\"hd\":[");
@@ -89,9 +89,9 @@ void _parse_result(char *res,
 
 void sql_select(char *res,
                 PGconn *pgconn,
-                sqlobj_t *sqlo)
+                const sqlobj_t *sqlo)
 {
-  char sql[256];
+  char sql[256] = "";
 
   PGresult *pgres;
   const char *stmt;
@@ -142,6 +142,86 @@ void sql_select(char *res,
 
   /* Deallocate all prepared statements */
   pgres = PQexec(pgconn, "DEALLOCATE ALL");
+  PQclear(pgres);
+
+  /* end the transaction */
+  pgres = PQexec(pgconn, "END");
+  PQclear(pgres);
+}
+
+void _prep_cursor(char *sql,
+                  const sqlobj_t *sqlo)
+{
+  strcat(sql, "DECLARE portal CURSOR FOR ");
+  _prep_select(sql, sqlo);
+}
+
+void sql_fetch(char *res,
+               PGconn *pgconn,
+               const sqlobj_t *sqlo)
+{
+  char sql[256] = "";
+
+  PGresult *pgres;
+  const char *stmt;
+
+
+  _prep_cursor(sql, sqlo);
+
+  /* Start a transaction block */
+  pgres = PQexec(pgconn, "BEGIN");
+  if (PQresultStatus(pgres) != PGRES_COMMAND_OK) {
+    fprintf(stderr, "BEGIN command failed: %s", PQerrorMessage(pgconn));
+    PQclear(pgres);
+    pg_exit_nicely(pgconn);
+  }
+  PQclear(pgres);
+
+  /* prepare statement name */
+  stmt = "prep_cursor";
+  pgres = PQprepare(pgconn,
+                    stmt,
+                    sql,
+                    0,
+                    NULL);
+  if (PQresultStatus(pgres) != PGRES_COMMAND_OK) {
+    fprintf(stderr, "PREPARE failed: %s", PQerrorMessage(pgconn));
+    PQclear(pgres);
+    pg_exit_nicely(pgconn);
+  }
+  PQclear(pgres);
+
+  /* execute the prepared statement */
+  pgres = PQexecPrepared(pgconn,
+                         stmt,
+                         0,
+                         NULL,
+                         NULL,
+                         NULL,
+                         0);  /* text result */
+  if (PQresultStatus(pgres) != PGRES_COMMAND_OK) {
+    fprintf(stderr, "OPEN CURSOR failed: %s", PQerrorMessage(pgconn));
+    PQclear(pgres);
+    pg_exit_nicely(pgconn);
+  }
+
+  pgres = PQexec(pgconn, "FETCH ALL in portal");
+  if (PQresultStatus(pgres) != PGRES_TUPLES_OK) {
+    fprintf(stderr, "FETCH ALL failed: %s", PQerrorMessage(pgconn));
+    PQclear(pgres);
+    pg_exit_nicely(pgconn);
+  }
+
+  /* parse the result set */
+  _parse_result(res, pgres, sqlo->viscols);
+  DEBSS("[SQL] pg result", res);
+
+  /* Deallocate all prepared statements */
+  pgres = PQexec(pgconn, "DEALLOCATE ALL");
+  PQclear(pgres);
+
+  /* close the portal ... we don't bother to check for errors ... */
+  pgres = PQexec(pgconn, "CLOSE portal");
   PQclear(pgres);
 
   /* end the transaction */

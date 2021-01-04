@@ -8,24 +8,24 @@
 #define _IO_H_
 
 
-unsigned char *io_read_socket(int sockfd,
+unsigned char *io_read_socket(const int sockfd,
                               int *rc);
 
-void io_write_socket(int sockfd,
+void io_write_socket(const int sockfd,
                      unsigned char *bytes,
-                     size_t len);
+                     const size_t len);
 
-unsigned char *io_fread(char *fname,
-                        size_t len);
+unsigned char *io_fread(const char *fname,
+                        const size_t len);
 
 unsigned char *io_fread_pipe(FILE *f,
-                             size_t len);
+                             const size_t len);
 
 char *io_fgetc(FILE *fpipe,
                int *len);
 
-void io_send_chunk(int clifd,
-                   char *data);
+void io_send_chunk(const int clifd,
+                   const char *chunk);
 
 
 #endif

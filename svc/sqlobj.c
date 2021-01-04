@@ -14,21 +14,22 @@
 #include "debug.h"
 
 
-sqlobj_t *sql_json_parse(char *body,
-                         size_t len)
+sqlobj_t *sql_json_parse(const char *body,
+                         const size_t len_body)
 {
   int i, j, n;
   int count;
+  int len = 0;
 
   jsmntok_t t[MAX_JSMN_TOKENS];  /* MAX_JSMN_TOKENS = 128 */
   jsmntok_t *g;
-  jsmn_parser p;
+  jsmn_parser_t p;
 
   sqlobj_t *sqlo;
 
 
   jsmn_init(&p);
-  n = jsmn_parse(&p, body, len, t, MAX_JSMN_TOKENS);
+  n = jsmn_parse(&p, body, len_body, t, MAX_JSMN_TOKENS);
 
   sqlo = malloc(sizeof(struct _sqlobj));
   sqlo->table[0] = '\0';

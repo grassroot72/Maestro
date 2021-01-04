@@ -8,13 +8,13 @@
 #define _BASE64_H_
 
 
-char *b64_encode(const unsigned char *data,
-                 size_t len_in,
-                 size_t *len_out);
+char *b64_encode(size_t *len_out,
+                 const size_t len_in,
+                 const unsigned char *data);
 
-unsigned char *b64_decode(const char *data,
-                          size_t len_in,
-                          size_t *len_out);
+unsigned char *b64_decode(size_t *len_out,
+                          const size_t len_in,
+                          const char *data);
 
 void b64_cleanup();
 

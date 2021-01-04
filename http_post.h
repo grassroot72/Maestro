@@ -9,9 +9,10 @@
 
 
 /* POST */
-void http_post(int clifd,
-               char *path,
-               httpmsg_t *req);
+void http_post(const int clifd,
+               PGconn *pgconn,
+               const char *path,
+               const httpmsg_t *req);
 
 
 #endif
