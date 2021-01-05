@@ -34,7 +34,7 @@
 #define _npow2(n) (1 << (_ilog2((n)-1) + 1))
 
 
-static int _ilog2(int n)
+static int _ilog2(const int n)
 {
   if (!n) return 0;
   int leading_zero = __builtin_clzl((unsigned long)n);
@@ -57,7 +57,7 @@ static unsigned _hash32(const void *p)
 
 static void _put(unsigned char **dst,
                  struct sdefl *s,
-                 int code,
+                 const int code,
                  const int bitcnt)
 {
   s->bits |= (code << s->bitcnt);
@@ -106,7 +106,7 @@ static void _heap_sort(unsigned *A,
   }
 }
 
-static unsigned _sort_sym(unsigned sym_cnt,
+static unsigned _sort_sym(const unsigned sym_cnt,
                           unsigned *freqs,
                           unsigned char *lens,
                           unsigned *sym_out)
@@ -156,7 +156,7 @@ static void _build_tree(unsigned *A,
 }
 
 static void _gen_len_cnt(unsigned *A,
-                         unsigned root,
+                         const unsigned root,
                          unsigned *len_cnt,
                          const unsigned max_code_len)
 {
@@ -214,8 +214,8 @@ static unsigned _rev(unsigned c,
 static void _huff(unsigned char *lens,
                   unsigned *codes,
                   unsigned *freqs,
-                  unsigned num_syms,
-                  unsigned max_code_len)
+                  const unsigned num_syms,
+                  const unsigned max_code_len)
 {
   unsigned c, *A = codes;
   unsigned len_cnt[SDEFL_MAX_CODE_LEN + 1];
@@ -308,7 +308,8 @@ static void _match_codes(int *ls,
                          const int dist,
                          const int len)
 {
-  static const short dxmax[] = {0,6,12,24,48,96,192,384,768,1536,3072,6144,12288,24576};
+  static const short dxmax[] = {0,6,12,24,48,96,192,384,768,1536,3072,6144,
+                                12288,24576};
   static const unsigned char lslot[258+1] = {
     0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 12,
     12, 13, 13, 13, 13, 14, 14, 14, 14, 15, 15, 15, 15, 16, 16, 16, 16, 16,
@@ -337,11 +338,13 @@ static void _match(unsigned char **dst,
                    const int dist,
                    const int len)
 {
-  static const char lxn[] = {0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0};
+  static const char lxn[] = {0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,
+                             5,5,5,5,0};
   static const short lmin[] = {3,4,5,6,7,8,9,10,11,13,15,17,19,23,27,31,35,43,
-      51,59,67,83,99,115,131,163,195,227,258};
+                               51,59,67,83,99,115,131,163,195,227,258};
   static const short dmin[] = {1,2,3,4,5,7,9,13,17,25,33,49,65,97,129,193,257,
-      385,513,769,1025,1537,2049,3073,4097,6145,8193,12289,16385,24577};
+                               385,513,769,1025,1537,2049,3073,4097,6145,8193,
+                               12289,16385,24577};
 
   int ls, lc, dx, dc;
   _match_codes(&ls, &lc, &dx, &dc, dist, len);
@@ -362,13 +365,14 @@ static void _flush(unsigned char **dst,
   unsigned char lens[SDEFL_PRE_MAX];
   unsigned freqs[SDEFL_PRE_MAX] = {0};
   unsigned items[SDEFL_SYM_MAX + SDEFL_OFF_MAX];
-  static const unsigned char perm[SDEFL_PRE_MAX] =
-    {16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15};
-
+  static const unsigned char perm[SDEFL_PRE_MAX] = {16,17,18,0,8,7,9,6,10,5,11,
+                                                    4,12,3,13,2,14,1,15};
   /* huffman codes */
   s->freq.lit[SDEFL_EOB]++;
-  _huff(s->cod.len.lit, s->cod.word.lit, s->freq.lit, SDEFL_SYM_MAX, SDEFL_LIT_LEN_CODES);
-  _huff(s->cod.len.off, s->cod.word.off, s->freq.off, SDEFL_OFF_MAX, SDEFL_OFF_CODES);
+  _huff(s->cod.len.lit, s->cod.word.lit, s->freq.lit,
+        SDEFL_SYM_MAX, SDEFL_LIT_LEN_CODES);
+  _huff(s->cod.len.off, s->cod.word.off, s->freq.off,
+        SDEFL_OFF_MAX, SDEFL_OFF_CODES);
   _precode(&symcnt, freqs, items, s->cod.len.lit, s->cod.len.off);
   _huff(lens, codes, freqs, SDEFL_PRE_MAX, SDEFL_PRE_CODES);
   for (item_cnt = SDEFL_PRE_MAX; item_cnt > 4; item_cnt--) {
@@ -522,11 +526,11 @@ static int _compress(struct sdefl *s,
 int deflate(struct sdefl *s,
             void *out,
             const void *in,
-            int n,
+            const int n,
             const int lvl)
 {
   s->bits = s->bitcnt = 0;
-  return _compress(s, (unsigned char*)out, (const unsigned char*)in, n, lvl);
+  return _compress(s, (unsigned char *)out, (const unsigned char *)in, n, lvl);
 }
 
 static unsigned _adler32(unsigned adler32,
@@ -566,25 +570,25 @@ static unsigned _adler32(unsigned adler32,
 int zdeflate(struct sdefl *s,
              void *out,
              const void *in,
-             int n,
+             const int n,
              const int lvl)
 {
   int p = 0;
   unsigned a = 0;
-  unsigned char *q = (unsigned char*)out;
+  unsigned char *q = (unsigned char *)out;
 
   s->bits = s->bitcnt = 0;
   _put(&q, s, 0x78, 8); /* deflate, 32k window */
   _put(&q, s, 0x01, 8); /* fast compression */
-  q += _compress(s, q, (const unsigned char*)in, n, lvl);
+  q += _compress(s, q, (const unsigned char *)in, n, lvl);
 
   /* append adler checksum */
-  a = _adler32(SDEFL_ADLER_INIT, (const unsigned char*)in, n);
+  a = _adler32(SDEFL_ADLER_INIT, (const unsigned char *)in, n);
   for (p = 0; p < 4; ++p) {
     _put(&q, s, (a >> 24) & 0xFF, 8);
     a <<= 8;
   }
-  return (int)(q - (unsigned char*)out);
+  return (int)(q - (unsigned char *)out);
 }
 
 int deflate_bound(const int len)
