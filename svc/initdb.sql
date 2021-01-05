@@ -2,6 +2,9 @@
 -- create a super user for this demo
 [postgres@xxxxxx ~]$ createuser --interactive
 
+-- create the demo database
+[postgres@xxxxxx ~]$ createdb demo
+
 -- create SCHEMA
 CREATE SCHEMA identity;
 -- set search_path
