@@ -61,7 +61,7 @@ void http_post(const int clifd,
   unsigned char *bytes;
 
   rep = msg_new();
-  msg_add_header(rep, "Server", SVC_VERSION);
+  msg_add_header(rep, "Server", SVR_VERSION);
   msg_add_header(rep, "Connection", "keep-alive");
   msg_add_header(rep, "Accept-Ranges", "bytes");
   msg_set_rep_line(rep, 1, 1, 200, "OK");

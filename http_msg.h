@@ -8,10 +8,11 @@
 #define _HTTP_MSG_H_
 
 
-#define SVC_VERSION "Maestro/1.0"
+#define SVR_VERSION "Maestro/1.0"
 
-#define METHOD_GET 1
 #define METHOD_HEAD 0
+#define METHOD_GET 1
+#define METHOD_POST 2
 
 
 struct _httphdr {
@@ -22,7 +23,7 @@ struct _httphdr {
 typedef struct _httpmsg httpmsg_t;
 
 struct _httpmsg {
-  char *method;
+  int method;
   char *path;
   int ver_major;
   int ver_minor;

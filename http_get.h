@@ -12,8 +12,7 @@
 void http_get(const int clifd,
               list_t *cache,
               const char *path,
-              const httpmsg_t *req,
-              const int method);
+              const httpmsg_t *req);
 
 
 #endif

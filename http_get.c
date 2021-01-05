@@ -183,7 +183,7 @@ static httpmsg_t *_get_rep(const char *ctype,
     }
   }
   else {
-    msg_add_header(rep, "Server", SVC_VERSION);
+    msg_add_header(rep, "Server", SVR_VERSION);
     msg_add_header(rep, "Connection", "keep-alive");
     msg_add_header(rep, "Accept-Ranges", "bytes");
 
@@ -342,8 +342,7 @@ httpmsg_t *_get_rep_msg(list_t *cache,
 void http_get(const int clifd,
               list_t *cache,
               const char *path,
-              const httpmsg_t *req,
-              const int method)
+              const httpmsg_t *req)
 {
   httpmsg_t *rep;
   int len_msg;
@@ -356,7 +355,8 @@ void http_get(const int clifd,
   DEBSI("[GET_REP] Sending reply headers...", clifd);
   io_write_socket(clifd, bytes, len_msg);
 
-  if (method == METHOD_GET) {
+  /* if method is GET, then send body */
+  if (req->method == METHOD_GET) {
     /* send body */
     DEBSI("[GET_REP] Sending reply body...", clifd);
     io_write_socket(clifd, rep->body_s, rep->len_body);

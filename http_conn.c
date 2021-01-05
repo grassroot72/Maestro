@@ -69,21 +69,16 @@ void httpconn_task(void *arg)
     if (!req) return;
 
     /* static GET */
-    if (strcmp(req->method, "GET") == 0) {
-      http_get(conn->sockfd, conn->cache, req->path, req, METHOD_GET);
+    if (req->method == METHOD_GET) {
+      http_get(conn->sockfd, conn->cache, req->path, req);
     }
 
-    if (strcmp(req->method, "POST") == 0) {
+    if (req->method == METHOD_POST) {
       http_post(conn->sockfd, conn->pgconn, req->path, req);
     }
 
-    /* todo:
-    if (strcmp(method, "PUT") == 0)
-    if (strcmp(method, "DELETE") == 0)
-    */
-
-    if (strcmp(req->method, "HEAD") == 0) {
-      http_get(conn->sockfd, conn->cache, req->path, req, METHOD_HEAD);
+    if (req->method == METHOD_HEAD) {
+      http_get(conn->sockfd, conn->cache, req->path, req);
     }
 
     /* start timer recording */

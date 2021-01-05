@@ -28,7 +28,7 @@ httpmsg_t *msg_new()
   msg->len_headers = 0;
   msg->num_headers = 0;
 
-  msg->method = NULL;
+  msg->method = METHOD_GET;
   msg->path = NULL;
   msg->status = NULL;
 
@@ -67,7 +67,6 @@ void msg_destroy(httpmsg_t *msg,
 
   int i = 0;
 
-  if (msg->method) free(msg->method);
   if (msg->path) free(msg->path);
   if (msg->status) free(msg->status);
 
@@ -165,7 +164,12 @@ void msg_set_req_line(httpmsg_t *msg,
   int len, total = 0;
 
   len = strlen(method);
-  msg->method = strdup(method);
+  if (strcmp(method, "GET") == 0)
+    msg->method = METHOD_GET;
+  if (strcmp(method, "POST") == 0)
+    msg->method = METHOD_POST;
+  if (strcmp(method, "HEAD") == 0)
+    msg->method = METHOD_HEAD;
   total += len;
 
   len = strlen(path);
@@ -290,6 +294,7 @@ char *msg_create_req(httpmsg_t *req,
                      int *len)
 {
   int i = 0;
+  char method[5];
   /*
    * GET xxxxx HTTP/1.1\r\n
    * Host: www.xxxxx.com\r\n
@@ -302,8 +307,14 @@ char *msg_create_req(httpmsg_t *req,
   char *msg = malloc(*len + 1);
 
   /* start line */
+  if (req->method == METHOD_GET)
+    strcpy(method, "GET");
+  if (req->method == METHOD_POST)
+    strcpy(method, "POST");
+  if (req->method == METHOD_HEAD)
+    strcpy(method, "HEAD");
   sprintf(msg, "%s %s HTTP/%d.%d\r\n",
-               req->method, req->path, req->ver_major, req->ver_minor);
+               method, req->path, req->ver_major, req->ver_minor);
 
   /* headers */
   do {
