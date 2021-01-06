@@ -309,11 +309,12 @@ int main(int argc, char **argv)
 
       /* error case */
       if ((events[i].events & EPOLLERR) || (events[i].events & EPOLLHUP)) {
-        if (errno == EAGAIN) {
+        if (errno == EAGAIN)
           nsleep(10);
-          perror("[EPOLL] ERR|HUP");
+        else {
+          perror("[EPOLL ERR|HUP]");
+          break;
         }
-        break;
       }
 
       if (events[i].events & EPOLLIN) {
@@ -322,14 +323,6 @@ int main(int argc, char **argv)
         else {
           /* client socket; read client data and process it */
           thpool_add_task(taskpool, httpconn_task, conn);
-        }
-      }
-
-      if (events[i].events & EPOLLOUT) {
-        if (errno == EAGAIN) {
-          nsleep(10);
-          perror("[EPOLL EPOLLOUT");
-          break;
         }
       }
 
