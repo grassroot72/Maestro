@@ -69,16 +69,12 @@ void httpconn_task(void *arg)
     if (!req) return;
 
     /* static GET */
-    if (req->method == METHOD_GET) {
+    if (req->method == METHOD_GET || req->method == METHOD_HEAD) {
       http_get(conn->sockfd, conn->cache, req->path, req);
     }
 
     if (req->method == METHOD_POST) {
       http_post(conn->sockfd, conn->pgconn, req->path, req);
-    }
-
-    if (req->method == METHOD_HEAD) {
-      http_get(conn->sockfd, conn->cache, req->path, req);
     }
 
     /* start timer recording */

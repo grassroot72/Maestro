@@ -302,28 +302,39 @@ int main(int argc, char **argv)
     }
 
     /* loop through events */
-    for (i = 0; i < nevents; i++) {
+    //for (i = 0; i < nevents; i++) {
+    i = 0;
+    do {
       conn = (httpconn_t *)events[i].data.ptr;
 
       /* error case */
-      if ((events[i].events & EPOLLERR) || (events[i].events & EPOLLHUP) ||
-          (!(events[i].events & EPOLLIN))) {
-        if (errno != EAGAIN) {
+      if ((events[i].events & EPOLLERR) || (events[i].events & EPOLLHUP)) {
+        if (errno == EAGAIN) {
+          nsleep(10);
           perror("[EPOLL] ERR|HUP");
         }
-        list_update(timers, conn, mstime());
         break;
       }
 
-      else if (conn->sockfd == srvfd) {
-        _receive_conn(srvfd, epfd, pgconn, cache, timers);
+      if (events[i].events & EPOLLIN) {
+        if (conn->sockfd == srvfd)
+          _receive_conn(srvfd, epfd, pgconn, cache, timers);
+        else {
+          /* client socket; read client data and process it */
+          thpool_add_task(taskpool, httpconn_task, conn);
+        }
       }
 
-      else {
-        /* client socket; read client data and process it */
-        thpool_add_task(taskpool, httpconn_task, conn);
+      if (events[i].events & EPOLLOUT) {
+        if (errno == EAGAIN) {
+          nsleep(10);
+          perror("[EPOLL !EPOLLIN");
+          break;
+        }
       }
-    }
+
+      i++;
+    } while (i < nevents);
   } while (svc_running);
 
   thpool_wait(taskpool);

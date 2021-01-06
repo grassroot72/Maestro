@@ -13,6 +13,7 @@ stage. More features will be added in the future.
 
   - Multithread pool
   - Epoll (so, linux specific)
+  - Non-blocking
   - HTTP/1.1 GET method (static file)
   - HTTP/1.1 HEAD method (static file)
   - HTTP/1.1 POST method
