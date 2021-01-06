@@ -13,6 +13,7 @@ OBJS = base64.o \
        io.o \
        util.o \
        jsmn.o \
+       mime.o \
        http_msg.o \
        http_parser.o \
        http_cache.o \
