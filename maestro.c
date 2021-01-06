@@ -328,7 +328,7 @@ int main(int argc, char **argv)
       if (events[i].events & EPOLLOUT) {
         if (errno == EAGAIN) {
           nsleep(10);
-          perror("[EPOLL !EPOLLIN");
+          perror("[EPOLL EPOLLOUT");
           break;
         }
       }
