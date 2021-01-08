@@ -8,13 +8,16 @@
 #define _UTIL_H_
 
 
+char *strbld(char *dst,
+             char const *src);
+
 void itos(unsigned char *outbuf,
           unsigned long n,
           const int base,
           const char sign);
 
 char *split_kv(char *kv,
-               char delim);
+               const char delim);
 
 void gmt_date(char *date_gmt,
               const long *tmgmt);

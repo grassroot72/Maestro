@@ -15,8 +15,21 @@
 #include "util.h"
 
 
+/* dst - The destination pointer
+ * src - The source pointer
+ * return Pointer to the end of the destination string - the next destination
+ */
+char *strbld(char *dst,
+             char const *src)
+{
+  while ((*dst = *src++)) {
+    dst++;
+  }
+  return dst;
+}
+
 /*
- * outbuf -  buffer to hold the output number
+ * outbuf -  buffer to hold the output number, size must >= 16
  * n      -  number to be converted
  * base   -  number base for conversion;  decimal=10,hex=16
  * sign   -  sign bit set in output? ex. '+' or '-', ' ' if not set
@@ -48,7 +61,7 @@ void itos(unsigned char *outbuf,
 }
 
 char *split_kv(char *kv,
-               char delim)
+               const char delim)
 {
   char *p = kv;
   do {

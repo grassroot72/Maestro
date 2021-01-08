@@ -90,11 +90,13 @@ int msg_add_headers(httpmsg_t *msg,
                     unsigned char *lines[],
                     const int nlines);
 
-char *msg_create_req(httpmsg_t *req,
-                     int *len);
+int msg_headers_len(const httpmsg_t *rep);
 
-char *msg_create_rep(httpmsg_t *rep,
-                     int *len);
+void msg_req_headers(char *msg,
+                     const httpmsg_t *req);
+
+void msg_rep_headers(char *msg,
+                     const httpmsg_t *rep);
 
 
 #endif

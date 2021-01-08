@@ -70,21 +70,21 @@ static httpmsg_t *_get_rep(const char *ctype,
   char rep_date[30];
   char len_str[16];
 
-  char *zip_encoding;
+  char *zip_enc;
 
   char *range_str;
   size_t range_s;
   size_t len_range;
 
 
-  zip_encoding = msg_header_value(req, "Accept-Encoding");
+  zip_enc = msg_header_value(req, "Accept-Encoding");
 
   httpmsg_t* rep = msg_new();
 
   if (!cdata->etag) {  /* 404 code */
     msg_set_rep_line(rep, 1, 1, 404, "Not Found");
     /* compressed */
-    if (mtype == MIME_TXT && zip_encoding && strstr(zip_encoding, "deflate")) {
+    if (mtype == MIME_TXT && zip_enc && strstr(zip_enc, "deflate")) {
       msg_add_header(rep, "Content-Encoding", "deflate");
       msg_add_zipped_body(rep, cdata->body_zipped, cdata->len_zipped);
       msg_set_body_start(rep, cdata->body_zipped);
@@ -118,8 +118,7 @@ static httpmsg_t *_get_rep(const char *ctype,
     msg_add_header(rep, "Content-Type", ctype);
 
     /* compressed */
-    if (mtype == MIME_TXT &&
-        zip_encoding && strstr(zip_encoding, "deflate")) {
+    if (mtype == MIME_TXT && zip_enc && strstr(zip_enc, "deflate")) {
       msg_add_header(rep, "Content-Encoding", "deflate");
       msg_add_header(rep, "Vary", "Accept-Encoding");
       msg_add_zipped_body(rep, cdata->body_zipped, cdata->len_zipped);
@@ -161,7 +160,6 @@ static httpmsg_t *_get_rep(const char *ctype,
       }
     }
   }
-
   return rep;
 }
 
@@ -178,6 +176,7 @@ httpmsg_t *_get_rep_msg(list_t *cache,
   char *ext;
   char curdir[MAX_CWD];
   char ospath[MAX_PATH];
+  char *ret;
 
   char content_type[32];
   int mime_type;
@@ -196,8 +195,9 @@ httpmsg_t *_get_rep_msg(list_t *cache,
   if (!getcwd(curdir, MAX_CWD)) {
     perror("Couldn't read curdir");
   }
-  strcpy(ospath, curdir);
-  strcat(ospath, path);
+  ret = strbld(ospath, curdir);
+  ret = strbld(ret, path);
+  *ret++ = '\0';
   DEBSS("[GET_IO] Opening file", ospath);
 
   ext = find_ext(path);
@@ -261,23 +261,25 @@ void http_get(const int clifd,
               const httpmsg_t *req)
 {
   httpmsg_t *rep;
-  int len_msg;
-  unsigned char *bytes;
+  int len_headers;
+  char *headers;
 
   rep = _get_rep_msg(cache, path, req);
-  bytes = (unsigned char *)msg_create_rep(rep, &len_msg);
+  len_headers = msg_headers_len(rep);
+  headers = malloc(len_headers);
+  msg_rep_headers(headers, rep);
 
   /* send msg */
   DEBSI("[GET_REP] Sending reply headers...", clifd);
-  io_write_socket(clifd, bytes, len_msg);
+  io_write_socket(clifd, (unsigned char *)headers, len_headers);
 
-  /* if method is GET, then send body */
+  /* if method is GET (NOT HEAD), then send body */
   if (req->method == METHOD_GET) {
     /* send body */
     DEBSI("[GET_REP] Sending reply body...", clifd);
     io_write_socket(clifd, rep->body_s, rep->len_body);
   }
 
-  free(bytes);
+  free(headers);
   msg_destroy(rep, 0);
 }

@@ -10,7 +10,7 @@
 #include "util.h"
 #include "http_msg.h"
 
-#define DEBUG
+//#define DEBUG
 #include "debug.h"
 
 
@@ -164,12 +164,9 @@ void msg_set_req_line(httpmsg_t *msg,
   int len, total = 0;
 
   len = strlen(method);
-  if (strcmp(method, "GET") == 0)
-    msg->method = METHOD_GET;
-  if (strcmp(method, "POST") == 0)
-    msg->method = METHOD_POST;
-  if (strcmp(method, "HEAD") == 0)
-    msg->method = METHOD_HEAD;
+  if (strcmp(method, "GET") == 0) msg->method = METHOD_GET;
+  if (strcmp(method, "POST") == 0) msg->method = METHOD_POST;
+  if (strcmp(method, "HEAD") == 0) msg->method = METHOD_HEAD;
   total += len;
 
   len = strlen(path);
@@ -290,50 +287,8 @@ int msg_add_headers(httpmsg_t *msg,
   return 1;
 }
 
-char *msg_create_req(httpmsg_t *req,
-                     int *len)
+int msg_headers_len(const httpmsg_t *msg)
 {
-  int i = 0;
-  char method[5];
-  /*
-   * GET xxxxx HTTP/1.1\r\n
-   * Host: www.xxxxx.com\r\n
-   * Accept-Language: en-US,en;q=0.5\r\n
-   * \r\n\0
-   *  ^ ^ ^
-   *  1 1 1  (1+1 = 2)
-   */
-  *len = req->len_startline + req->len_headers + 2;
-  char *msg = malloc(*len + 1);
-
-  /* start line */
-  if (req->method == METHOD_GET)
-    strcpy(method, "GET");
-  if (req->method == METHOD_POST)
-    strcpy(method, "POST");
-  if (req->method == METHOD_HEAD)
-    strcpy(method, "HEAD");
-  sprintf(msg, "%s %s HTTP/%d.%d\r\n",
-               method, req->path, req->ver_major, req->ver_minor);
-
-  /* headers */
-  do {
-    strcat(msg, req->headers[i].key);
-    strcat(msg, ": ");
-    strcat(msg, req->headers[i].value);
-    strcat(msg, "\r\n");
-    i++;
-  } while (i < req->num_headers);
-
-  /* ending CRLF */
-  strcat(msg, "\r\n");
-  return msg;
-}
-
-char *msg_create_rep(httpmsg_t *rep,
-                     int *len)
-{
-  int i = 0;
   /*
    * HTTP/1.1 200 OK\r\n
    * Host: www.xxxxx.com\r\n
@@ -344,23 +299,77 @@ char *msg_create_rep(httpmsg_t *rep,
    * body ....
    *
    */
-  *len = rep->len_startline + rep->len_headers + 2;
-  char *msg = malloc(*len + 1);
+  return msg->len_startline + msg->len_headers + 2;
+}
+
+void msg_req_headers(char *msg,
+                     const httpmsg_t *req)
+{
+  int i = 0;
+  char *ret = msg;
 
   /* start line */
-  sprintf(msg, "HTTP/%d.%d %d %s\r\n",
-               rep->ver_major, rep->ver_minor, rep->code, rep->status);
+  if (req->method == METHOD_GET) ret = strbld(msg, "GET");
+  if (req->method == METHOD_POST) ret = strbld(msg, "POST");
+  if (req->method == METHOD_HEAD) ret = strbld(msg, "HEAD");
+
+  *ret++ = ' ';
+  ret = strbld(ret, req->path);
+  ret = strbld(ret, " HTTP/");
+  *ret++ = req->ver_major + '0';
+  *ret++ = '.';
+  *ret++ = req->ver_minor + '0';
+  *ret++ = CR;
+  *ret++ = LF;
 
   /* headers */
   do {
-    strcat(msg, rep->headers[i].key);
-    strcat(msg, ": ");
-    strcat(msg, rep->headers[i].value);
-    strcat(msg, "\r\n");
+    ret = strbld(ret, req->headers[i].key);
+    *ret++ = ':';
+    *ret++ = ' ';
+    ret = strbld(ret, req->headers[i].value);
+    *ret++ = CR;
+    *ret++ = LF;
+    i++;
+  } while (i < req->num_headers);
+
+  /* ending CRLF */
+  *ret++ = CR;
+  *ret++ = LF;
+}
+
+void msg_rep_headers(char *msg,
+                     const httpmsg_t *rep)
+{
+  int i = 0;
+  unsigned char code[16];
+  char *ret;
+
+  /* start line */
+  ret = strbld(msg, "HTTP/");
+  *ret++ = rep->ver_major + '0';
+  *ret++ = '.';
+  *ret++ = rep->ver_minor + '0';
+  *ret++ = ' ';
+  itos(code, rep->code, 10, ' ');
+  ret = strbld(ret, (char *)code);
+  *ret++ = ' ';
+  ret = strbld(ret, rep->status);
+  *ret++ = CR;
+  *ret++ = LF;
+
+  /* headers */
+  do {
+    ret = strbld(ret, rep->headers[i].key);
+    *ret++ = ':';
+    *ret++ = ' ';
+    ret = strbld(ret, rep->headers[i].value);
+    *ret++ = CR;
+    *ret++ = LF;
     i++;
   } while (i < rep->num_headers);
 
   /* ending CRLF */
-  strcat(msg, "\r\n");
-  return msg;
+  *ret++ = CR;
+  *ret++ = LF;
 }

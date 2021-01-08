@@ -9,6 +9,7 @@
 #include <string.h>
 #include <libpq-fe.h>
 #include "io.h"
+#include "util.h"
 #include "pg_conn.h"
 #include "sqlobj.h"
 #include "sqlops.h"
@@ -20,19 +21,20 @@
 void _prep_select(char *sql,
                   const sqlobj_t *sqlo)
 {
-  strcat(sql, "SELECT ");
+  char *ret;
+
+  ret = strbld(sql, "SELECT ");
   if (sqlo->qfield[0]) {
-    strcat(sql, sqlo->qfield);
-    strcat(sql, " FROM ");
+    ret = strbld(ret, sqlo->qfield);
+    ret = strbld(ret, " FROM ");
   }
   else
-    strcat(sql, "* FROM ");
+    ret = strbld(ret, "* FROM ");
 
-  strcat(sql, sqlo->table);
+  ret = strbld(ret, sqlo->table);
 
-  if (sqlo->clause[0]) {
-    strcat(sql, sqlo->clause);
-  }
+  if (sqlo->clause[0]) ret = strbld(ret, sqlo->clause);
+  *ret++ = '\0';
 }
 
 void _parse_result(char *res,
@@ -42,21 +44,22 @@ void _parse_result(char *res,
   int nFields;
   int nRows;
   int i, j;
+  char *ret;
   char tmp[64];
 
   nFields = PQnfields(pgres);
 
-  strcat(res, "{");
+  ret = strbld(res, "{");
   /* show attribute names? */
   if (viscols) {
-    strcat(res, "\"h\":{\"hd\":[");
+    ret = strbld(ret, "\"h\":{\"hd\":[");
     for (i = 0; i < nFields; i++) {
-      strcat(res, "\"");
-      strcat(res, PQfname(pgres, i));
+      ret = strbld(ret, "\"");
+      ret = strbld(ret, PQfname(pgres, i));
       if (i != nFields - 1)
-        strcat(res, "\",");
+        ret = strbld(ret, "\",");
       else
-        strcat(res, "\"]},");
+        ret = strbld(ret, "\"]},");
     }
   }
 
@@ -64,26 +67,29 @@ void _parse_result(char *res,
   nRows = PQntuples(pgres);
   for (i = 0; i < nRows; i++) {
     if (i == 0)
-      sprintf(tmp, "\"d\":{\"r%03d\":[", i);
+      ret = strbld(ret, "\"d\":{\"r");
     else
-      sprintf(tmp, "\"r%03d\":[", i);
+      ret = strbld(ret, "\"r");
 
-    strcat(res, tmp);
+    sprintf(tmp, "%03d", i);
+    ret = strbld(ret, tmp);
+    ret = strbld(ret, "\":[");
 
     for (j = 0; j < nFields; j++) {
-      strcat(res, "\"");
-      strcat(res, PQgetvalue(pgres, i, j));
+      *ret++ = '"';
+      ret = strbld(ret, PQgetvalue(pgres, i, j));
       if (j != nFields - 1)
-        strcat(res, "\",");
+        ret = strbld(ret, "\",");
       else {
         if (i != nRows - 1)
-          strcat(res, "\"],");
+          ret = strbld(ret, "\"],");
         else
-          strcat(res, "\"]}");
+          ret = strbld(ret, "\"]}");
       }
     }
   }
-  strcat(res, "}");
+  *ret++ = '}';
+  *ret++ = '\0';
   PQclear(pgres);
 }
 
@@ -91,7 +97,7 @@ void sql_select(char *res,
                 PGconn *pgconn,
                 const sqlobj_t *sqlo)
 {
-  char sql[256] = "";
+  char sql[256];
 
   PGresult *pgres;
   const char *stmt;
@@ -152,15 +158,17 @@ void sql_select(char *res,
 void _prep_cursor(char *sql,
                   const sqlobj_t *sqlo)
 {
-  strcat(sql, "DECLARE portal CURSOR FOR ");
-  _prep_select(sql, sqlo);
+  char *ret;
+
+  ret = strbld(sql, "DECLARE portal CURSOR FOR ");
+  _prep_select(ret, sqlo);
 }
 
 void sql_fetch(char *res,
                PGconn *pgconn,
                const sqlobj_t *sqlo)
 {
-  char sql[256] = "";
+  char sql[256];
 
   PGresult *pgres;
   const char *stmt;

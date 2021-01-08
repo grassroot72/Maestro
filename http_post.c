@@ -57,8 +57,8 @@ void http_post(const int clifd,
                const httpmsg_t *req)
 {
   httpmsg_t *rep;
-  int len_msg;
-  unsigned char *bytes;
+  int len_headers;
+  char *headers;
 
   rep = msg_new();
   msg_add_header(rep, "Server", SVR_VERSION);
@@ -67,20 +67,21 @@ void http_post(const int clifd,
   msg_set_rep_line(rep, 1, 1, 200, "OK");
   msg_add_header(rep, "Transfer-Encoding", "chunked");
 
-  bytes = (unsigned char *)msg_create_rep(rep, &len_msg);
+  len_headers = msg_headers_len(rep);
+  headers = malloc(len_headers);
+  msg_rep_headers(headers, rep);
 
   /* send msg */
   DEBSI("[POST_REP] Sending reply headers...", clifd);
-  io_write_socket(clifd, bytes, len_msg);
+  io_write_socket(clifd, (unsigned char *)headers, len_headers);
 
   /* connect to database after receiving request */
   _process_json(clifd, pgconn, req);
 
   /* terminating the chuncked transfer */
   DEBSI("[POST_REP] Sending terminating chunk...", clifd);
-  io_write_socket(clifd, (unsigned char *)"0\r\n", 3);
-  io_write_socket(clifd, (unsigned char *)"\r\n", 2);
+  io_write_socket(clifd, (unsigned char *)"0\r\n\r\n", 5);
 
-  free(bytes);
+  free(headers);
   msg_destroy(rep, 0);
 }

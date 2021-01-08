@@ -4,7 +4,7 @@
 
 CC = gcc
 #CFLAGS = -O0 -g -Wall -pedantic -Isvc -I.
-CFLAGS = -O2 -Wall -pedantic -Isvc -I.
+CFLAGS = -O3 -Wall -pedantic -Isvc -I.
 LDFLAGS = -lpq -lpthread
 OBJS = base64.o \
        deflate.o \
