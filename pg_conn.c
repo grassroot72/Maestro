@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <libpq-fe.h>
+#include "util.h"
 #include "pg_conn.h"
 
 #define DEBUG
@@ -25,7 +26,8 @@ PGconn *pg_connect(const char *conninfo,
 {
   PGconn *conn;
   PGresult *res;
-  char path[64] = "SET search_path=";
+  char path[64];
+  char *ret;
 
   /* Make a connection to the database */
   conn = PQconnectdb(conninfo);
@@ -37,7 +39,9 @@ PGconn *pg_connect(const char *conninfo,
   }
 
   /* Set always-secure search path, so malicious users can't take control */
-  strcat(path, schema);
+  ret = strbld(path, "SET search_path=");
+  ret = strbld(ret, schema);
+  *ret++ = '\0';
   res = PQexec(conn, path);
   if (PQresultStatus(res) != PGRES_COMMAND_OK) {
     DEBSS("[DB] SET search_path failed", PQerrorMessage(conn));
