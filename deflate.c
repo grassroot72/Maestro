@@ -11,9 +11,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <assert.h> /* assert */
-#include <string.h> /* memcpy */
 #include <limits.h> /* CHAR_BIT */
+#include "memcpy_sse2.h"
 #include "deflate.h"
 
 #define DEBUG
@@ -45,7 +46,7 @@ static unsigned _uload32(const void *p)
 {
   /* hopefully will be optimized to an unaligned read */
   unsigned n = 0;
-  memcpy(&n, p, sizeof(n));
+  memcpy_fast(&n, p, sizeof(n));
   return n;
 }
 
@@ -259,8 +260,8 @@ static void _precode(struct sdefl_symcnt *cnt,
     if (offlen[cnt->off - 1]) break;
 
   total = (unsigned)(cnt->lit + cnt->off);
-  memcpy(lens, litlen, sizeof(unsigned char) * cnt->lit);
-  memcpy(lens + cnt->lit, offlen, sizeof(unsigned char) * cnt->off);
+  memcpy_fast(lens, litlen, sizeof(unsigned char) * cnt->lit);
+  memcpy_fast(lens + cnt->lit, offlen, sizeof(unsigned char) * cnt->off);
   do {
     unsigned len = lens[run_start];
     unsigned run_end = run_start;
@@ -470,7 +471,8 @@ static int _compress(struct sdefl *s,
   for (n = 0; n < SDEFL_HASH_SIZ; ++n) {
     s->tbl[n] = SDEFL_NIL;
   }
-  do {int blk_end = i + SDEFL_BLK_MAX < in_len ? i + SDEFL_BLK_MAX : in_len;
+  do {
+    int blk_end = i + SDEFL_BLK_MAX < in_len ? i + SDEFL_BLK_MAX : in_len;
     while (i < blk_end) {
       struct sdefl_match m = {0};
       int max_match = ((in_len-i)>SDEFL_MAX_MATCH) ? SDEFL_MAX_MATCH:(in_len-i);

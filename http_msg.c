@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "memcpy_sse2.h"
 #include "util.h"
 #include "http_msg.h"
 
@@ -118,7 +119,7 @@ int msg_split(unsigned char *lines[],
       if (!size) return 0;
       len = size - 1;
       lines[i] = malloc(size);
-      memcpy(lines[i], h, len);
+      memcpy_fast(lines[i], h, len);
       lines[i][len] = 0;
       h = p + 1;
       i++;
@@ -137,7 +138,7 @@ int msg_split(unsigned char *lines[],
   *len_body = p - h;
   if (*len_body) {
     lines[i] = malloc(*len_body);
-    memcpy(lines[i], h, *len_body);
+    memcpy_fast(lines[i], h, *len_body);
   }
 
   return i;
@@ -221,11 +222,11 @@ void msg_add_header(httpmsg_t *msg,
   len_v = strlen(value);
 
   msg->headers[msg->num_headers].key = malloc(len_k + 1);
-  memcpy(msg->headers[msg->num_headers].key, key, len_k);
+  memcpy_fast(msg->headers[msg->num_headers].key, key, len_k);
   msg->headers[msg->num_headers].key[len_k] = 0;
 
   msg->headers[msg->num_headers].value = malloc(len_v + 1);
-  memcpy(msg->headers[msg->num_headers].value, value, len_v);
+  memcpy_fast(msg->headers[msg->num_headers].value, value, len_v);
   msg->headers[msg->num_headers].value[len_v] = 0;
 
   total = len_k + len_v;

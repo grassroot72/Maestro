@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <assert.h>
 #include <errno.h>
+#include "memcpy_sse2.h"
 #include "util.h"
 #include "io.h"
 
@@ -51,7 +52,7 @@ unsigned char *io_read_socket(const int sockfd,
       return NULL;
     }
 
-    memcpy(last, buf, n);
+    memcpy_fast(last, buf, n);
     last += n;
     last_sz += n;
 
@@ -59,7 +60,7 @@ unsigned char *io_read_socket(const int sockfd,
       *last = '\0';
       last_sz++;
       bytes = malloc(last_sz);
-      memcpy(bytes, workbuf, last_sz);
+      memcpy_fast(bytes, workbuf, last_sz);
       *rc = 1;
       return bytes;
     }
@@ -139,7 +140,7 @@ char *io_fgetc(FILE *f,
 
     if (index == capacity) {
       newbuf = malloc(capacity << 1);
-      memcpy(newbuf, buf, capacity);
+      memcpy_fast(newbuf, buf, capacity);
       free(buf);
       buf = newbuf;
       capacity *= 2;
