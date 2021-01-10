@@ -51,20 +51,20 @@ void httpconn_task(void *arg)
   httpmsg_t *req;
 
   bytes = io_read_socket(conn->sockfd, &rc);
-
   /* rc = 0:  the client has closed the connection */
   if (rc == 0) {
     DEBSI("[CONN] client disconnected", conn->sockfd);
     return;
   }
 
-  /* rc = -1: something wrong with the socket */
+  /* rc = -1: EAGAIN (Resource busy) */
   if (rc == -1) {
     DEBSI("[CONN] sock error", conn->sockfd);
     return;
   }
 
   if (rc == 1) {
+    DEBSS("[CONN] raw bytes", bytes);
     req = http_parse_req(bytes);
     if (!req) return;
 

@@ -76,13 +76,12 @@ void msg_destroy(httpmsg_t *msg,
     if (msg->headers[i].value) free(msg->headers[i].value);
     i++;
   } while (i < msg->num_headers);
-  free(msg->headers);
 
   if (delbody) {
     if (msg->body) free(msg->body);
     if (msg->body_zipped) free(msg->body_zipped);
   }
-
+  free(msg->headers);
   free(msg);
 }
 
@@ -120,7 +119,7 @@ int msg_split(unsigned char *lines[],
       len = size - 1;
       lines[i] = malloc(size);
       memcpy_fast(lines[i], h, len);
-      lines[i][len] = 0;
+      lines[i][len] = '\0';
       h = p + 1;
       i++;
     }

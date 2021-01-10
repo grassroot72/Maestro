@@ -47,7 +47,8 @@ unsigned char *io_read_socket(const int sockfd,
       return NULL;
     }
     if (n == -1) {
-      //perror("read()");
+      /* perror("[IO] read()"); */
+      /* normally errno = EAGAIN (Resource busy) */
       *rc = -1;
       return NULL;
     }

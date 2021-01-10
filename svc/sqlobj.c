@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "memcpy_sse2.h"
 #include "jsmn.h"
 #include "sqlobj.h"
 
@@ -14,11 +15,31 @@
 #include "debug.h"
 
 
-sqlobj_t *sql_json_parse(const char *body,
+sqlobj_t *sqlobj_new()
+{
+  sqlobj_t *sqlo = malloc(sizeof(struct _sqlobj));
+  sqlo->nkeys = 0;
+  sqlo->viscols = 1;
+
+  return sqlo;
+}
+
+void sqlobj_destroy(sqlobj_t *sqlo)
+{
+  int i = 0;
+  do {
+    if (sqlo->keys[i]) free(sqlo->keys[i]);
+    if (sqlo->values[i]) free(sqlo->values[i]);
+    i++;
+  } while (i < sqlo->nkeys);
+  free(sqlo);
+}
+
+sqlobj_t *sql_parse_json(const char *body,
                          const size_t len_body)
 {
   int i, j, n;
-  int count;
+  int count = 0;
   int len = 0;
 
   jsmntok_t t[MAX_JSMN_TOKENS];  /* MAX_JSMN_TOKENS = 128 */
@@ -27,37 +48,32 @@ sqlobj_t *sql_json_parse(const char *body,
 
   sqlobj_t *sqlo;
 
+  sqlo = sqlobj_new();
+  if (!sqlo) return NULL;
 
   jsmn_init(&p);
   n = jsmn_parse(&p, body, len_body, t, MAX_JSMN_TOKENS);
-
-  sqlo = malloc(sizeof(struct _sqlobj));
-  sqlo->table[0] = '\0';
-  sqlo->cmd[0] = '\0';
-  sqlo->qfield[0] = '\0';
-  sqlo->clause[0] = '\0';
-  count = 0;
 
   DEBSI("[SQL] n_toks", n);
   /* Loop over all keys */
   for (i = 1; i < n; i++) {
     if (jsoneq(body, &t[i], "table") == 0) {
       len =  t[i + 1].end - t[i + 1].start;
-      strncpy(sqlo->table, body + t[i + 1].start, len);
+      memcpy_fast(sqlo->table, body + t[i + 1].start, len);
       sqlo->table[len] = '\0';
       i++;
       DEBSS("[SQL] table", sqlo->table);
     }
     else if (jsoneq(body, &t[i], "cmd") == 0) {
       len =  t[i + 1].end - t[i + 1].start;
-      strncpy(sqlo->cmd, body + t[i + 1].start, len);
+      memcpy_fast(sqlo->cmd, body + t[i + 1].start, len);
       sqlo->cmd[len] = '\0';
       i++;
       DEBSS("[SQL] cmd", sqlo->cmd);
     }
     else if (jsoneq(body, &t[i], "clause") == 0) {
       len =  t[i + 1].end - t[i + 1].start;
-      strncpy(sqlo->clause, body + t[i + 1].start, len);
+      memcpy_fast(sqlo->clause, body + t[i + 1].start, len);
       sqlo->clause[len] = '\0';
       i++;
       DEBSS("[SQL] cmd", sqlo->clause);
@@ -78,7 +94,7 @@ sqlobj_t *sql_json_parse(const char *body,
         g = &t[i + j + 2];
         len = g->end - g->start;
         sqlo->keys[count] = malloc(len + 1);
-        strncpy(sqlo->keys[count], body + g->start, len);
+        memcpy_fast(sqlo->keys[count], body + g->start, len);
         sqlo->keys[count][len] = '\0';
         DEBSS("[SQL] key", sqlo->keys[count]);
         count++;
@@ -96,7 +112,7 @@ sqlobj_t *sql_json_parse(const char *body,
         g = &t[i + j + 2];
         len = g->end - g->start;
         sqlo->values[count] = malloc(len + 1);
-        strncpy(sqlo->values[count], body + g->start, len);
+        memcpy_fast(sqlo->values[count], body + g->start, len);
         sqlo->values[count][len] = '\0';
         DEBSS("[SQL] value", sqlo->values[count]);
         count++;
@@ -108,16 +124,4 @@ sqlobj_t *sql_json_parse(const char *body,
   DEBSI("[SQL] nkeys", sqlo->nkeys);
 
   return sqlo;
-}
-
-void sql_json_destroy(sqlobj_t *sqlo)
-{
-  int i = 0;
-  if (sqlo) {
-    do {
-      if (sqlo->keys[i]) free(sqlo->keys[i]);
-      if (sqlo->values[i]) free(sqlo->values[i]);
-      i++;
-    } while (i < sqlo->nkeys);
-  }
 }

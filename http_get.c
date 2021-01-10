@@ -265,6 +265,7 @@ void http_get(const int clifd,
   char *headers;
 
   rep = _get_rep_msg(cache, path, req);
+  
   len_headers = msg_headers_len(rep);
   headers = malloc(len_headers);
   msg_rep_headers(headers, rep);

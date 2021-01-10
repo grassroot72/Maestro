@@ -16,7 +16,7 @@
 cache_data_t *http_cache_data_new()
 {
   cache_data_t *data;
-  data = (cache_data_t *)malloc(sizeof(struct _cache_data));
+  data = malloc(sizeof(struct _cache_data));
   return data;
 }
 

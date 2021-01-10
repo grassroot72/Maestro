@@ -26,29 +26,28 @@
 #include "debug.h"
 
 
-static int _process_json(const int clifd,
-                         PGconn *pgconn,
-                         const httpmsg_t *req)
+static void _process_json(const int clifd,
+                          PGconn *pgconn,
+                          const httpmsg_t *req)
 {
   char *body;
-  sqlobj_t *sqlo;
-  char sqlres[2048] = "";
+  sqlobj_t *sqlo = NULL;
+  char sqlres[2048];
 
   /* process the request message here */
   body = (char *)req->body;
   DEBSS("[REQ] json string", body);
 
-  sqlo = sql_json_parse(body, req->len_body);
+  sqlo = sql_parse_json(body, req->len_body);
 
-  /* this is the microservice */
-  if (strcmp(sqlo->cmd, "SELECT") == 0) {
-    sql_fetch(sqlres, pgconn, sqlo);
-    io_send_chunk(clifd, sqlres);
+  if (sqlo) {
+    /* this is the microservice */
+    if (strcmp(sqlo->cmd, "SELECT") == 0) {
+      sql_fetch(sqlres, pgconn, sqlo);
+      io_send_chunk(clifd, sqlres);
+    }
+    sqlobj_destroy(sqlo);
   }
-
-  sql_json_destroy(sqlo);
-
-  return 0;
 }
 
 void http_post(const int clifd,

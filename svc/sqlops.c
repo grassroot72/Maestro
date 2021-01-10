@@ -212,6 +212,7 @@ void sql_fetch(char *res,
     PQclear(pgres);
     pg_exit_nicely(pgconn);
   }
+  PQclear(pgres);
 
   pgres = PQexec(pgconn, "FETCH ALL in portal");
   if (PQresultStatus(pgres) != PGRES_TUPLES_OK) {

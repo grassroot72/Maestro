@@ -9,7 +9,7 @@
 #include <string.h>
 #include "http_msg.h"
 
-//#define DEBUG
+#define DEBUG
 #include "debug.h"
 
 
@@ -66,13 +66,12 @@ httpmsg_t *http_parse_req(const unsigned char *buf)
     return NULL;
   }
 
+  /* body */
   if (len_body > 0) {
     msg_add_body(req, lines[count], len_body);
-    DEBSS("[PARSER] body", lines[count]);
-    msg_lines_destroy(lines, nlines);
   }
-  else
-    msg_lines_destroy(lines, count);
+
+  msg_lines_destroy(lines, count);
 
   return req;
 }

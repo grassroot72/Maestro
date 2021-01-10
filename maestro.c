@@ -74,6 +74,7 @@ static void _expire_timers(list_t *timers,
         DEBSI("[CONN] socket closed from server", conn->sockfd);
         close(conn->sockfd);
         free(conn);
+        conn = NULL;
 
         list_del(timers, timer->stamp);
         timer = list_next(timers);
@@ -330,6 +331,7 @@ int main(int argc, char **argv)
     } while (i < nevents);
   } while (svc_running);
 
+  DEBS("Exit gracefully...");
   thpool_wait(taskpool);
   thpool_destroy(taskpool);
 
@@ -337,11 +339,11 @@ int main(int argc, char **argv)
   _expire_cache(cache, 0);
   list_destroy(cache);
 
-  free(srvconn);
+  if (srvconn) free(srvconn);
   close(epfd);
   free(events);
 
-  puts("Exit gracefully...");
+  pg_exit_nicely(pgconn);
 
   return 0;
 }
