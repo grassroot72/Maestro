@@ -10,6 +10,13 @@
 
 #define SVR_VERSION "Maestro/1.0"
 
+#define MSG_OK 1
+#define MSG_EMPTY 0
+#define MSG_IMCOMPLETE -1
+
+
+#define MAX_NUM_MSG_LINES 35  /* MAX_NUM_HEADERS + 3 */
+
 #define METHOD_HEAD 0
 #define METHOD_GET 1
 #define METHOD_POST 2

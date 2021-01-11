@@ -13,8 +13,51 @@
 #include "debug.h"
 
 
-#define MAX_NUM_MSG_LINES 35  /* MAX_NUM_HEADERS + 3 */
+static int _fill_lines(unsigned char *lines[],
+                       int *nlines,
+                       int *len_body,
+                       int *count,
+                       const unsigned char *buf)
+{
+  if (!buf) return MSG_EMPTY;
 
+  *nlines = 0;
+  *count = msg_split(lines, nlines, len_body, buf);
+  if (!*count) {
+    DEBS("Empty message!!!");
+    return MSG_EMPTY;
+  }
+
+  if (*count < 3) {
+    DEBS("Incomplete message 1!!!");
+    msg_lines_destroy(lines, *count);
+    return MSG_IMCOMPLETE;
+  }
+
+  return MSG_OK;
+}
+
+static int _fill_msg(httpmsg_t *msg,
+                     unsigned char *lines[],
+                     const int nlines,
+                     const int len_body,
+                     const int count)
+{
+  /* headers */
+  if (!msg_add_headers(msg, lines, nlines)) {
+    msg_lines_destroy(lines, count);
+    msg_destroy(msg, 1);
+    return MSG_EMPTY;
+  }
+
+  /* body */
+  if (len_body > 0) {
+    msg_add_body(msg, lines[count], len_body);
+  }
+
+  msg_lines_destroy(lines, count);
+  return MSG_OK;
+}
 
 httpmsg_t *http_parse_req(const unsigned char *buf)
 {
@@ -22,28 +65,16 @@ httpmsg_t *http_parse_req(const unsigned char *buf)
   char *method;
   char *path;
   char *version;
-  int major;
-  int minor;
+  int major, minor;
   int count, nlines;
   int len_body;
+  int rc;
 
   char *rest;
   httpmsg_t *req;
 
-  if (!buf) return NULL;
-
-  nlines = 0;
-  count = msg_split(lines, &nlines, &len_body, buf);
-  if (!count) {
-    DEBS("Empty message!!!");
-    return NULL;
-  }
-
-  if (count < 3) {
-    DEBS("Incomplete message 1!!!");
-    msg_lines_destroy(lines, count);
-    return NULL;
-  }
+  rc = _fill_lines(lines, &nlines, &len_body, &count, buf);
+  if (rc != MSG_OK) return NULL;
 
   req = msg_new();
 
@@ -60,19 +91,8 @@ httpmsg_t *http_parse_req(const unsigned char *buf)
   else
     msg_set_req_line(req, method, path, major, minor);
 
-  /* headers */
-  if (!msg_add_headers(req, lines, nlines)) {
-    msg_lines_destroy(lines, count);
-    msg_destroy(req, 1);
-    return NULL;
-  }
-
-  /* body */
-  if (len_body > 0) {
-    msg_add_body(req, lines[count], len_body);
-  }
-
-  msg_lines_destroy(lines, count);
+  rc = _fill_msg(req, lines, nlines, len_body, count);
+  if (rc != MSG_OK) return NULL;
 
   return req;
 }
@@ -81,30 +101,18 @@ httpmsg_t *http_parse_rep(const unsigned char *buf)
 {
   unsigned char *lines[MAX_NUM_MSG_LINES];  /* http messages lines */
   char *version;
-  int major;
-  int minor;
+  int major, minor;
   int code;
   char *status;
   int count, nlines;
   int len_body;
+  int rc;
 
   char *rest;
   httpmsg_t *rep;
 
-  if (!buf) return NULL;
-
-  nlines = 0;
-  count = msg_split(lines, &nlines, &len_body, buf);
-  if (!count) {
-    DEBS("Empty message!!!");
-    return NULL;
-  }
-
-  if (count < 3) {
-    DEBS("Incomplete message 1!!!");
-    msg_lines_destroy(lines, count);
-    return NULL;
-  }
+  rc = _fill_lines(lines, &nlines, &len_body, &count, buf);
+  if (rc != MSG_OK) return NULL;
 
   rep = msg_new();
 
@@ -118,18 +126,8 @@ httpmsg_t *http_parse_rep(const unsigned char *buf)
 
   msg_set_rep_line(rep, major, minor, code, status);
 
-  /* headers */
-  if (!msg_add_headers(rep, lines, nlines)) {
-    msg_lines_destroy(lines, count);
-    msg_destroy(rep, 1);
-    return NULL;
-  }
-
-  /* body */
-  if (len_body > 0) {
-    msg_add_body(rep, lines[count], len_body);
-  }
-  msg_lines_destroy(lines, count);
+  rc = _fill_msg(rep, lines, nlines, len_body, count);
+  if (rc != MSG_OK) return NULL;
 
   return rep;
 }
