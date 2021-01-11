@@ -10,7 +10,6 @@
 
 httpmsg_t *http_parse_req(const unsigned char *buf);
 httpmsg_t *http_parse_rep(const unsigned char *buf);
-httpmsg_t *http_parse_headers(const unsigned char *buf);
 
 
 #endif

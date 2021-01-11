@@ -63,6 +63,7 @@ httpmsg_t *http_parse_req(const unsigned char *buf)
   /* headers */
   if (!msg_add_headers(req, lines, nlines)) {
     msg_lines_destroy(lines, count);
+    msg_destroy(req, 1);
     return NULL;
   }
 
@@ -94,6 +95,11 @@ httpmsg_t *http_parse_rep(const unsigned char *buf)
 
   nlines = 0;
   count = msg_split(lines, &nlines, &len_body, buf);
+  if (!count) {
+    DEBS("Empty message!!!");
+    return NULL;
+  }
+
   if (count < 3) {
     DEBS("Incomplete message 1!!!");
     msg_lines_destroy(lines, count);
@@ -115,43 +121,15 @@ httpmsg_t *http_parse_rep(const unsigned char *buf)
   /* headers */
   if (!msg_add_headers(rep, lines, nlines)) {
     msg_lines_destroy(lines, count);
+    msg_destroy(rep, 1);
     return NULL;
   }
 
+  /* body */
   if (len_body > 0) {
     msg_add_body(rep, lines[count], len_body);
-    DEBSS("[PARSER] body", lines[count]);
-    msg_lines_destroy(lines, nlines);
   }
-  else
-    msg_lines_destroy(lines, count);
+  msg_lines_destroy(lines, count);
 
   return rep;
-}
-
-httpmsg_t *http_parse_headers(const unsigned char *buf)
-{
-  unsigned char *lines[MAX_NUM_MSG_LINES];
-  int count, nlines;
-  int len_body;
-
-  httpmsg_t *hdrs;
-
-  nlines = 0;
-  count = msg_split(lines, &nlines, &len_body, buf);
-  if (count < 3) {
-    DEBS("Incomplete message 1!!!");
-    return NULL;
-  }
-
-  hdrs = msg_new();
-
-  /* headers */
-  if (!msg_add_headers(hdrs, lines, nlines)) {
-    msg_lines_destroy(lines, count);
-    return NULL;
-  }
-
-  msg_lines_destroy(lines, count);
-  return hdrs;
 }

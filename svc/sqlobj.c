@@ -17,8 +17,7 @@
 
 sqlobj_t *sqlobj_new()
 {
-  sqlobj_t *sqlo = malloc(sizeof(struct _sqlobj));
-  sqlo->nkeys = 0;
+  sqlobj_t *sqlo = calloc(1, sizeof(struct _sqlobj));
   sqlo->viscols = 1;
 
   return sqlo;
