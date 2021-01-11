@@ -11,7 +11,7 @@
 #include "util.h"
 #include "pg_conn.h"
 
-#define DEBUG
+//#define DEBUG
 #include "debug.h"
 
 

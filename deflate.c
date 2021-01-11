@@ -17,7 +17,7 @@
 #include "memcpy_sse2.h"
 #include "deflate.h"
 
-#define DEBUG
+//#define DEBUG
 #include "debug.h"
 
 
