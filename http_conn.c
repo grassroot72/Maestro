@@ -50,7 +50,7 @@ void httpconn_task(void *arg)
 
   httpmsg_t *req;
 
-  bytes = io_read_socket(conn->sockfd, &rc);
+  bytes = io_socket_recv(conn->sockfd, &rc);
   /* rc = 0:  the client has closed the connection */
   if (rc == 0) {
     DEBSI("[CONN] client disconnected", conn->sockfd);

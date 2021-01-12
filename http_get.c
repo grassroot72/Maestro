@@ -265,20 +265,20 @@ void http_get(const int clifd,
   char *headers;
 
   rep = _get_rep_msg(cache, path, req);
-  
+
   len_headers = msg_headers_len(rep);
   headers = malloc(len_headers);
   msg_rep_headers(headers, rep);
 
   /* send msg */
   DEBSI("[GET_REP] Sending reply headers...", clifd);
-  io_write_socket(clifd, (unsigned char *)headers, len_headers);
+  io_socket_send(clifd, (unsigned char *)headers, len_headers);
 
   /* if method is GET (NOT HEAD), then send body */
   if (req->method == METHOD_GET) {
     /* send body */
     DEBSI("[GET_REP] Sending reply body...", clifd);
-    io_write_socket(clifd, rep->body_s, rep->len_body);
+    io_socket_send(clifd, rep->body_s, rep->len_body);
   }
 
   free(headers);

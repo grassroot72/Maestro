@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <pthread.h>
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <sys/sysinfo.h>
@@ -203,8 +204,7 @@ static int _listen(const int srvfd)
     perror("listen()");
     return -1;
   }
-
-  return 0;
+  return 1;
 }
 
 int main(int argc, char **argv)
@@ -266,9 +266,13 @@ int main(int argc, char **argv)
   /* bind */
   _bind(srvfd, PORT);
   /* make it nonblocking, and then listen */
-  _listen(srvfd);
-  printf("listening on port [%d]\n", PORT);
-
+  if (_listen(srvfd)) {
+    printf("listening on port [%d]\n", PORT);
+  }
+  else {
+    printf("listening on port [%d] failed!!!\n", PORT);
+    exit(1);
+  }
 
   /* create the epoll socket */
   epfd = epoll_create1(0);
@@ -345,5 +349,6 @@ int main(int argc, char **argv)
 
   pg_exit_nicely(pgconn);
 
+  pthread_exit(0);
   return 0;
 }

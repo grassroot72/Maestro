@@ -2,7 +2,7 @@
  * The original code was developed by pminkov from the following repo
  * https://github.com/pminkov/threadpool
  *
- * I reformatted the code according to my coding style and made some tweeks.
+ * I reformatted the code according to my coding style and made some tweaks.
  * pminkov's code was not licensed, but should be acknowledged.
  *
  * Copyright (C) 2021  Edward LEI <edward_lei72@hotmail.com>
@@ -121,7 +121,7 @@ void thpool_wait(struct _thpool *pool)
   DEBS("[POOL] Waiting done.");
 }
 
-struct _thpool *thpool_init(int max_threads)
+struct _thpool *thpool_init(const int max_threads)
 {
   int rc;
   int i;
@@ -133,6 +133,7 @@ struct _thpool *thpool_init(int max_threads)
   pool->task_queue = malloc(sizeof(struct _taskdata) * TASK_QUEUE_MAX);
 
   pool->max_threads = max_threads;
+  pool->attr = malloc(sizeof(pthread_attr_t) * max_threads);
   pool->worker_threads = malloc(sizeof(pthread_t) * max_threads);
 
   rc = pthread_mutex_init(&pool->mutex, NULL);
@@ -142,10 +143,17 @@ struct _thpool *thpool_init(int max_threads)
   rc = pthread_cond_init(&pool->done, NULL);
   assert(rc == 0);
 
-  for (i = 0; i < max_threads; i++) {
-    rc = pthread_create(&pool->worker_threads[i], NULL, _worker_func, pool);
+  i = 0;
+  do {
+    pthread_attr_init(&pool->attr[i]);
+    pthread_attr_setdetachstate(&pool->attr[i], PTHREAD_CREATE_DETACHED);
+    rc = pthread_create(&pool->worker_threads[i],
+                        &pool->attr[i],
+                        _worker_func,
+                        pool);
     assert(rc == 0);
-  }
+    i++;
+  } while (i < pool->max_threads);
 
   return pool;
 }
@@ -155,11 +163,13 @@ void thpool_destroy(struct _thpool *pool)
   int rc;
   int i;
 
-  for (i = 0; i < pool->max_threads; i++) {
-    rc = pthread_detach(pool->worker_threads[i]);
+  i = 0;
+  do {
+    rc = pthread_attr_destroy(&pool->attr[i]);
     assert(rc == 0);
-  }
-
+    i++;
+  } while (i < pool->max_threads);
+  free(pool->attr);
   free(pool->worker_threads);
   free(pool->task_queue);
 

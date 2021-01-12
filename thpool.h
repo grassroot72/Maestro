@@ -2,7 +2,7 @@
  * The original code was developed by pminkov from the following repo
  * https://github.com/pminkov/threadpool
  *
- * I reformatted the code according to my coding style and made some tweeks.
+ * I reformatted the code according to my coding style and made some tweaks.
  * pminkov's code was not licensed, but should be acknowledged.
  *
  * Copyright (C) 2021  Edward LEI <edward_lei72@hotmail.com>
@@ -23,6 +23,12 @@ struct _taskdata {
 typedef struct _thpool thpool_t;
 
 struct _thpool {
+  /*
+   * can be used to set the thread PTHREAD_CREATE_DETACHED attribute,
+   * or set the stack size of a thread
+   * ex. pthread_attr_setstacksize(&attr, SMALL_STACK);
+   */
+  pthread_attr_t *attr;
   /* N worker threads */
   pthread_t *worker_threads;
 
@@ -54,7 +60,7 @@ struct _thpool {
 };
 
 /* Creates a thread pool and returns a pointer to it */
-thpool_t *thpool_init(int max_threads);
+thpool_t *thpool_init(const int max_threads);
 
 /*
  * Insert task into thread pool

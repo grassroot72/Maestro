@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <assert.h>
 #include <errno.h>
+#include <sys/socket.h>
 #include "memcpy_sse2.h"
 #include "util.h"
 #include "io.h"
@@ -18,15 +19,15 @@
 #include "debug.h"
 
 
-#define BUF_SIZE 1024
+#define CHUNK_SIZE 1024
 #define BUF_MAX_SIZE 8192
 
 
-unsigned char *io_read_socket(const int sockfd,
+unsigned char *io_socket_recv(const int sockfd,
                               int *rc)
 {
   int n;
-  unsigned char buf[BUF_SIZE];
+  unsigned char buf[CHUNK_SIZE];
   unsigned char workbuf[BUF_MAX_SIZE];
   unsigned char *last;
   int last_sz;
@@ -39,7 +40,7 @@ unsigned char *io_read_socket(const int sockfd,
 
   /* use loop to read as much as possible in a task */
   do {
-    n = read(sockfd, buf, BUF_SIZE);
+    n = recv(sockfd, buf, CHUNK_SIZE, 0);
 
     /* the client close the socket: EOF reached */
     if (n == 0) {
@@ -57,7 +58,7 @@ unsigned char *io_read_socket(const int sockfd,
     last += n;
     last_sz += n;
 
-    if (n < BUF_SIZE) {
+    if (n < CHUNK_SIZE) {
       *last = '\0';
       last_sz++;
       bytes = malloc(last_sz);
@@ -70,12 +71,12 @@ unsigned char *io_read_socket(const int sockfd,
   } while (1);
 }
 
-void io_write_socket(const int sockfd,
-                     unsigned char *bytes,
-                     const size_t len)
+void io_socket_send(const int sockfd,
+                    const unsigned char *bytes,
+                    const size_t len)
 {
   int n;
-  unsigned char *last;
+  const unsigned char *last;
   size_t done_sz;
   size_t left_sz;
 
@@ -87,7 +88,7 @@ void io_write_socket(const int sockfd,
     left_sz = len - done_sz;
     if (left_sz <= 0) return;
 
-    n = write(sockfd, last, left_sz);
+    n = send(sockfd, last, left_sz, 0);
     if (n == -1) {
       /* perror("write()") */
       if (errno == EPIPE) return;
@@ -165,10 +166,10 @@ void io_send_chunk(const int clifd,
   itos(hex_str, len_chunk, 16, ' ');
   /* chunked length in Hex */
   DEBSI("[IO] Sending chunked length...", clifd);
-  io_write_socket(clifd, hex_str, strlen((char *)hex_str));
-  io_write_socket(clifd, (unsigned char *)"\r\n", 2);
+  io_socket_send(clifd, hex_str, strlen((char *)hex_str));
+  io_socket_send(clifd, (unsigned char *)"\r\n", 2);
   /* chunk */
   DEBSI("[IO] Sending chunked...", clifd);
-  io_write_socket(clifd, (unsigned char *)chunk, len_chunk);
-  io_write_socket(clifd, (unsigned char *)"\r\n", 2);
+  io_socket_send(clifd, (unsigned char *)chunk, len_chunk);
+  io_socket_send(clifd, (unsigned char *)"\r\n", 2);
 }
