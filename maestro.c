@@ -335,8 +335,14 @@ int main(int argc, char **argv)
     } while (i < nevents);
   } while (svc_running);
 
-  DEBS("Exit gracefully...");
   thpool_wait(taskpool);
+  /*
+   * glibc doesn't free thread stacks when threads exit;
+   * it caches them for reuse, and only prunes the cache when it gets huge.
+   * Thus it always "leaks" some memory.
+   *
+   * So, don't worry about it.
+   */
   thpool_destroy(taskpool);
 
   list_destroy(timers);
@@ -347,8 +353,8 @@ int main(int argc, char **argv)
   close(epfd);
   free(events);
 
-  pg_exit_nicely(pgconn);
+  PQfinish(pgconn);
 
-  pthread_exit(0);
+  DEBS("Exit gracefully...");
   return 0;
 }
