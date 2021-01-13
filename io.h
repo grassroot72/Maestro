@@ -8,12 +8,12 @@
 #define _IO_H_
 
 
-unsigned char *io_socket_recv(const int sockfd,
+unsigned char *io_socket_read(const int sockfd,
                               int *rc);
 
-void io_socket_send(const int sockfd,
-                    const unsigned char *bytes,
-                    const size_t len);
+void io_socket_write(const int sockfd,
+                     const unsigned char *bytes,
+                     const size_t len);
 
 unsigned char *io_fread(const char *fname,
                         const size_t len);

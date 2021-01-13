@@ -33,11 +33,13 @@ char *strbld(char *dst,
  * n      -  number to be converted
  * base   -  number base for conversion;  decimal=10,hex=16
  * sign   -  sign bit set in output? ex. '+' or '-', ' ' if not set
+ *
+ * return - the length of the outbuf
  */
-void itos(unsigned char *outbuf,
-          unsigned long n,
-          const int base,
-          const char sign)
+int itos(unsigned char *outbuf,
+         unsigned long n,
+         const int base,
+         const char sign)
 {
   int i = 12;
   int j = 0;
@@ -58,6 +60,7 @@ void itos(unsigned char *outbuf,
   }
 
   outbuf[j] = '\0';
+  return j;
 }
 
 char *split_kv(char *kv,

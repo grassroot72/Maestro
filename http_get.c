@@ -272,13 +272,13 @@ void http_get(const int clifd,
 
   /* send msg */
   DEBSI("[GET_REP] Sending reply headers...", clifd);
-  io_socket_send(clifd, (unsigned char *)headers, len_headers);
+  io_socket_write(clifd, (unsigned char *)headers, len_headers);
 
   /* if method is GET (NOT HEAD), then send body */
   if (req->method == METHOD_GET) {
     /* send body */
     DEBSI("[GET_REP] Sending reply body...", clifd);
-    io_socket_send(clifd, rep->body_s, rep->len_body);
+    io_socket_write(clifd, rep->body_s, rep->len_body);
   }
 
   free(headers);

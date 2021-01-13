@@ -73,6 +73,7 @@ static void _expire_timers(list_t *timers,
         conn = (httpconn_t *)timer->data;
 
         DEBSI("[CONN] socket closed from server", conn->sockfd);
+        shutdown(conn->sockfd, SHUT_RDWR);
         close(conn->sockfd);
         free(conn);
         conn = NULL;
@@ -349,6 +350,8 @@ int main(int argc, char **argv)
   _expire_cache(cache, 0);
   list_destroy(cache);
 
+  shutdown(srvfd, SHUT_RDWR);
+  close(srvfd);
   if (srvconn) free(srvconn);
   close(epfd);
   free(events);

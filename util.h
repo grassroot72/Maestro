@@ -11,10 +11,10 @@
 char *strbld(char *dst,
              char const *src);
 
-void itos(unsigned char *outbuf,
-          unsigned long n,
-          const int base,
-          const char sign);
+int itos(unsigned char *outbuf,
+         unsigned long n,
+         const int base,
+         const char sign);
 
 char *split_kv(char *kv,
                const char delim);

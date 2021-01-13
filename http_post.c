@@ -72,14 +72,14 @@ void http_post(const int clifd,
 
   /* send msg */
   DEBSI("[POST_REP] Sending reply headers...", clifd);
-  io_socket_send(clifd, (unsigned char *)headers, len_headers);
+  io_socket_write(clifd, (unsigned char *)headers, len_headers);
 
   /* connect to database after receiving request */
   _process_json(clifd, pgconn, req);
 
   /* terminating the chuncked transfer */
   DEBSI("[POST_REP] Sending terminating chunk...", clifd);
-  io_socket_send(clifd, (unsigned char *)"0\r\n\r\n", 5);
+  io_socket_write(clifd, (unsigned char *)"0\r\n\r\n", 5);
 
   free(headers);
   msg_destroy(rep, 0);
