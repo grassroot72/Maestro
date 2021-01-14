@@ -159,12 +159,9 @@ char *io_fgetc(FILE *f,
 void io_send_chunk(const int clifd,
                    const char *chunk)
 {
-  int len_chunk;
-  int len;
   unsigned char hex_len[16];
-
-  len_chunk = strlen(chunk);
-  len = itos(hex_len, len_chunk, 16, ' ');
+  int len_chunk = strlen(chunk);
+  int len = itos(hex_len, len_chunk, 16, ' ');
   /* chunked length in Hex */
   D_PRINT("[IO] Sending chunked length... %d\n", clifd);
   io_socket_write(clifd, hex_len, len);

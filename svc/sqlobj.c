@@ -37,25 +37,23 @@ void sqlobj_destroy(sqlobj_t *sqlo)
 sqlobj_t *sql_parse_json(const char *body,
                          const size_t len_body)
 {
-  int i, j, n;
-  int count = 0;
-  int len = 0;
+  sqlobj_t *sqlo = sqlobj_new();
+  if (!sqlo) return NULL;
 
   jsmntok_t t[MAX_JSMN_TOKENS];  /* MAX_JSMN_TOKENS = 128 */
   jsmntok_t *g;
   jsmn_parser_t p;
 
-  sqlobj_t *sqlo;
-
-  sqlo = sqlobj_new();
-  if (!sqlo) return NULL;
-
   jsmn_init(&p);
-  n = jsmn_parse(&p, body, len_body, t, MAX_JSMN_TOKENS);
-
+  int n = jsmn_parse(&p, body, len_body, t, MAX_JSMN_TOKENS);
   D_PRINT("[SQL] n_toks: %d\n", n);
+
   /* Loop over all keys */
+  int i, j;
   for (i = 1; i < n; i++) {
+    int len = 0;
+    int count = 0;
+
     if (jsoneq(body, &t[i], "table") == 0) {
       len =  t[i + 1].end - t[i + 1].start;
       memcpy_fast(sqlo->table, body + t[i + 1].start, len);

@@ -30,14 +30,11 @@ static void _process_json(char *sqlres,
                           PGconn *pgconn,
                           const httpmsg_t *req)
 {
-  char *body;
-  sqlobj_t *sqlo = NULL;
-
   /* process the request message here */
-  body = (char *)req->body;
+  char *body = (char *)req->body;
   D_PRINT("[REQ] json string: %s\n", body);
 
-  sqlo = sql_parse_json(body, req->len_body);
+  sqlobj_t *sqlo = sql_parse_json(body, req->len_body);
 
   if (sqlo) {
     /* this is the microservice */
@@ -53,23 +50,19 @@ void http_post(const int clifd,
                const char *path,
                const httpmsg_t *req)
 {
-  httpmsg_t *rep;
-  int len_headers;
-  char *headers;
-  char sqlres[2048];
-
   /* connect to database after receiving request */
+  char sqlres[2048];
   _process_json(sqlres, pgconn, req);
 
-  rep = msg_new();
+  httpmsg_t *rep = msg_new();
   msg_add_header(rep, "Server", SVR_VERSION);
   msg_add_header(rep, "Connection", "keep-alive");
   msg_add_header(rep, "Accept-Ranges", "bytes");
   msg_set_rep_line(rep, 1, 1, 200, "OK");
   msg_add_header(rep, "Transfer-Encoding", "chunked");
 
-  len_headers = msg_headers_len(rep);
-  headers = malloc(len_headers);
+  int len_headers = msg_headers_len(rep);
+  char *headers = malloc(len_headers);
   msg_rep_headers(headers, rep);
 
   /* send msg */

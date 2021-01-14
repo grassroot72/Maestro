@@ -25,15 +25,12 @@ const int TASK_QUEUE_MAX = 10000;
 
 static void *_worker_func(void *pool_arg)
 {
-  int rc;
-  struct _taskdata picked_task;
-
   D_PRINT("[W] Starting work thread.\n");
   struct _thpool *pool = (struct _thpool *)pool_arg;
 
   do {
     /* lock */
-    rc = pthread_mutex_lock(&pool->mutex);
+    int rc = pthread_mutex_lock(&pool->mutex);
     assert(rc == 0);
 
     while (pool->queue_head == pool->queue_tail) {
@@ -44,6 +41,7 @@ static void *_worker_func(void *pool_arg)
 
     assert(pool->queue_head != pool->queue_tail);
     D_PRINT("[W] Picked: %d\n", pool->queue_head);
+    struct _taskdata picked_task;
     picked_task = pool->task_queue[pool->queue_head % TASK_QUEUE_MAX];
     pool->queue_head++;
 
@@ -79,11 +77,8 @@ void thpool_add_task(struct _thpool *pool,
                      void (*work_routine)(void *),
                      void *arg)
 {
-  int rc;
-  struct _taskdata task;
-
   /* lock */
-  rc = pthread_mutex_lock(&pool->mutex);
+  int rc = pthread_mutex_lock(&pool->mutex);
   assert(rc == 0);
 
   D_PRINT("[Q] Queueing one item.\n");
@@ -92,6 +87,7 @@ void thpool_add_task(struct _thpool *pool,
     assert(rc == 0);
   }
 
+  struct _taskdata task;
   task.work_routine = work_routine;
   task.arg = arg;
 
@@ -105,10 +101,8 @@ void thpool_add_task(struct _thpool *pool,
 
 void thpool_wait(struct _thpool *pool)
 {
-  int rc;
-
   D_PRINT("[POOL] Waiting for completion.\n");
-  rc = pthread_mutex_lock(&pool->mutex);
+  int rc = pthread_mutex_lock(&pool->mutex);
   assert(rc == 0);
 
   while (pool->scheduled > 0) {
@@ -123,9 +117,6 @@ void thpool_wait(struct _thpool *pool)
 
 struct _thpool *thpool_init(const int max_threads)
 {
-  int rc;
-  int i;
-
   struct _thpool *pool = malloc(sizeof(struct _thpool));
 
   pool->queue_head = pool->queue_tail = 0;
@@ -136,14 +127,14 @@ struct _thpool *thpool_init(const int max_threads)
   pool->attr = malloc(sizeof(pthread_attr_t) * max_threads);
   pool->worker_threads = malloc(sizeof(pthread_t) * max_threads);
 
-  rc = pthread_mutex_init(&pool->mutex, NULL);
+  int rc = pthread_mutex_init(&pool->mutex, NULL);
   assert(rc == 0);
   rc = pthread_cond_init(&pool->work_available, NULL);
   assert(rc == 0);
   rc = pthread_cond_init(&pool->done, NULL);
   assert(rc == 0);
 
-  i = 0;
+  int i = 0;
   do {
     pthread_attr_init(&pool->attr[i]);
     pthread_attr_setdetachstate(&pool->attr[i], PTHREAD_CREATE_DETACHED);
@@ -160,12 +151,9 @@ struct _thpool *thpool_init(const int max_threads)
 
 void thpool_destroy(struct _thpool *pool)
 {
-  int rc;
-  int i;
-
-  i = 0;
+  int i = 0;
   do {
-    rc = pthread_attr_destroy(&pool->attr[i]);
+    int rc = pthread_attr_destroy(&pool->attr[i]);
     assert(rc == 0);
     i++;
   } while (i < pool->max_threads);

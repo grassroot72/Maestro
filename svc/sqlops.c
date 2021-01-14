@@ -21,9 +21,7 @@
 void _prep_select(char *sql,
                   const sqlobj_t *sqlo)
 {
-  char *ret;
-
-  ret = strbld(sql, "SELECT ");
+  char *ret = strbld(sql, "SELECT ");
   if (sqlo->qfield[0]) {
     ret = strbld(ret, sqlo->qfield);
     ret = strbld(ret, " FROM ");
@@ -41,15 +39,10 @@ void _parse_result(char *res,
                    PGresult *pgres,
                    const int viscols)
 {
-  int nFields;
-  int nRows;
   int i, j;
-  char *ret;
-  char tmp[64];
 
-  nFields = PQnfields(pgres);
-
-  ret = strbld(res, "{");
+  int nFields = PQnfields(pgres);
+  char *ret = strbld(res, "{");
   /* show attribute names? */
   if (viscols) {
     ret = strbld(ret, "\"h\":{\"hd\":[");
@@ -64,13 +57,14 @@ void _parse_result(char *res,
   }
 
   /* next, show the row values */
-  nRows = PQntuples(pgres);
+  int nRows = PQntuples(pgres);
   for (i = 0; i < nRows; i++) {
     if (i == 0)
       ret = strbld(ret, "\"d\":{\"r");
     else
       ret = strbld(ret, "\"r");
 
+    char tmp[64];
     sprintf(tmp, "%03d", i);
     ret = strbld(ret, tmp);
     ret = strbld(ret, "\":[");
@@ -98,15 +92,10 @@ void sql_select(char *res,
                 const sqlobj_t *sqlo)
 {
   char sql[256];
-
-  PGresult *pgres;
-  const char *stmt;
-
-
   _prep_select(sql, sqlo);
 
   /* Start a transaction block */
-  pgres = PQexec(pgconn, "BEGIN");
+  PGresult *pgres = PQexec(pgconn, "BEGIN");
   if (PQresultStatus(pgres) != PGRES_COMMAND_OK) {
     D_PRINT("BEGIN command failed: %s\n", PQerrorMessage(pgconn));
     PQclear(pgres);
@@ -115,7 +104,7 @@ void sql_select(char *res,
   PQclear(pgres);
 
   /* prepare statement name */
-  stmt = "prep_select";
+  const char *stmt = "prep_select";
   pgres = PQprepare(pgconn,
                     stmt,
                     sql,
@@ -158,9 +147,7 @@ void sql_select(char *res,
 void _prep_cursor(char *sql,
                   const sqlobj_t *sqlo)
 {
-  char *ret;
-
-  ret = strbld(sql, "DECLARE portal CURSOR FOR ");
+  char *ret = strbld(sql, "DECLARE portal CURSOR FOR ");
   _prep_select(ret, sqlo);
 }
 
@@ -169,15 +156,10 @@ void sql_fetch(char *res,
                const sqlobj_t *sqlo)
 {
   char sql[256];
-
-  PGresult *pgres;
-  const char *stmt;
-
-
   _prep_cursor(sql, sqlo);
 
   /* Start a transaction block */
-  pgres = PQexec(pgconn, "BEGIN");
+  PGresult *pgres = PQexec(pgconn, "BEGIN");
   if (PQresultStatus(pgres) != PGRES_COMMAND_OK) {
     D_PRINT("BEGIN command failed: %s\n", PQerrorMessage(pgconn));
     PQclear(pgres);
@@ -186,7 +168,7 @@ void sql_fetch(char *res,
   PQclear(pgres);
 
   /* prepare statement name */
-  stmt = "prep_cursor";
+  const char *stmt = "prep_cursor";
   pgres = PQprepare(pgconn,
                     stmt,
                     sql,

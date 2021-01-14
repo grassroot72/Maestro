@@ -157,9 +157,6 @@ httpmsg_t *_get_rep_msg(list_t *cache,
                         const char *path,
                         const httpmsg_t *req)
 {
-  char *ret;
-  httpmsg_t *rep;
-
   /* get the fullpath and extention of a file */
   char curdir[MAX_CWD];
   char ospath[MAX_PATH];
@@ -167,7 +164,8 @@ httpmsg_t *_get_rep_msg(list_t *cache,
   if (!getcwd(curdir, MAX_CWD)) {
     D_PRINT("[SYS] Couldn't read %s\n", curdir);
   }
-  ret = strbld(ospath, curdir);
+
+  char *ret = strbld(ospath, curdir);
   ret = strbld(ret, path);
   *ret++ = '\0';
   D_PRINT("[IO] Opening file %s\n", ospath);
@@ -178,7 +176,9 @@ httpmsg_t *_get_rep_msg(list_t *cache,
 
 
   /* check if the body is in the cache */
+  httpmsg_t *rep;
   cache_data_t *data = http_cache_data(cache, path);
+
   if (data) {
     rep = _get_rep(content_type, mime_type, data, req);
     D_PRINT("[CACHE] In the cache!\n");

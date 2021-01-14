@@ -244,9 +244,7 @@ void msg_add_header(httpmsg_t *msg,
 char *msg_header_value(const httpmsg_t *msg,
                        const char *key)
 {
-  int i;
-
-  i = 0;
+  int i = 0;
   do {
     if(strcmp(msg->headers[i].key, key) == 0) {
       return msg->headers[i].value;
@@ -261,8 +259,8 @@ int msg_add_headers(httpmsg_t *msg,
                     unsigned char *lines[],
                     const int nlines)
 {
-  char* key;
-  char* value;
+  char *key;
+  char *value;
   int i;
 
   /* headers ... */

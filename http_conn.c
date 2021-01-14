@@ -42,15 +42,9 @@ httpconn_t *httpconn_new(const int sockfd,
 void httpconn_task(void *arg)
 {
   httpconn_t *conn = (struct _httpconn *)arg;
-  long cur_time;
-  struct epoll_event event;
-
-  unsigned char *bytes;
   int rc;
+  unsigned char *bytes = io_socket_read(conn->sockfd, &rc);
 
-  httpmsg_t *req;
-
-  bytes = io_socket_read(conn->sockfd, &rc);
   /* rc = 0:  the client has closed the connection */
   if (rc == 0) {
     D_PRINT("[CONN] client disconnected: %d\n", conn->sockfd);
@@ -65,7 +59,8 @@ void httpconn_task(void *arg)
 
   if (rc == 1) {
     D_PRINT("[CONN] raw bytes: %s\n", bytes);
-    req = http_parse_req(bytes);
+    httpmsg_t *req = http_parse_req(bytes);
+
     if (!req) return;
 
     /* static GET */
@@ -78,12 +73,13 @@ void httpconn_task(void *arg)
     }
 
     /* start timer recording */
-    cur_time = mstime();
+    long cur_time = mstime();
     list_update(conn->timers, conn, cur_time);
     msg_destroy(req, 1);
     free(bytes);
 
     /* put the event back */
+    struct epoll_event event;
     event.data.ptr = (void *)conn;
     event.events = EPOLLIN | EPOLLET | EPOLLONESHOT;
     rc = epoll_ctl(conn->epfd, EPOLL_CTL_MOD, conn->sockfd, &event);

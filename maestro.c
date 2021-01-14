@@ -61,22 +61,17 @@ static void _set_nonblocking(const int fd)
 static void _expire_timers(list_t *timers,
                            const long timeout)
 {
-  httpconn_t *conn;
-  node_t *timer;
-  long cur_time;
-
-  timer = list_first(timers);
+  node_t *timer = list_first(timers);
   if (timer) {
-    cur_time = mstime();
+    long cur_time = mstime();
     do {
       if (cur_time - timer->stamp >= timeout) {
-        conn = (httpconn_t *)timer->data;
+        httpconn_t *conn = (httpconn_t *)timer->data;
 
         D_PRINT("[CONN] socket %d closed from server\n", conn->sockfd);
         shutdown(conn->sockfd, SHUT_RDWR);
         close(conn->sockfd);
         free(conn);
-        conn = NULL;
 
         list_del(timers, timer->stamp);
         timer = list_next(timers);
@@ -90,16 +85,12 @@ static void _expire_timers(list_t *timers,
 static void _expire_cache(list_t *cache,
                           const long timeout)
 {
-  cache_data_t *data;
-  node_t *node;
-  long cur_time;
-
-  node = list_first(cache);
+  node_t *node = list_first(cache);
   if (node) {
-    cur_time = mstime();
+    long cur_time = mstime();
     do {
       if (cur_time - node->stamp >= timeout) {
-        data = (cache_data_t *)node->data;
+        cache_data_t *data = (cache_data_t *)node->data;
         http_cache_data_destroy(data);
         D_PRINT("[CACHE] cached data expired!\n");
 
@@ -118,17 +109,12 @@ static void _receive_conn(const int srvfd,
                           list_t *cache,
                           list_t *timers)
 {
-  int clifd;
   struct sockaddr cliaddr;
   socklen_t len_cliaddr = sizeof(struct sockaddr);
-  char *cli_ip;
 
-  httpconn_t *cliconn;
-  struct epoll_event event;
-
-  /* server socket; accept connections */
+   /* server socket; accept connections */
   do {
-    clifd = accept(srvfd, &cliaddr, &len_cliaddr);
+    int clifd = accept(srvfd, &cliaddr, &len_cliaddr);
 
     if (clifd == -1) {
       if (errno == EINTR) continue;
@@ -141,11 +127,13 @@ static void _receive_conn(const int srvfd,
       break;
     }
 
-    cli_ip = inet_ntoa(((struct sockaddr_in *)&cliaddr)->sin_addr);
+    char *cli_ip = inet_ntoa(((struct sockaddr_in *)&cliaddr)->sin_addr);
     D_PRINT("[CONN] client %s connected on socket %d\n", cli_ip, clifd);
 
     _set_nonblocking(clifd);
-    cliconn = httpconn_new(clifd, epfd, pgconn, cache, timers);
+    httpconn_t *cliconn = httpconn_new(clifd, epfd, pgconn, cache, timers);
+
+    struct epoll_event event;
     event.data.ptr = (void *)cliconn;
     /*
      * With the use of EPOLLONESHOT, it is guaranteed that
@@ -162,20 +150,17 @@ static void _receive_conn(const int srvfd,
 
 static int _create_srv_socket()
 {
-  int srvfd;
-  int opt = 1;
-
-  srvfd = socket(AF_INET, SOCK_STREAM, 0);
+  int srvfd = socket(AF_INET, SOCK_STREAM, 0);
   if (srvfd == -1) {
     perror("socket()");
     return -1;
   }
 
+  int opt = 1;
   if (setsockopt(srvfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1) {
     perror("setsockopt()");
     return -1;
   }
-
   return srvfd;
 }
 
@@ -209,29 +194,8 @@ static int _listen(const int srvfd)
 
 int main(int argc, char **argv)
 {
-  PGconn *pgconn;
-
-  int srvfd;
-  int i;
-
-  int epfd;
-  int nevents;
-  struct epoll_event event;
-  struct epoll_event *events;
-
-  httpconn_t *srvconn;
-  httpconn_t *conn;
-
-  int np;
-  thpool_t *taskpool;
-
-  list_t *cache;
-  list_t *timers;
-  long loop_time;
-
   /* create a postgresql db connection */
-  pgconn = pg_connect("dbname = demo", "identity");
-
+  PGconn *pgconn = pg_connect("dbname = demo", "identity");
 
   /*
    * install signal handle for SIGPIPE
@@ -251,18 +215,18 @@ int main(int argc, char **argv)
   signal(SIGINT, _svc_stopper);
 
   /* detect number of cpu cores and use it for thread pool */
-  np = get_nprocs();
-  taskpool = thpool_init(np * THREADS_PER_CORE);
+  int np = get_nprocs();
+  thpool_t *taskpool = thpool_init(np * THREADS_PER_CORE);
   /* list of files cached in the memory */
-  cache = list_new();
+  list_t *cache = list_new();
   /* list of timers */
-  timers = list_new();
+  list_t *timers = list_new();
   /* loop time */
-  loop_time = mstime();
+  long loop_time = mstime();
 
 
   /* create the server socket */
-  srvfd = _create_srv_socket();
+  int srvfd = _create_srv_socket();
   /* bind */
   _bind(srvfd, PORT);
   /* make it nonblocking, and then listen */
@@ -275,15 +239,16 @@ int main(int argc, char **argv)
   }
 
   /* create the epoll socket */
-  epfd = epoll_create1(0);
+  int epfd = epoll_create1(0);
   if (epfd == -1) {
     perror("epoll_create1()");
     return -1;
   }
 
   /* mark the server socket for reading, and become edge-triggered */
+  struct epoll_event event;
   memset(&event, 0, sizeof(struct epoll_event));
-  srvconn = httpconn_new(srvfd, epfd, NULL, NULL, NULL);
+  httpconn_t *srvconn = httpconn_new(srvfd, epfd, NULL, NULL, NULL);
   event.data.ptr = (void *)srvconn;
   event.events = EPOLLIN | EPOLLET;
   if (epoll_ctl(epfd, EPOLL_CTL_ADD, srvfd, &event) == -1) {
@@ -291,10 +256,10 @@ int main(int argc, char **argv)
     return -1;
   }
 
-  events = calloc(MAXEVENTS, sizeof(struct epoll_event));
+  struct epoll_event *events = calloc(MAXEVENTS, sizeof(struct epoll_event));
 
   do {
-    nevents = epoll_wait(epfd, events, MAXEVENTS, EPOLL_TIMEOUT);
+    int nevents = epoll_wait(epfd, events, MAXEVENTS, EPOLL_TIMEOUT);
     if (nevents == -1) perror("epoll_wait()");
 
     if ((mstime() - loop_time) >= EPOLL_TIMEOUT) {
@@ -307,10 +272,9 @@ int main(int argc, char **argv)
     }
 
     /* loop through events */
-    //for (i = 0; i < nevents; i++) {
-    i = 0;
+    int i = 0;
     do {
-      conn = (httpconn_t *)events[i].data.ptr;
+      httpconn_t *conn = (httpconn_t *)events[i].data.ptr;
 
       /* error case */
       if ((events[i].events & EPOLLERR) || (events[i].events & EPOLLHUP)) {

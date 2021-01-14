@@ -24,13 +24,8 @@ void pg_exit_nicely(PGconn *conn)
 PGconn *pg_connect(const char *conninfo,
                    const char *schema)
 {
-  PGconn *conn;
-  PGresult *res;
-  char path[64];
-  char *ret;
-
   /* Make a connection to the database */
-  conn = PQconnectdb(conninfo);
+  PGconn *conn = PQconnectdb(conninfo);
 
   /* Check to see that the backend connection was successfully made */
   if (PQstatus(conn) != CONNECTION_OK) {
@@ -39,10 +34,12 @@ PGconn *pg_connect(const char *conninfo,
   }
 
   /* Set always-secure search path, so malicious users can't take control */
-  ret = strbld(path, "SET search_path=");
+  char path[64];
+  char *ret = strbld(path, "SET search_path=");
   ret = strbld(ret, schema);
   *ret++ = '\0';
-  res = PQexec(conn, path);
+
+  PGresult *res = PQexec(conn, path);
   if (PQresultStatus(res) != PGRES_COMMAND_OK) {
     D_PRINT("[DB] SET search_path failed: %s\n", PQerrorMessage(conn));
     PQclear(res);

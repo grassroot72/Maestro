@@ -62,29 +62,20 @@ static int _fill_msg(httpmsg_t *msg,
 httpmsg_t *http_parse_req(const unsigned char *buf)
 {
   unsigned char *lines[MAX_NUM_MSG_LINES];  /* http messages lines */
-  char *method;
-  char *path;
-  char *version;
-  int major, minor;
-  int count, nlines;
-  int len_body;
-  int rc;
+  int nlines, count, len_body;
 
-  char *rest;
-  httpmsg_t *req;
-
-  rc = _fill_lines(lines, &nlines, &len_body, &count, buf);
+  int rc = _fill_lines(lines, &nlines, &len_body, &count, buf);
   if (rc != MSG_OK) return NULL;
 
-  req = msg_new();
-
   /* request line ... */
-  rest = (char *)lines[0];
-  method = strtok_r(rest, " ", &rest);
-  path = strtok_r(NULL, " ", &rest);
-  version = strtok_r(NULL, " ", &rest);
-  major = version[5] - '0';
-  minor = version[7] - '0';
+  char *rest = (char *)lines[0];
+  char *method = strtok_r(rest, " ", &rest);
+  char *path = strtok_r(NULL, " ", &rest);
+  char *version = strtok_r(NULL, " ", &rest);
+  int major = version[5] - '0';
+  int minor = version[7] - '0';
+
+  httpmsg_t *req = msg_new();
 
   if (strcmp(path, "/") == 0)
     msg_set_req_line(req, method, "/index.html", major, minor);
@@ -100,30 +91,20 @@ httpmsg_t *http_parse_req(const unsigned char *buf)
 httpmsg_t *http_parse_rep(const unsigned char *buf)
 {
   unsigned char *lines[MAX_NUM_MSG_LINES];  /* http messages lines */
-  char *version;
-  int major, minor;
-  int code;
-  char *status;
-  int count, nlines;
-  int len_body;
-  int rc;
+  int nlines, count, len_body;
 
-  char *rest;
-  httpmsg_t *rep;
-
-  rc = _fill_lines(lines, &nlines, &len_body, &count, buf);
+  int rc = _fill_lines(lines, &nlines, &len_body, &count, buf);
   if (rc != MSG_OK) return NULL;
 
-  rep = msg_new();
-
   /* status line ... */
-  rest = (char *)lines[0];
-  version = strtok_r(rest, " ", &rest);
-  major = version[5] - '0';
-  minor = version[7] - '0';
-  code = atoi(strtok_r(NULL, " ", &rest));
-  status = strtok_r(NULL, " ", &rest);
+  char *rest = (char *)lines[0];
+  char *version = strtok_r(rest, " ", &rest);
+  int major = version[5] - '0';
+  int minor = version[7] - '0';
+  int code = atoi(strtok_r(NULL, " ", &rest));
+  char *status = strtok_r(NULL, " ", &rest);
 
+  httpmsg_t *rep = msg_new();
   msg_set_rep_line(rep, major, minor, code, status);
 
   rc = _fill_msg(rep, lines, nlines, len_body, count);

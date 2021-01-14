@@ -15,8 +15,7 @@
 
 cache_data_t *http_cache_data_new()
 {
-  cache_data_t *data;
-  data = malloc(sizeof(struct _cache_data));
+  cache_data_t *data = malloc(sizeof(struct _cache_data));
   return data;
 }
 
@@ -53,13 +52,11 @@ void http_cache_data_destroy(cache_data_t *data)
 cache_data_t *http_cache_data(list_t *cache,
                               const char *path)
 {
-  node_t *node;
-  cache_data_t *data;
+  node_t *node = list_first(cache);
 
-  node = list_first(cache);
   if (node) {
     do {
-      data = node->data;
+      cache_data_t *data = node->data;
       if (strcmp(path, data->path) == 0) {
         return data;
       }
