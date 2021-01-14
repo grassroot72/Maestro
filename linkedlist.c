@@ -65,8 +65,8 @@ void list_update(list_t *list,
   while (current != NULL){
     if (current->data == data && current->stamp == stamp) return;
     if (current->data == data && current->stamp < stamp) {
-      DEBSL("[STAMP]  record time", current->stamp);
-      DEBSL("[STAMP] current time", stamp);
+      D_PRINT("[STAMP] record time %ld, current time %ld\n",
+              current->stamp, stamp);
       current->stamp = stamp;
       return;
     }
@@ -155,8 +155,8 @@ void list_display(list_t *list)
   if (list->head == NULL) return;
 
   for(; current != NULL; current = current->next) {
-    DEBSL("[LIST] data", (long)current->data);
-    DEBSL("[LIST] stamp", current->stamp);
+    D_PRINT("[LIST] data = %ld, stamp = %ld\n",
+            (long)current->data, current->stamp);
   }
 }
 

@@ -9,18 +9,29 @@
 
 
 #ifdef DEBUG
-  #define DEBS(x) printf("%s\n", x)
-  #define DEBSS(x, y) printf("%s: %s\n", x, y)
-  #define DEBSI(s, i) printf("%s: %d\n", s, i)
-  #define DEBSU(s, u) printf("%s: %u\n", s, u)
-  #define DEBSL(s, l) printf("%s: %lu\n", s, l)
+#define D_PRINT(...)  fprintf(stderr, __VA_ARGS__)
+#define D_DUMP_HEX(buf, len)  {if (buf) {                                 \
+                                 int _i_;                                 \
+                                 for (_i_ = 0; _i_ < len; _i_++) {        \
+                                   DEBUG_PRINT("%02X ",                   \
+                                               (unsigned int)(buf)[_i_]); \
+                                 }                                        \
+                               }                                          \
+                               else {                                     \
+                                 fprintf(stderr, "(null)");               \
+                               }}
+#define D_INDEX(fields)  print_index(fields)
+#define D_DUMP(buf, length)  fwrite(buf, 1, length, stderr);
+#define D_DUMP_HEX_LABEL(title, buf, len)  {fprintf(stderr, "%s (%i): ",      \
+                                                            title, (int)len); \        \
+                                            DEBUG_DUMP_HEX(buf, len);         \
+                                            fprintf(stderr, "\n");}
 #else
-  /* std=c99 */
-  #define DEBS(...)
-  #define DEBSS(...)
-  #define DEBSI(...)
-  #define DEBSU(...)
-  #define DEBSL(...)
+#define D_PRINT(...)  { }
+#define D_DUMP_HEX(buf, len)  { }
+#define D_INDEX(fields)  { }
+#define D_DUMP(buf, length)  { }
+#define D_DUMP_HEX_LABEL(title, buf, len) { }
 #endif
 
 

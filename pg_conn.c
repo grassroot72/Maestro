@@ -34,7 +34,7 @@ PGconn *pg_connect(const char *conninfo,
 
   /* Check to see that the backend connection was successfully made */
   if (PQstatus(conn) != CONNECTION_OK) {
-    DEBSS("[DB] Connection to database failed", PQerrorMessage(conn));
+    D_PRINT("[DB] Connection to database failed: %s\n", PQerrorMessage(conn));
     pg_exit_nicely(conn);
   }
 
@@ -44,7 +44,7 @@ PGconn *pg_connect(const char *conninfo,
   *ret++ = '\0';
   res = PQexec(conn, path);
   if (PQresultStatus(res) != PGRES_COMMAND_OK) {
-    DEBSS("[DB] SET search_path failed", PQerrorMessage(conn));
+    D_PRINT("[DB] SET search_path failed: %s\n", PQerrorMessage(conn));
     PQclear(res);
     pg_exit_nicely(conn);
   }

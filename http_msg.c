@@ -270,7 +270,7 @@ int msg_add_headers(httpmsg_t *msg,
     i = 1;
     do {
       if (lines[i][0] == 0) {  /* wrong empty line */
-        DEBS("Not valid message 2!!!");
+        D_PRINT("Not valid message!!!\n");
         return 0;
       }
       key = (char *)lines[i];
@@ -280,7 +280,7 @@ int msg_add_headers(httpmsg_t *msg,
     } while (i < nlines);
   }
   else {
-    DEBS("Incomplete message 2!!!");
+    D_PRINT("Incomplete message!!!\n");
     return 0;
   }
 

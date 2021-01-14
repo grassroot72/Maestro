@@ -108,7 +108,7 @@ void sql_select(char *res,
   /* Start a transaction block */
   pgres = PQexec(pgconn, "BEGIN");
   if (PQresultStatus(pgres) != PGRES_COMMAND_OK) {
-    fprintf(stderr, "BEGIN command failed: %s", PQerrorMessage(pgconn));
+    D_PRINT("BEGIN command failed: %s\n", PQerrorMessage(pgconn));
     PQclear(pgres);
     pg_exit_nicely(pgconn);
   }
@@ -122,7 +122,7 @@ void sql_select(char *res,
                     0,
                     NULL);
   if (PQresultStatus(pgres) != PGRES_COMMAND_OK) {
-    fprintf(stderr, "PREPARE failed: %s", PQerrorMessage(pgconn));
+    D_PRINT("PREPARE failed: %s\n", PQerrorMessage(pgconn));
     PQclear(pgres);
     pg_exit_nicely(pgconn);
   }
@@ -137,14 +137,14 @@ void sql_select(char *res,
                          NULL,
                          0);  /* text result */
   if (PQresultStatus(pgres) != PGRES_TUPLES_OK) {
-    fprintf(stderr, "SELECT failed: %s", PQerrorMessage(pgconn));
+    D_PRINT("SELECT failed: %s\n", PQerrorMessage(pgconn));
     PQclear(pgres);
     pg_exit_nicely(pgconn);
   }
 
   /* parse the result set */
   _parse_result(res, pgres, sqlo->viscols);
-  DEBSS("[SQL] pg result", res);
+  D_PRINT("[SQL] pg result: %s\n", res);
 
   /* Deallocate all prepared statements */
   pgres = PQexec(pgconn, "DEALLOCATE ALL");
@@ -179,7 +179,7 @@ void sql_fetch(char *res,
   /* Start a transaction block */
   pgres = PQexec(pgconn, "BEGIN");
   if (PQresultStatus(pgres) != PGRES_COMMAND_OK) {
-    fprintf(stderr, "BEGIN command failed: %s", PQerrorMessage(pgconn));
+    D_PRINT("BEGIN command failed: %s\n", PQerrorMessage(pgconn));
     PQclear(pgres);
     pg_exit_nicely(pgconn);
   }
@@ -193,7 +193,7 @@ void sql_fetch(char *res,
                     0,
                     NULL);
   if (PQresultStatus(pgres) != PGRES_COMMAND_OK) {
-    fprintf(stderr, "PREPARE failed: %s", PQerrorMessage(pgconn));
+    D_PRINT("PREPARE failed: %s\n", PQerrorMessage(pgconn));
     PQclear(pgres);
     pg_exit_nicely(pgconn);
   }
@@ -208,7 +208,7 @@ void sql_fetch(char *res,
                          NULL,
                          0);  /* text result */
   if (PQresultStatus(pgres) != PGRES_COMMAND_OK) {
-    fprintf(stderr, "OPEN CURSOR failed: %s", PQerrorMessage(pgconn));
+    D_PRINT("OPEN CURSOR failed: %s\n", PQerrorMessage(pgconn));
     PQclear(pgres);
     pg_exit_nicely(pgconn);
   }
@@ -216,14 +216,14 @@ void sql_fetch(char *res,
 
   pgres = PQexec(pgconn, "FETCH ALL in portal");
   if (PQresultStatus(pgres) != PGRES_TUPLES_OK) {
-    fprintf(stderr, "FETCH ALL failed: %s", PQerrorMessage(pgconn));
+    D_PRINT("FETCH ALL failed: %s\n", PQerrorMessage(pgconn));
     PQclear(pgres);
     pg_exit_nicely(pgconn);
   }
 
   /* parse the result set */
   _parse_result(res, pgres, sqlo->viscols);
-  DEBSS("[SQL] pg result", res);
+  D_PRINT("[SQL] pg result: %s\n", res);
 
   /* Deallocate all prepared statements */
   pgres = PQexec(pgconn, "DEALLOCATE ALL");

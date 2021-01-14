@@ -24,12 +24,12 @@ static int _fill_lines(unsigned char *lines[],
   *nlines = 0;
   *count = msg_split(lines, nlines, len_body, buf);
   if (!*count) {
-    DEBS("Empty message!!!");
+    D_PRINT("Empty message!!!\n");
     return MSG_EMPTY;
   }
 
   if (*count < 3) {
-    DEBS("Incomplete message 1!!!");
+    D_PRINT("Incomplete message!!!\n");
     msg_lines_destroy(lines, *count);
     return MSG_IMCOMPLETE;
   }

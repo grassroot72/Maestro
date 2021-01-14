@@ -28,7 +28,7 @@ static void *_worker_func(void *pool_arg)
   int rc;
   struct _taskdata picked_task;
 
-  DEBS("[W] Starting work thread.");
+  D_PRINT("[W] Starting work thread.\n");
   struct _thpool *pool = (struct _thpool *)pool_arg;
 
   do {
@@ -37,13 +37,13 @@ static void *_worker_func(void *pool_arg)
     assert(rc == 0);
 
     while (pool->queue_head == pool->queue_tail) {
-      DEBS("[W] Empty queue. Waiting...");
+      D_PRINT("[W] Empty queue. Waiting...\n");
       rc = pthread_cond_wait(&pool->work_available, &pool->mutex);
       assert(rc == 0);
     }
 
     assert(pool->queue_head != pool->queue_tail);
-    DEBSI("[W] Picked", pool->queue_head);
+    D_PRINT("[W] Picked: %d\n", pool->queue_head);
     picked_task = pool->task_queue[pool->queue_head % TASK_QUEUE_MAX];
     pool->queue_head++;
 
@@ -86,7 +86,7 @@ void thpool_add_task(struct _thpool *pool,
   rc = pthread_mutex_lock(&pool->mutex);
   assert(rc == 0);
 
-  DEBS("[Q] Queueing one item.");
+  D_PRINT("[Q] Queueing one item.\n");
   if (pool->queue_head == pool->queue_tail) {
     rc = pthread_cond_broadcast(&pool->work_available);
     assert(rc == 0);
@@ -107,7 +107,7 @@ void thpool_wait(struct _thpool *pool)
 {
   int rc;
 
-  DEBS("[POOL] Waiting for completion.");
+  D_PRINT("[POOL] Waiting for completion.\n");
   rc = pthread_mutex_lock(&pool->mutex);
   assert(rc == 0);
 
@@ -118,7 +118,7 @@ void thpool_wait(struct _thpool *pool)
 
   rc = pthread_mutex_unlock(&pool->mutex);
   assert(rc == 0);
-  DEBS("[POOL] Waiting done.");
+  D_PRINT("[POOL] Waiting done.\n");
 }
 
 struct _thpool *thpool_init(const int max_threads)

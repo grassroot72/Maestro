@@ -72,7 +72,7 @@ static void _expire_timers(list_t *timers,
       if (cur_time - timer->stamp >= timeout) {
         conn = (httpconn_t *)timer->data;
 
-        DEBSI("[CONN] socket closed from server", conn->sockfd);
+        D_PRINT("[CONN] socket %d closed from server\n", conn->sockfd);
         shutdown(conn->sockfd, SHUT_RDWR);
         close(conn->sockfd);
         free(conn);
@@ -101,7 +101,7 @@ static void _expire_cache(list_t *cache,
       if (cur_time - node->stamp >= timeout) {
         data = (cache_data_t *)node->data;
         http_cache_data_destroy(data);
-        DEBS("[CACHE] cached data expired");
+        D_PRINT("[CACHE] cached data expired!\n");
 
         list_del(cache, node->stamp);
         node = list_next(cache);
@@ -142,8 +142,7 @@ static void _receive_conn(const int srvfd,
     }
 
     cli_ip = inet_ntoa(((struct sockaddr_in *)&cliaddr)->sin_addr);
-    DEBSS("[CONN] client connected", cli_ip);
-    DEBSI("[CONN] on socket", clifd);
+    D_PRINT("[CONN] client %s connected on socket %d\n", cli_ip, clifd);
 
     _set_nonblocking(clifd);
     cliconn = httpconn_new(clifd, epfd, pgconn, cache, timers);
@@ -244,7 +243,7 @@ int main(int argc, char **argv)
   sa.sa_handler = SIG_IGN;
   sa.sa_flags = 0;
   if (sigaction(SIGPIPE, &sa, 0)) {
-    DEBS("install sigal handler for SIGPIPE failed");
+    D_PRINT("install sigal handler for SIGPIPE failed\n");
     return 0;
   }
 
@@ -358,6 +357,6 @@ int main(int argc, char **argv)
 
   PQfinish(pgconn);
 
-  DEBS("Exit gracefully...");
+  D_PRINT("Exit gracefully...\n");
   return 0;
 }

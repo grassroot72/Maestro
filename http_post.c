@@ -26,17 +26,16 @@
 #include "debug.h"
 
 
-static void _process_json(const int clifd,
+static void _process_json(char *sqlres,
                           PGconn *pgconn,
                           const httpmsg_t *req)
 {
   char *body;
   sqlobj_t *sqlo = NULL;
-  char sqlres[2048];
 
   /* process the request message here */
   body = (char *)req->body;
-  DEBSS("[REQ] json string", body);
+  D_PRINT("[REQ] json string: %s\n", body);
 
   sqlo = sql_parse_json(body, req->len_body);
 
@@ -44,7 +43,6 @@ static void _process_json(const int clifd,
     /* this is the microservice */
     if (strcmp(sqlo->cmd, "SELECT") == 0) {
       sql_fetch(sqlres, pgconn, sqlo);
-      io_send_chunk(clifd, sqlres);
     }
     sqlobj_destroy(sqlo);
   }
@@ -58,6 +56,10 @@ void http_post(const int clifd,
   httpmsg_t *rep;
   int len_headers;
   char *headers;
+  char sqlres[2048];
+
+  /* connect to database after receiving request */
+  _process_json(sqlres, pgconn, req);
 
   rep = msg_new();
   msg_add_header(rep, "Server", SVR_VERSION);
@@ -71,14 +73,15 @@ void http_post(const int clifd,
   msg_rep_headers(headers, rep);
 
   /* send msg */
-  DEBSI("[POST_REP] Sending reply headers...", clifd);
+  D_PRINT("[PREP] Sending reply headers... %d\n", clifd);
   io_socket_write(clifd, (unsigned char *)headers, len_headers);
 
-  /* connect to database after receiving request */
-  _process_json(clifd, pgconn, req);
+  /* send chunks */
+  D_PRINT("[PREP] Sending chunks... %d\n", clifd);
+  io_send_chunk(clifd, sqlres);
 
   /* terminating the chuncked transfer */
-  DEBSI("[POST_REP] Sending terminating chunk...", clifd);
+  D_PRINT("[PREP] Sending terminating chunk... %d\n", clifd);
   io_socket_write(clifd, (unsigned char *)"0\r\n\r\n", 5);
 
   free(headers);

@@ -33,14 +33,12 @@ static size_t _process_range(httpmsg_t *rep,
                              size_t *len_range,
                              const size_t len_body)
 {
-  char *range_s;
-  char *range_e;
   size_t range_si;  /* range start */
   size_t range_ei;  /* range end */
   char range[64];
 
-  range_s = split_kv(range_str, '=');
-  range_e = split_kv(range_s, '-');
+  char *range_s = split_kv(range_str, '=');
+  char *range_e = split_kv(range_s, '-');
 
   range_si = atoi(range_s);
   /* req: bytes=xxxx-xxxx */
@@ -57,7 +55,7 @@ static size_t _process_range(httpmsg_t *rep,
   }
 
   msg_add_header(rep, "Content-Range", range);
-  DEBSS("[GET_REP] Content-Range", range);
+  D_PRINT("[GET_REP] Content-Range: %s\n", range);
   return range_si;
 }
 
@@ -66,18 +64,9 @@ static httpmsg_t *_get_rep(const char *ctype,
                            cache_data_t *cdata,
                            const httpmsg_t *req)
 {
-  time_t rep_time;
-  char rep_date[30];
+
   char len_str[16];
-
-  char *zip_enc;
-
-  char *range_str;
-  size_t range_s;
-  size_t len_range;
-
-
-  zip_enc = msg_header_value(req, "Accept-Encoding");
+  char *zip_enc = msg_header_value(req, "Accept-Encoding");
 
   httpmsg_t* rep = msg_new();
 
@@ -105,15 +94,18 @@ static httpmsg_t *_get_rep(const char *ctype,
     msg_add_header(rep, "Accept-Ranges", "bytes");
 
     /* reply start date */
-    rep_time = time(NULL);
+    char rep_date[30];
+    time_t rep_time = time(NULL);
     gmt_date(rep_date, &rep_time);
     msg_add_header(rep, "Date", rep_date);
     /* ETag is a strong validator */
     msg_add_header(rep, "ETag", cdata->etag);
     msg_add_header(rep, "Last-Modified", cdata->last_modified);
 
-    range_str = msg_header_value(req, "Range");
-    DEBSS("[REQ] Range", range_str);
+    size_t range_s;
+    size_t len_range;
+    char *range_str = msg_header_value(req, "Range");
+    D_PRINT("[REQ] Range: %s\n", range_str);
 
     msg_add_header(rep, "Content-Type", ctype);
 
@@ -132,8 +124,7 @@ static httpmsg_t *_get_rep(const char *ctype,
       else {
         msg_set_rep_line(rep, 1, 1, 206, "Partial Content");
         range_s = _process_range(rep, range_str, &len_range, cdata->len_zipped);
-        DEBSL("[GET_REP] range start", range_s);
-        DEBSL("[GET_REP] range length", len_range);
+        D_PRINT("[GREP] range start: %ld, length: %ld\n", range_s, len_range);
         msg_set_body_start(rep, cdata->body_zipped + range_s);
         itos((unsigned char *)len_str, len_range, 10, ' ');
         msg_add_header(rep, "Content-Length", len_str);
@@ -152,8 +143,7 @@ static httpmsg_t *_get_rep(const char *ctype,
       else {
         msg_set_rep_line(rep, 1, 1, 206, "Partial Content");
         range_s = _process_range(rep, range_str, &len_range, cdata->len_body);
-        DEBSL("[GET_REP] range start", range_s);
-        DEBSL("[GET_REP] range length", len_range);
+        D_PRINT("[GREP] range start: %ld, length: %ld\n", range_s, len_range);
         msg_set_body_start(rep, cdata->body + range_s);
         itos((unsigned char *)len_str, len_range, 10, ' ');
         msg_add_header(rep, "Content-Length", len_str);
@@ -167,56 +157,47 @@ httpmsg_t *_get_rep_msg(list_t *cache,
                         const char *path,
                         const httpmsg_t *req)
 {
+  char *ret;
+  httpmsg_t *rep;
+
+  /* get the fullpath and extention of a file */
+  char curdir[MAX_CWD];
+  char ospath[MAX_PATH];
+
+  if (!getcwd(curdir, MAX_CWD)) {
+    D_PRINT("[SYS] Couldn't read %s\n", curdir);
+  }
+  ret = strbld(ospath, curdir);
+  ret = strbld(ret, path);
+  *ret++ = '\0';
+  D_PRINT("[IO] Opening file %s\n", ospath);
+
+  char content_type[32];
+  char *ext = find_ext(path);
+  int mime_type = mime_set_content_type(content_type, ext);
+
+
+  /* check if the body is in the cache */
+  cache_data_t *data = http_cache_data(cache, path);
+  if (data) {
+    rep = _get_rep(content_type, mime_type, data, req);
+    D_PRINT("[CACHE] In the cache!\n");
+    return rep;
+  }
+
+  /* not in the cache ... */
+  struct stat sb;
+  char *last_modified;
+  char *etag;
   unsigned char *body;
   unsigned char *body_zipped;
   size_t len_body;
   size_t len_zipped;
   size_t len_zipbuf;
 
-  char *ext;
-  char curdir[MAX_CWD];
-  char ospath[MAX_PATH];
-  char *ret;
-
-  char content_type[32];
-  int mime_type;
-
-  struct sdefl c;   /* compressor */
-
-  struct stat sb;
-  char *last_modified;
-  char *etag;
-
-  cache_data_t *data;
-  httpmsg_t *rep;
-
-
-  /* get the fullpath and extention of a file */
-  if (!getcwd(curdir, MAX_CWD)) {
-    perror("Couldn't read curdir");
-  }
-  ret = strbld(ospath, curdir);
-  ret = strbld(ret, path);
-  *ret++ = '\0';
-  DEBSS("[GET_IO] Opening file", ospath);
-
-  ext = find_ext(path);
-  mime_type = mime_set_content_type(content_type, ext);
-
-
-  /* check if the body is in the cache */
-  data = http_cache_data(cache, path);
-  if (data) {
-    rep = _get_rep(content_type, mime_type, data, req);
-    DEBS("[CACHE] In the cache");
-    return rep;
-  }
-
-  /* not in the cache ... */
   data = http_cache_data_new();
-
   if (stat(ospath, &sb) == -1) {
-    perror("[SYS]");
+    D_PRINT("[SYS] --> %s <-- No such file or directory\n", ospath);
     len_body = 44;
     body = (unsigned char *)
            strdup("<html><body>404 Page Not Found</body></html>");
@@ -229,18 +210,19 @@ httpmsg_t *_get_rep_msg(list_t *cache,
     sprintf(etag, "\"%lu-%lu-%ld\"", sb.st_ino, sb.st_size, sb.st_mtime);
     gmt_date(last_modified, &sb.st_mtime);
     len_body = sb.st_size;
-    DEBSL("[IO] len_body", len_body);
+    D_PRINT("[IO] len_body: %ld\n", len_body);
     body = io_fread(ospath, len_body);
   }
 
   if (mime_type == MIME_TXT) {
+    struct sdefl c;   /* compressor */
     /* compress the body */
     len_zipbuf = deflate_bound(len_body);
     body_zipped = malloc(len_zipbuf);
     /* compressed body start should sync with body start */
     len_zipped = deflate(&c, body_zipped, body, len_body, 5);
 
-    DEBSL("[MEM] len_zipped", len_zipped);
+    D_PRINT("[MEM] len_zipped: %ld\n", len_zipped);
     http_set_cache_data(data, strdup(path), etag, last_modified,
                         body, len_body, body_zipped, len_zipped);
   }
@@ -250,7 +232,7 @@ httpmsg_t *_get_rep_msg(list_t *cache,
 
   list_update(cache, data, mstime());
   rep = _get_rep(content_type, mime_type, data, req);
-  DEBS("[CACHE] Cached in...");
+  D_PRINT("[CACHE] Cached in...\n");
 
   return rep;
 }
@@ -260,24 +242,20 @@ void http_get(const int clifd,
               const char *path,
               const httpmsg_t *req)
 {
-  httpmsg_t *rep;
-  int len_headers;
-  char *headers;
+  httpmsg_t *rep = _get_rep_msg(cache, path, req);
 
-  rep = _get_rep_msg(cache, path, req);
-
-  len_headers = msg_headers_len(rep);
-  headers = malloc(len_headers);
+  int len_headers = msg_headers_len(rep);
+  char *headers = malloc(len_headers);
   msg_rep_headers(headers, rep);
 
   /* send msg */
-  DEBSI("[GET_REP] Sending reply headers...", clifd);
+  D_PRINT("[GREP] Sending reply headers... %d\n", clifd);
   io_socket_write(clifd, (unsigned char *)headers, len_headers);
 
   /* if method is GET (NOT HEAD), then send body */
   if (req->method == METHOD_GET) {
     /* send body */
-    DEBSI("[GET_REP] Sending reply body...", clifd);
+    D_PRINT("[GREP] Sending reply body... %d\n", clifd);
     io_socket_write(clifd, rep->body_s, rep->len_body);
   }
 

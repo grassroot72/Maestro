@@ -166,11 +166,11 @@ void io_send_chunk(const int clifd,
   len_chunk = strlen(chunk);
   len = itos(hex_len, len_chunk, 16, ' ');
   /* chunked length in Hex */
-  DEBSI("[IO] Sending chunked length...", clifd);
+  D_PRINT("[IO] Sending chunked length... %d\n", clifd);
   io_socket_write(clifd, hex_len, len);
   io_socket_write(clifd, (unsigned char *)"\r\n", 2);
   /* chunk */
-  DEBSI("[IO] Sending chunked...", clifd);
+  D_PRINT("[IO] Sending chunked... %d\n", clifd);
   io_socket_write(clifd, (unsigned char *)chunk, len_chunk);
   io_socket_write(clifd, (unsigned char *)"\r\n", 2);
 }
