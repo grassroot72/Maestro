@@ -18,10 +18,11 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <libpq-fe.h>
-#include "pg_conn.h"
 #include "util.h"
-#include "linkedlist.h"
 #include "thpool.h"
+#include "rbtree.h"
+#include "linkedlist.h"
+#include "pg_conn.h"
 #include "http_cache.h"
 #include "http_conn.h"
 
@@ -40,8 +41,6 @@
 
 
 static volatile int svc_running = 1;
-
-
 static void _svc_stopper(int dummy)
 {
   svc_running = 0;
@@ -58,27 +57,19 @@ static void _set_nonblocking(const int fd)
     perror("fcntl()");
 }
 
-static void _expire_timers(list_t *timers,
+static void _expire_timers(rbtree_t *timers,
+                           rbnode_t *timer,
                            const long timeout)
 {
-  node_t *timer = list_first(timers);
-  if (timer) {
+  if (timer != RBT_NIL(timers)) {
+    httpconn_t *conn = (httpconn_t *)timer->data;
     long cur_time = mstime();
-    do {
-      if (cur_time - timer->stamp >= timeout) {
-        httpconn_t *conn = (httpconn_t *)timer->data;
-
-        D_PRINT("[CONN] socket %d closed from server\n", conn->sockfd);
-        shutdown(conn->sockfd, SHUT_RDWR);
-        close(conn->sockfd);
-        free(conn);
-
-        list_del(timers, timer->stamp);
-        timer = list_next(timers);
-      }
-      else
-        timer = list_next(timers);
-    } while (timer);
+    if (cur_time - conn->stamp >= timeout) {
+      rbt_delete(timers, timer, 0);
+      timer = timers->root.left;
+    }
+    _expire_timers(timers, timer->left, timeout);  /* left */
+    _expire_timers(timers, timer->right, timeout);  /* right */
   }
 }
 
@@ -107,7 +98,7 @@ static void _receive_conn(const int srvfd,
                           const int epfd,
                           PGconn *pgconn,
                           list_t *cache,
-                          list_t *timers)
+                          rbtree_t *timers)
 {
   struct sockaddr cliaddr;
   socklen_t len_cliaddr = sizeof(struct sockaddr);
@@ -219,8 +210,8 @@ int main(int argc, char **argv)
   thpool_t *taskpool = thpool_init(np * THREADS_PER_CORE);
   /* list of files cached in the memory */
   list_t *cache = list_new();
-  /* list of timers */
-  list_t *timers = list_new();
+  /* red-black tree of timers */
+  rbtree_t *timers = rbt_create(httpconn_compare, httpconn_destroy);
   /* loop time */
   long loop_time = mstime();
 
@@ -260,11 +251,15 @@ int main(int argc, char **argv)
 
   do {
     int nevents = epoll_wait(epfd, events, MAXEVENTS, EPOLL_TIMEOUT);
-    if (nevents == -1) perror("epoll_wait()");
+    if (nevents == -1) {
+      if (errno == EINTR) continue;
+      perror("epoll_wait()");
+    }
 
     if ((mstime() - loop_time) >= EPOLL_TIMEOUT) {
       /* expire the timers */
-      _expire_timers(timers, HTTP_KEEPALIVE_TIME);
+      rbnode_t *timer = timers->root.left;
+      _expire_timers(timers, timer, HTTP_KEEPALIVE_TIME);
       /* expire the cache */
       _expire_cache(cache, MAX_CACHE_TIME);
 
@@ -309,7 +304,7 @@ int main(int argc, char **argv)
    */
   thpool_destroy(taskpool);
 
-  list_destroy(timers);
+  rbt_destroy(timers);
   _expire_cache(cache, 0);
   list_destroy(cache);
 

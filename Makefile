@@ -4,12 +4,12 @@
 
 CC = gcc
 #CFLAGS = -O0 -g -Wall -pedantic -Isvc -I.
-CFLAGS = -O3 -msse2 -Wall -pedantic -Isvc -I.
-LDFLAGS = -lpq -lpthread
-OBJS = base64.o \
-       deflate.o \
+CFLAGS = -O3 -msse2 -Wall -pedantic -Isvc -I. -pg
+LDFLAGS = -lpq -lpthread -pg
+OBJS = deflate.o \
        thpool.o \
        linkedlist.o \
+       rbtree.o \
        io.o \
        util.o \
        jsmn.o \
