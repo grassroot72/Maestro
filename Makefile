@@ -4,8 +4,8 @@
 
 CC = gcc
 #CFLAGS = -O0 -g -Wall -pedantic -Isvc -I.
-CFLAGS = -O3 -msse2 -Wall -pedantic -Isvc -I.
-LDFLAGS = -lpq -lpthread
+CFLAGS = -O3 -msse2 -Wall -pedantic -Isvc -I. -pg
+LDFLAGS = -lpq -lpthread -pg
 OBJS = base64.o \
        deflate.o \
        thpool.o \

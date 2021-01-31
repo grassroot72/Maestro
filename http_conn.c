@@ -72,9 +72,6 @@ void httpconn_task(void *arg)
       http_post(conn->sockfd, conn->pgconn, req->path, req);
     }
 
-    /* start timer recording */
-    long cur_time = mstime();
-    list_update(conn->timers, conn, cur_time);
     msg_destroy(req, 1);
     free(bytes);
 

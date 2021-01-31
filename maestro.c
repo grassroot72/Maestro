@@ -133,6 +133,10 @@ static void _receive_conn(const int srvfd,
     _set_nonblocking(clifd);
     httpconn_t *cliconn = httpconn_new(clifd, epfd, pgconn, cache, timers);
 
+    /* register timers */
+    long cur_time = mstime();
+    list_update(timers, cliconn, cur_time);
+
     struct epoll_event event;
     event.data.ptr = (void *)cliconn;
     /*
@@ -260,7 +264,10 @@ int main(int argc, char **argv)
 
   do {
     int nevents = epoll_wait(epfd, events, MAXEVENTS, EPOLL_TIMEOUT);
-    if (nevents == -1) perror("epoll_wait()");
+    if (nevents == -1) {
+      if (errno == EINTR) continue;
+      perror("epoll_wait()");
+    }
 
     if ((mstime() - loop_time) >= EPOLL_TIMEOUT) {
       /* expire the timers */
