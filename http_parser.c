@@ -78,7 +78,7 @@ httpmsg_t *http_parse_req(const unsigned char *buf)
   httpmsg_t *req = msg_new();
 
   if (strcmp(path, "/") == 0)
-    msg_set_req_line(req, method, "/index.html", major, minor);
+    msg_set_req_line(req, method, "/demo/index.html", major, minor);
   else
     msg_set_req_line(req, method, path, major, minor);
 
