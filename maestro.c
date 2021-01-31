@@ -67,11 +67,7 @@ static void _expire_timers(list_t *timers,
     do {
       if (cur_time - timer->stamp >= timeout) {
         httpconn_t *conn = (httpconn_t *)timer->data;
-
-        D_PRINT("[CONN] socket %d closed from server\n", conn->sockfd);
-        shutdown(conn->sockfd, SHUT_RDWR);
-        close(conn->sockfd);
-        free(conn);
+        httpconn_destroy(conn);
 
         list_del(timers, timer->stamp);
         timer = list_next(timers);

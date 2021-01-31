@@ -25,6 +25,8 @@ httpconn_t *httpconn_new(const int sockfd,
                          list_t *cache,
                          list_t *timers);
 
+void httpconn_destroy(httpconn_t *conn);
+
 void httpconn_task(void *arg);
 
 

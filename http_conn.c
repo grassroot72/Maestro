@@ -4,11 +4,13 @@
  * license: MIT license
  */
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
+#include <unistd.h>
 #include <sys/epoll.h>
+#include <sys/socket.h>
 #include <libpq-fe.h>
 #include "util.h"
 #include "io.h"
@@ -37,6 +39,14 @@ httpconn_t *httpconn_new(const int sockfd,
   conn->timers = timers;
 
   return conn;
+}
+
+void httpconn_destroy(httpconn_t *conn)
+{
+  D_PRINT("[CONN] socket %d closed from server\n", conn->sockfd);
+  shutdown(conn->sockfd, SHUT_RDWR);
+  close(conn->sockfd);
+  free(conn);
 }
 
 void httpconn_task(void *arg)
