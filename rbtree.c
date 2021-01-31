@@ -39,6 +39,8 @@ rbtree_t *rbt_create(int (*compare)(const void *, const void *),
   rbt->min = NULL;
   #endif
 
+  pthread_mutex_init(&rbt->mutex, NULL);
+
   return rbt;
 }
 
@@ -244,10 +246,7 @@ rbnode_t *rbt_insert(rbtree_t *rbt,
   parent = RBT_ROOT(rbt);
 
   while (current != RBT_NIL(rbt)) {
-    int cmp;
-    pthread_mutex_lock(&rbt->mutex);
-    cmp = rbt->compare(data, current->data);
-    pthread_mutex_unlock(&rbt->mutex);
+    int cmp = rbt->compare(data, current->data);
 
     #ifndef RBT_DUP
     if (cmp == 0) {
@@ -257,14 +256,11 @@ rbnode_t *rbt_insert(rbtree_t *rbt,
     }
     #endif
 
-    if (cmp == 0) return current;
-
     parent = current;
     current = cmp < 0 ? current->left : current->right;
   }
 
   /* replace the termination NIL pointer with the new node pointer */
-
   current = new_node = (rbnode_t *)malloc(sizeof(rbnode_t));
   if (current == NULL) return NULL; /* out of memory */
 

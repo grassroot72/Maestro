@@ -22,7 +22,7 @@
 #include "http_post.h"
 #include "http_conn.h"
 
-#define DEBUG
+//#define DEBUG
 #include "debug.h"
 
 
@@ -42,15 +42,13 @@ httpconn_t *httpconn_new(const int sockfd,
   return conn;
 }
 
-int httpconn_compare(const void *conn1,
-                     const void *conn2)
+int httpconn_compare(const void *newconn,
+                     const void *oldconn)
 {
   httpconn_t *p1, *p2;
 
-  p1 = (httpconn_t *)conn1;  // data to be compared
-  p2 = (httpconn_t *)conn2;  // current data
-
-  if (p1->sockfd > 32720 || p1->sockfd < 0) return 0;
+  p1 = (httpconn_t *)newconn;  /* data to be compared */
+  p2 = (httpconn_t *)oldconn;  /* current data */
 
   if (p1 != p2) {
     if (p1->stamp >= p2->stamp) {
@@ -81,13 +79,11 @@ void httpconn_destroy(void *conn)
 
   httpconn_t *p;
   p = (httpconn_t *)conn;
-  if (p->sockfd < 32720 && p->sockfd >= 0) {
-    printf("[CONN] socket %d closed from server\n", p->sockfd);
-    shutdown(p->sockfd, SHUT_RDWR);
-    close(p->sockfd);
-    p->sockfd = -1;
-    free(p);
-  }
+
+  printf("[CONN] socket %d closed from server\n", p->sockfd);
+  shutdown(p->sockfd, SHUT_RDWR);
+  close(p->sockfd);
+  free(p);
 }
 
 
@@ -124,9 +120,6 @@ void httpconn_task(void *arg)
       http_post(conn->sockfd, conn->pgconn, req->path, req);
     }
 
-    /* start timer recording */
-    conn->stamp = mstime();
-    rbt_insert(conn->timers, conn);
     msg_destroy(req, 1);
     free(bytes);
 

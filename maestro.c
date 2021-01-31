@@ -124,6 +124,10 @@ static void _receive_conn(const int srvfd,
     _set_nonblocking(clifd);
     httpconn_t *cliconn = httpconn_new(clifd, epfd, pgconn, cache, timers);
 
+    /* register timers */
+    cliconn->stamp = mstime();
+    rbt_insert(timers, cliconn);
+
     struct epoll_event event;
     event.data.ptr = (void *)cliconn;
     /*
