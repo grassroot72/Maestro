@@ -4,6 +4,7 @@ This project aims to create a tiny but functional application server by
 leveraging multithread and epoll features of linux OS.
 
 All the source code is written in C.
+**Please go to https://github.com/grassroot72/Maestro2 for better code structure**
 
 The project is a WIP (Work In Progress) project. It is still in its infant
 stage. More features will be added in the future.
